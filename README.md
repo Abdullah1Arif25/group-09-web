@@ -62,7 +62,8 @@ Open the `server` and `client` in separate VSCode workspaces or open the combine
 
 ### Purpose
 
-2-5 sentences describing what the system does
+HearMeOut is a web based anonymous confession and support platform for users aged 18+. It provides a safe space for people to share their thoughts, emotions, or struggles without fear of judgment. Users register securely, then choose between local chat (people from their own country) or global chat (connect with people worldwide), the user also has the option to enter a confession room that is dedicated to only one specific topic. In global mode, all messages are automatically translated into each user’s native language, enabling real emotional exchange across cultures. To protect privacy, every time a user enters a chat room, a new random username is generated, keeping interactions fully anonymous.
+
 
 ### Pages
 
