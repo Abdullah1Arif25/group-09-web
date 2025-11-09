@@ -67,21 +67,30 @@ HearMeOut is a web based anonymous confession and support platform for users age
 
 ### Pages
 
-* Registration: Users would have to register using their personal number to verify eligibility.  
+* Registration page: 
+  * Users register using their personal number to verify eligibility. 
+  * After verification, users receive a unique ID, create a password, and choose their preferred language. 
+  * Login is done using the given ID and password.  
 
-* Home page: The user has the option to choose between the local or global confession rooms.
+* Home page: 
+  * Users can choose between Local or Global confession rooms.
+  * Provides quick access to the live chat and branching room menus. 
 
-* Local page: The user has the option to enter the local room or select a specific topic-based confession room. 
+* Local page: 
+  * Allows users to enter local confession rooms.
+  * Includes topic based subrooms (branching rooms) for more focused discussions.
 
-* Global page: Displays confession rooms from multiple countries, allowing users to join international discussions.
+* Global page: 
+  * Displays confession rooms that connect users from multiple countries.
+  * Enables international discussions through a live chat interface with translation, reply, and reaction features. 
 
-* Confession page: It shows how users are interacting with one another and what reactions they provide. 
-
-* Report page: Users can report other users' messages if they were violating the terms and policies of the system.
+* Confession page: 
+  * Shows how users are interacting in the confession rooms.
+  * Displays message exchanges, reactions, and user participation in real time.
 
 ### Entity-Relationship (ER) Diagram
 
-![ER Diagram](./images/EER_Diagram__2_.png)
+![ER Diagram](./images/ER-Diagram.png)
 
 ## Teaser (MS3)
 
