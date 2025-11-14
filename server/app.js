@@ -18,6 +18,7 @@ app.use(cors());
 
 // routes
 const userRoutes = require('./routes/users.routes');
+const messageRoutes = require('./routes/messages.routes');
 
 // greeting route
 app.get('/api', function (req, res) {
@@ -26,6 +27,7 @@ app.get('/api', function (req, res) {
 
 // mount routes
 app.use('/api/users', userRoutes);
+app.use('/api/messages', messageRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
