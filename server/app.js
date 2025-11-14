@@ -16,16 +16,12 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors());
 
-// routes
-const userRoutes = require('./routes/users.routes');
 
 // greeting route
 app.get('/api', function (req, res) {
   res.json({ message: 'Welcome to the HMO API' });
 });
 
-// mount routes
-app.use('/api/users', userRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
