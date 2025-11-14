@@ -16,12 +16,16 @@ app.use(express.json());
 app.use(morgan('dev'));
 app.use(cors());
 
+// routes
+const userRoutes = require('./routes/users.routes');
 
 // greeting route
 app.get('/api', function (req, res) {
   res.json({ message: 'Welcome to the HMO API' });
 });
 
+// mount routes
+app.use('/api/users', userRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
@@ -46,9 +50,12 @@ app.use(function (err, req, res, next) {
 });
 
 // start server
-app.listen(port, function () {
-  console.log(`Server running on port ${port}`);
-  console.log(`API ready at http://localhost:${port}/api`);
+app.listen(port, function(err) {
+    if (err) throw err;
+    console.log(`Express server listening on port ${port}, in ${env} mode`);
+    console.log(`Backend: http://localhost:${port}/api/`);
+    console.log(`Frontend (production): http://localhost:${port}/`);
 });
+
 
 module.exports = app;
