@@ -44,7 +44,7 @@ app.get('/api', function (req, res) {
 app.use('/api/users', userRoutes);
 
 
-// Catch-all 404 for unmatched API routes
+// Catch all 404 for unmatched API routes
 app.use('/api/*', function (req, res) {
   res.status(404).json({ message: 'Not Found' });
 });
