@@ -2,10 +2,10 @@ const mongoose = require('mongoose');
 
 
 const LocalRoomSchema  = new mongoose.Schema({
-    Room_Id : {type: String, required: [true, "Name is Required"], unique: true, immutable : true},
-    Topic_Dropdown : {type :[String], enum:["School", "Food", "Hobbies"], immutable : true},
-    Country : {type: String},
-    Live_Chat: {type: Boolean, required: true}
+    roomId : {type: String, required: [true, "Name is Required"], unique: true, immutable : true},
+    topicDropdown : {type :[String], enum:["School", "Food", "Hobbies"], immutable : true},
+    country : {type: String},
+    liveChat: {type: Boolean, required: true}
 
 
 
