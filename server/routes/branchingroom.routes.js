@@ -91,6 +91,6 @@ branchingRoomRoute.delete("/:branching_room_id", async (req, res)=>{
 });
 
 
-module.export = branchingRoomRoute;
+module.exports = branchingRoomRoute;
 
 
