@@ -43,14 +43,14 @@ app.get('/api', function (req, res) {
 
 // Mount routers
 app.use('/api/users', userRoutes);
-app.use('/api/branchingRoom',branchingRoomRoutes);
+app.use('/api/branchingrooms',branchingRoomRoutes);
 
 
 // Catch all 404 for unmatched API routes
 app.use('/api/*', function (req, res) {
   res.status(404).json({ message: 'Not Found' });
 });
-
+ 
 // FRONTEND SERVING 
 app.use(history());
 var root = path.normalize(__dirname + '/..');
