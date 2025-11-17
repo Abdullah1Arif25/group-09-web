@@ -10,7 +10,7 @@ connectDB(); // connect to db
 
 const app = express();
 
-// basic middleware
+// basic middleware 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan('dev'));
