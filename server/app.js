@@ -34,6 +34,7 @@ app.use(cors());
 // IMPORT ROUTES
 // HMO entity routers
 const userRoutes = require('./routes/users.routes');
+const branchingRoomRoutes = require('./routes/branchingroom.routes');
 
 // API ROUTES
 app.get('/api', function (req, res) {
@@ -42,6 +43,7 @@ app.get('/api', function (req, res) {
 
 // Mount routers
 app.use('/api/users', userRoutes);
+app.use('/api/branchingRoom',branchingRoomRoutes);
 
 
 // Catch all 404 for unmatched API routes
