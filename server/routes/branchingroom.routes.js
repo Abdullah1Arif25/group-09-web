@@ -8,11 +8,13 @@ const branchingRoomRoute  = express.Router();
 branchingRoomRoute.post("/", async (req, res, next)=>{
     try{
         const SingleBrancingRooms = await BranchingRoom.create(req.body);
-        res.status(201).json({message: "Success", Object: SingleBrancingRooms})
-        next()
+        const BrancingRooms = await SingleBrancingRooms.find(SingleBrancingRooms.parentRoomId).populate("parentRoomId");
+
+        res.status(201).json({message: "Success", Object: BrancingRooms});
+        next();
     }catch(err){
-        res.status(422).json({message: "Not Found", Error_Message: err})
-        next(err)
+        res.status(422).json({message: "Not Found", Error_Message: err});
+        next(err);
     } 
 
 });
@@ -22,11 +24,11 @@ branchingRoomRoute.post("/", async (req, res, next)=>{
 branchingRoomRoute.get("/", async (req, res, next)=>{
     try{
         const allBrancingRooms = await BranchingRoom.find(req.body);
-        res.status(200).json(allRooms)
-        next()
+        res.status(200).json(allBrancingRooms);
+               
     }catch(err){
-        res.status(404).json({message: "Not Found", Error_Message: err})
-        next(err)
+        res.status(404).json({message: "Not Found", Error_Message: err});
+        
 
     } 
 
@@ -34,42 +36,44 @@ branchingRoomRoute.get("/", async (req, res, next)=>{
 
 
 // Read Branching Room By Id
-branchingRoomRoute.get("/:branching_room_id", async (req, res, next)=>{
+branchingRoomRoute.get("/:branchingRoomId", async (req, res)=>{
     try{
-        const SingleBranchingRooms = await BranchingRoom.findOne({Branching_Branching_Room_Id: req.params.Branching_Branching_Room_Id});
-        res.status(200).json(SingleBranchingRooms)
-        next()
+        const SingleBranchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId}).populate("parentRoomId");
+        if (!SingleBranchingRoom) {
+            return res.status(404).json({ message: "Branching room not found" });
+    }
+        res.status(200).json(SingleBranchingRoom);
     }catch(err){
-        res.status(404).json({message: "Not Found", Error_Message: err.message})
-        next(err)
+        res.status(404).json({message: "Not Found", Error_Message: err.message});
+
     } 
 
 });
 
 // Read One Branching Rooms SuperType
-branchingRoomRoute.get("/:branching_room_id", async (req, res, next)=>{
+branchingRoomRoute.get("/:branchingRoomId", async (req, res, next)=>{
     try{
-        const SingleBranchingRooms = await BranchingRoom.findOne({Branching_Branching_Room_Id: req.params.Branching_Branching_Room_Id}).populate("Room_type");
-        res.status(200).json(SingleBranchingRooms)
-        next()
+        const SingleBranchingRooms = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId}).populate("parentRoomId").exec();
+        res.status(200).json(SingleBranchingRooms);
+    
     }catch(err){
-        res.status(404).json({message: "Not Found", Error_Message: err.message})
-        next(err)
+        res.status(404).json({message: "Not Found", Error_Message: err.message});
+    
     } 
 
 });
 
 
 // Update One Branhing Room
-branchingRoomRoute.patch("/:branching_room_id", async (req, res, next)=>{
+branchingRoomRoute.patch("/:branchingRoomId", async (req, res, next)=>{
     try{
-        const updatedRoom = await BranchingRoom.findOneAndUpdate({Branching_Branching_Room_Id: req.params.Branching_Branching_Room_Id}, req.body, {new: true, runValidators: true});
-        if(!updatedRoom){res.status(404).json({message: "Not Found"})}
-        res.status(200).json(SingleBranchingRooms)
-        next()
+        const updatedRoom = await BranchingRoom.findOneAndUpdate({branchingRoomId: req.params.branchingRoomId}, req.body, {new: true, runValidators: true});
+        if(!updatedRoom){res.status(404).json({message: "Not Found"});}
+        res.status(200).json(SingleBranchingRooms);
+        next();
     }catch(err){
-        res.status(404).json({message: "Not Found", Error_Message: err})
-        next(err)
+        res.status(404).json({message: "Not Found", Error_Message: err});
+        next(err);
        
     } 
 
@@ -77,20 +81,20 @@ branchingRoomRoute.patch("/:branching_room_id", async (req, res, next)=>{
 
 
 // Delete One Branching Room
-branchingRoomRoute.delete("/:branching_room_id", async (req, res)=>{
+branchingRoomRoute.delete("/:branchingRoomId", async (req, res)=>{
     try{
-        const deletedRoom = await BranchingRoom.findOneAndDelete({Branching_Room_Id: req.params.Branching_Room_Id});
+        const deletedRoom = await BranchingRoom.findOneAndDelete({branchingRoomId: req.params.branchingRoomId});
         if(!deletedRoom){ res.status(404).json({message: " Not Found"})}
-        res.status(200).json({message: "Successfully Deleted"})
-        next()
+        res.status(200).json({message: "Successfully Deleted"});
+        next();
     }catch(err){
-        res.status(404).json({message: "Not Found", Error_Message: err})
-        next(err)
+        res.status(404).json({message: "Not Found", "Error_Message": err});
+        next(err);
     } 
 
 });
 
 
-module.export = branchingRoomRoute;
+module.exports = branchingRoomRoute;
 
 
