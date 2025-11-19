@@ -6,9 +6,9 @@ const User = require('../models/user.model');
 router.post('/register', async (req, res, next) => {
   try {
     const {password} = req.body;
-    if (!password || password.length < 8) {
+    if (!password || password.length != 8) {
       return res.status(400).json({
-        message: "Password must be at least 8 characters long"
+        message: "Password must 8 characters long"
       });
     }
     const user = await User.create(req.body);
