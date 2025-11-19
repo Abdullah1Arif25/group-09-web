@@ -1,96 +1,82 @@
 const express = require('express');
-const router = express.Router();
+const MessagesRoute = express.Router();
 const Message = require('../models/message.model');
 
-// POST /api/messages
-router.post('/', async function (req, res, next) {
-  const msg = new Message(req.body);
+
+// POST createMessage
+MessagesRoute.post('/', async (req, res, next)  =>{
+  
   try {
-    await msg.save();
+    const newMessage = await Message.create(req.body);
+  
+
+    res.send(201).json({message:"Successs", "Object": populatedMessage});
+    
   } catch (err) {
-    return next(err);
+    next(err);
   }
-  res.status(201).json(msg);
+  
 });
 
-// GET /api/messages
-router.get('/', async function (req, res, next) {
+
+// GET getAllMessages
+MessagesRoute.get('/', async (req, res, next)  =>{
   try {
     const messages = await Message.find();
-    res.json({ messages });
+    res.status(200).json(messages);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-// GET /api/messages/:id
-router.get('/:id', async function (req, res, next) {
+
+// GET getMessageById
+MessagesRoute.get('/:messageId', async (req, res, next) =>{
   try {
-    const msg = await Message.findById(req.params.id);
-    if (!msg) {
-      return res.status(404).json({ message: "Message not found" });
+    const message = await Message.findOne({messageId:req.params.messageId}).populate('Sender').populate('BranchingRoom').populate('ResponseIds');
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
     }
-    res.json(msg);
+    res.status(200).json(message);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-// PUT /api/messages/:id
-router.put('/:id', async function (req, res, next) {
+
+
+// PATCH patchMessage
+MessagesRoute.patch('/:messageId', async (req, res, next)  =>{
   try {
-    const msg = await Message.findById(req.params.id);
-    if (!msg) {
-      return res.status(404).json({ message: "Message not found" });
+    const patchedMessage = await Message.findOneAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true, runValidators: true }
+    );
+
+    if (!patchedMessage) {
+      return res.status(404).json({ error: 'Message not found' });
     }
-
-    // replace fields
-    msg.MessageId = req.body.MessageId;
-    msg.SendTimestamp = req.body.SendTimestamp;
-    msg.Reaction = req.body.Reaction;
-    msg.ResponseIds = req.body.ResponseIds;
-    msg.UserId = req.body.UserId;
-
-    await msg.save();
-    res.json(msg);
+    res.status(200).json(patchedMessage);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-// PATCH /api/messages/:id
-router.patch('/:id', async function (req, res, next) {
+
+// DELETE deleteMessage
+MessagesRoute.delete('/:messageId', async (req, res, next)  =>{
   try {
-    const msg = await Message.findById(req.params.id);
-    if (!msg) {
-      return res.status(404).json({ message: "Message not found" });
+    const deletedMessage = await Message.findOneAndDelete({messageId: req.params.messageId});
+
+    if (!deletedMessage) {
+      return res.status(404).json({ error: 'Message not found' });
     }
 
-    // update only provided fields
-    msg.MessageId = req.body.MessageId || msg.MessageId;
-    msg.SendTimestamp = req.body.SendTimestamp || msg.SendTimestamp;
-    msg.Reaction = req.body.Reaction || msg.Reaction;
-    msg.ResponseIds = req.body.ResponseIds || msg.ResponseIds;
-    msg.UserId = req.body.UserId || msg.UserId;
-
-    await msg.save();
-    res.json(msg);
+    res.status(200).json({message: "Successs"});
   } catch (err) {
-    return next(err);
+    next(err);
   }
 });
 
-// DELETE /api/messages/:id
-router.delete('/:id', async function (req, res, next) {
-  try {
-    const msg = await Message.findByIdAndDelete(req.params.id);
-    if (!msg) {
-      return res.status(404).json({ message: "Message not found" });
-    }
-    res.json(msg);
-  } catch (err) {
-    return next(err);
-  }
-});
-
-module.exports = router;
+module.exports = MessagesRoute;
