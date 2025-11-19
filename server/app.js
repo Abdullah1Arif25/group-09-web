@@ -18,7 +18,10 @@ app.use(cors());
 
 // routes
 const userRoutes = require('./routes/users.routes');
+const messageRoutes = require('./routes/messages.routes');
 const branchingRoomRoutes = require('./routes/branchingroom.routes');
+const localRoomRoutes = require('./routes/localrooms.routes');
+
 
 // greeting route
 app.get('/api', function (req, res) {
@@ -27,7 +30,9 @@ app.get('/api', function (req, res) {
 
 // mount routes
 app.use('/api/users', userRoutes);
+app.use('/api/messages', messageRoutes);
 app.use('/api/branchingrooms',branchingRoomRoutes);
+app.use('/api/localrooms', localRoomRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
