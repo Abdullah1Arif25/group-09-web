@@ -30,13 +30,12 @@ router.get('/', async (req, res, next) => {
 // update /api/live_chat
 router.patch("/" ,async (req, res)=>{
     try{
-        const updatedRoom = await Global.findOneAndUpdate({},{live_Chat: req.body.live_Chat}, {new: true});
+        const updatedRoom = await Global.findOneAndUpdate({$set:{live_Chat: req.body.live_Chat}});
         res.status(200).json({message : "Success",updatedRoom});
     }catch(err){
         res.status(404).json({message:"Not Found", "error" : err})
     }
 })
-
 
 // Delete /api/Global/:room_Id
 router.delete("/:room_Id" ,async (req, res)=>{

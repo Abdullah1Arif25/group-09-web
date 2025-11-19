@@ -3,10 +3,9 @@ const mongoose = require('mongoose');
 const globalRoomSchema = new mongoose.Schema(
   { 
     room_Id: { type: String, unique: true, immutable : true},        
-    live_Chat: { type: Boolean, required: true},    
-    topic_Dropdown: {type :[String], enum:["School", "Food", "Hobbies"], immutable : true},
+    live_Chat: { type: Boolean, required: true},
   },
   { timestamps: true }
 );
 
-module.exports = mongoose.model('Global', globalRoomSchema);
+module.exports = mongoose.model('GlobalRoom', globalRoomSchema);
