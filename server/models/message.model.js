@@ -5,8 +5,8 @@ const messageSchema = new Schema({
   messageId: { type: String, unique: true, required: true, immutable: true, index:true },
   Body: {type: String, required: true },
   SendTimestamp: { type: Date }, 
-  Reaction: { type: String, 
-    enum: ['👍', '❤️', '😂', '😢', '😡', null] 
+  Reaction: { type: [String], 
+    enum: ['👍', '❤️', '😂', '😢', '😡', null], required: false
   }, 
   ResponseIds: [{ type: mongoose.Schema.ObjectId, ref: 'messages', required: false }], 
   //Foreign key Refferences
