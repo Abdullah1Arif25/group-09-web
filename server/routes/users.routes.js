@@ -1,62 +1,23 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/user.model');
+const UserController = require('../controllers/users.controller');
 
-// POST /api/users
-router.post('/', async (req, res, next) => {
-  try {
-    const user = await User.create(req.body);
-    res.status(201).json(user);
-  } catch (err) {
-    next(err);
-  }
-});
+// POST /api/userslregister
+router.post('/register', UserController.registerUser);
 
-// GET /api/users
-router.get('/', async (req, res, next) => {
-    try {
-      const users = await User.find();
-      res.status(201).json(users);
-    } catch (err) {
-      next(err);
-      res.status(404).json({ message: 'Not Found' });
-    }
-  });
+// POST /api/users/login
+router.post('/login',UserController.loginUser);
 
 // GET /api/users:UserId
-router.get('/:userId', async (req, res, next) => {
-    try {
-      const users = await User.findOne({userId: req.params.userId});
-      res.status(200).json(users);
-    } catch (err) {
-      next(err);
-      res.status(404).json({message: "Not Found"})
-    }
-  });
+router.get('/:userId', UserController.getAUser);
 
 
 // update /api/users/:userId
-router.patch("/:userId" ,async (req, res)=>{
-    try{
-        const updatedUser = await User.findOneAndUpdate({userId: req.params.userId}, req.body, {new: true , runValidators: true})
-        if (!updatedUser){res.status(404).json({message:"The User Does not exsist"})}
-        res.status(200).json({message : "Success"})
-
-    }catch(err){
-        res.status(404).json({message:"Not Found", "error" : err})
-    }
-})
+router.patch("/:userId" ,UserController.updateAUser);
 
 // Delete /api/users/:userId
-router.delete("/:userId" ,async (req, res)=>{
-    try{
-        const updatedUser = await User.findOneAndDelete({userId: req.params.userId}, req.body, {new: true , runValidators: true})
-        res.status(200).json({message : "Success"})
-
-    }catch(err){
-        res.status(204).json({message:"Not Found"})
-    }
-})
+router.delete("/:userId" ,UserController.deleteAUser);
 
 
 module.exports = router;
