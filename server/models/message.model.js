@@ -12,6 +12,6 @@ const messageSchema = new Schema({
   //Foreign key Refferences
   Sender: { type: Schema.Types.ObjectId, ref: 'User' }, 
   BranchingRoom: { type: Schema.Types.ObjectId, ref: 'branchingRoom' }
-}); 
+}, {timestamps:true}); 
 
 module.exports = mongoose.model('messages', messageSchema);
