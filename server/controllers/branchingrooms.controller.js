@@ -8,7 +8,7 @@ const messagesModel = require("../models/message.model");
 // POST:  Create One Brancing Rooms
 const createBranchingRoom = async function(req, res, next){
     try{
-        const SingleBrancingRooms = await BranchingRoom.create();
+        const SingleBrancingRooms = await BranchingRoom.create(req.body);
         res.status(201).json({message: "Success", Object: SingleBrancingRooms});
     }catch(err){
         next(err);
@@ -35,8 +35,48 @@ const createMessageInABranchingRoom = async function(req, res, next){
 // GET: Read All Branching Rooms
 const getAllBranchingRooms = async function(req, res, next){
     try{
-        const allBrancingRooms = await BranchingRoom.find(req.body);
-        res.status(200).json(allBrancingRooms);  
+        //Filter
+        const queryParams = {};
+        if(req.query.branchingRoomType !== undefined) queryParams.branchingRoomType = req.query.branchingRoomType;
+        if(req.query.roomTopic !== undefined) queryParams.roomTopic = req.query.roomTopic;
+
+        let query = BranchingRoom.find(queryParams);
+
+
+        //Sorting
+        if(req.query.sort){
+            const sortby = req.query.sort.split(",").join(" ");
+            query = query.sort(sortby);
+        } else{
+            query = query.sort("-createdAt");
+        }
+
+        //Field Selection
+
+        if(req.query.fields){
+            const fields = req.query.fields.split(",").join(" ");
+            query = query.select(fields);
+        }
+
+
+        // Pagination
+
+        const page = parseInt(req.query.page, 10) || 1;
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const skip = (page -1)*limit;
+        
+        query = query.skip(skip).limit(limit);
+
+
+        const allBrancingRooms = await query;
+        res.status(200).json({
+            status: "Success", 
+            results : allBrancingRooms.length,
+            limit: limit,
+            pages: page, 
+            Body: allBrancingRooms
+
+        });  
     }catch(err){
         next(err);
     } 
