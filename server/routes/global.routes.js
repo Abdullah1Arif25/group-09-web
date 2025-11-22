@@ -8,8 +8,8 @@ router.post('/', createGlobalRoom);
 // GET /api/globalRoom
 router.get('/', getGlobalRoom);
 
-// update /api/live_chat
-router.patch('/', updateGlobalRoom);
+// PUT /api/live_chat
+router.put('/', updateGlobalRoom);
 
 // Delete /api/Global/:room_Id
 router.delete('/:room_Id', deleteGlobalRoom);
