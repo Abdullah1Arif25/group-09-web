@@ -38,7 +38,7 @@ const updateGlobalRoom = async function (req, res, next) {
     const { live_Chat } = req.body;
 
     if (live_Chat === undefined) {
-      return res.status(400).json({ message: "live_Chat is required." });
+      return res.status(400).json({ message: "live Chat is required." });
     }
 
     if (req.body.room_Id) {
