@@ -18,7 +18,7 @@ LocalRoomRouter.get("/:roomId", localRoomController.getALocalRoom);
 
 
 // Update One Local Rooms
-LocalRoomRouter.patch("/:roomId", localRoomController.updateLocalRoomById);
+LocalRoomRouter.put("/:roomId", localRoomController.updateLocalRoom);
 
 
 // Delete One Local Rooms
