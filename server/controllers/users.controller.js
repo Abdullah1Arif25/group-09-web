@@ -90,11 +90,11 @@ const updateAUser =  async function(req, res, next){
   try{
     const data = {};
 
-    if ("language" in req.body && req.body.language === "") {
+    if (language === "") {
         return res.status(400).json({ message: "Language cannot be empty." });
     }
 
-    if ("password" in req.body && req.body.password === "") {
+    if (password === "") {
         return res.status(400).json({ message: "Password cannot be empty." });
     }
 
