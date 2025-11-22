@@ -1,7 +1,4 @@
 const express = require("express");
-const BranchingRoom = require("../models/branchingroom.model");
-const messagesModel = require("../models/message.model");
-const branchingroomModel = require("../models/branchingroom.model");
 const branchingRoomRoute  = express.Router();
 const branchingRoomController = require('../controllers/branchingrooms.controller');
 
