@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const {createGlobalRoom, getGlobalRoom, updateGlobalRoom, deleteGlobalRoom} = require('../controllers/global.controller');
+const {createGlobalRoom, getGlobalRoom, updateGlobalRoom, deleteGlobalRoom} = require('../controllers/global.controllers');
 
 // POST /api/global
 router.post('/', createGlobalRoom);
