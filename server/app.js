@@ -34,7 +34,7 @@ app.use(cors());
 // IMPORT ROUTES
 // HMO entity routers
 const userRoutes = require('./routes/users.routes');
-const branchingRoomRoutes = require('./routes/branchingroom.routes');
+const branchingRoomRoutes = require('./routes/branchingrooms.routes');
 
 // API ROUTES
 app.get('/api', function (req, res) {
