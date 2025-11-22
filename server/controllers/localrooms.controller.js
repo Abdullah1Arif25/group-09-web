@@ -49,20 +49,37 @@ const getALocalRoom =  async function(req, res, next){
 };
 
 
-// Update One Local Rooms
-const updateLocalRoomById =  async function(req, res, next){
+// Update One Local Room
+const updateLocalRoom =  async function(req, res, next){
     try{
-        const updatedRoom = await LocalRoom.findOneAndUpdate({roomId: req.params.roomId}, req.body, {new: true, runValidators: true});
-        if(!updatedRoom){res.status(404).json({message: "Not Found"})}
-        res.status(200).json(updatedRoom)
-    }catch(err){
-        next(err); 
-    } 
+        const { country, liveChat } = req.body;
+        if (!country) {
+            return res.status(400).json({ message: "Country is required." });
+        }
+
+        if (liveChat === undefined) {
+            return res.status(400).json({ message: "live Chat is required." });
+        }
+
+        if (req.body.roomId) {
+            return res.status(400).json({ message: "Not allowed to modify Local room ID." });
+        }
+
+        const updatedRoom = await LocalRoom.findOneAndUpdate({ roomId: req.params.roomId },{ country, liveChat },{ new: true, runValidators: true });
+        
+        if (!updatedRoom) {
+            return res.status(404).json({ message: "Local room not found." });
+        } 
+        
+        return res.status(200).json({ message: "Success"});
+
+    }   catch (err) {
+        next(err);
+  }
 };
 
-
 // Delete One Local Rooms
-const deleteLocalRoomById = async function(req, res){
+const deleteLocalRoomById = async function(req, res, next){
     try{
         const deletedRoom = await LocalRoom.findOneAndDelete({roomId: req.params.roomId});
         res.status(200).json({message: "Successfully Deleted"});
@@ -72,6 +89,6 @@ const deleteLocalRoomById = async function(req, res){
 
 };
 
-module.exports = {createLocalRoom, deleteLocalRoomById, getALocalRoom, getAllUser, updateLocalRoomById};
+module.exports = {createLocalRoom, deleteLocalRoomById, getALocalRoom, getAllUser, updateLocalRoom};
 
 
