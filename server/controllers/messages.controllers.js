@@ -1,6 +1,7 @@
 const express = require('express');
 const MessagesRoute = express.Router();
 const Message = require('../models/message.model');
+const { Query } = require('mongoose');
 
 
 // POST createMessage
@@ -16,15 +17,56 @@ const createMessage = async function(req, res, next){
 };
 
 
-// GET getAllMessages
-const getAllMessages= async function(req, res, next){
-  try {
-    const messages = await Message.find();
-    res.status(200).json(messages);
-  } catch (err) {
-    next(err);
+// GET getMessageById with Filtering, Sorting, Field Selection and Pagination based on fields provided
+const getAllMessages = async function(req, res, next){
+  try{
+
+    // Filtering
+    const filters = {};
+
+    if(req.query.Sender !== undefined) filters.Sender = req.query.Sender;
+    if(req.query.BranchingRoom !== undefined) filters.BranchingRoom = req.query.BranchingRoom;
+
+    let query = Message.find(filters);
+
+    // Sorting
+    if(req.query.sort){
+      const sortByField = req.query.sort.split(",").join(" ");
+      query = query.sort(sortByField);
+    } else{
+      query = query.sort("-createdAt");
+    }
+
+    //Field Selection
+
+    if(req.query.fields){
+      const selectedField = req.query.fields.split(",").join(" ");
+      query = query.select(selectedField);
+    }
+    //pagination
+    const limit = parseInt(req.query.limit , 10) || 10;
+    const page = parseInt(req.params.page, 1) || 1;
+    const skip = (page -1)*limit;
+
+    query = query.skip(skip).limit(limit);
+    
+
+    const messages = await query.populate("Sender").populate("BranchingRoom");
+
+    res.status(200).json({
+      status: "Success", 
+      result: messages.length,
+      limit: limit,
+      data: messages,
+
+    })
+    
+
+  } catch(err){
+      next(err);
   }
-};
+
+}
 
 
 // GET getMessageById
@@ -39,7 +81,6 @@ const getMessageById = async function(req, res, next){
     next(err);
   }
 };
-
 
 
 // PATCH patchMessage
