@@ -61,6 +61,18 @@ const updateMessageById = async function(req, res, next)  {
 };
 
 
+// DELETE allMessages
+const deleteAllMessages = async (req, res) => {
+  try {
+      await Message.deleteMany({});
+      res.status(200).json({ message: "All messages deleted" });
+  } catch (error) {
+      res.status(500).json({ error: error.message });
+  }
+};
+
+
+
 // DELETE deleteMessage
 const deleteMessageById = async function(req, res, next)  {
   try {
@@ -79,4 +91,7 @@ const deleteMessageById = async function(req, res, next)  {
 };
 
 
-module.exports = {createMessage, getAllMessages, getMessageById, updateMessageById, deleteMessageById}
+
+
+
+module.exports = {createMessage, getAllMessages, getMessageById, updateMessageById, deleteAllMessages, deleteMessageById}

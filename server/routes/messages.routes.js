@@ -21,7 +21,13 @@ MessagesRoute.get('/:messageId', MessageController.getMessageById);
 MessagesRoute.patch('/:messageId', MessageController.updateMessageById);
 
 
+// DELETE allMessages
+MessagesRoute.delete("/", MessageController.deleteAllMessages);
+
+
 // DELETE deleteMessage
 MessagesRoute.delete('/:messageId', MessageController.deleteMessageById);
+
+
 
 module.exports = MessagesRoute;
