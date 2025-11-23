@@ -14,6 +14,22 @@ const registerUser = async function(req, res, next) {
       return res.status(400).json({ message: "Personal number must be 10 digits." });
     }
 
+    const YY = parseInt(personalNumber[0] + personalNumber[1]);
+    const MM = parseInt(personalNumber[2] + personalNumber[3]); 
+    const DD = parseInt(personalNumber[4] + personalNumber[5]); 
+
+    if (YY >= 8 && YY <= 25) {
+      return res.status(400).json({ message: "User must be at least 18 years old." });
+    }
+
+    if (MM < 1 || MM > 12) {
+      return res.status(400).json({ message: "Invalid month in personal number." });
+    }
+
+    if (DD < 1 || DD > 31) {
+      return res.status(400).json({ message: "Invalid day in personal number." });
+    }
+
     if (!password) {
       return res.status(400).json({ message: "Password is required." });
     }
@@ -23,7 +39,8 @@ const registerUser = async function(req, res, next) {
     }
     
     const user = await User.create(req.body);
-    res.status(201).json(user);
+    const newUser = await User.findOne({ userId: req.body.userId });
+    res.status(201).json(newUser);
   
   } catch (err) {
     return next(err);
@@ -43,7 +60,7 @@ const loginUser =  async function(req, res, next) {
       return res.status(400).json({ message: "Password is required." });
     }
     
-    const user = await User.findOne({ userId });
+    const user = await User.findOne({ userId }).select("+password");
     
     if (!user) {
       return res.status(404).json({ message: 'User does not exist.' });
@@ -90,11 +107,11 @@ const updateAUser =  async function(req, res, next){
   try{
     const data = {};
 
-    if (language === "") {
+    if (req.body.language === "") {
         return res.status(400).json({ message: "Language cannot be empty." });
     }
 
-    if (password === "") {
+    if (req.body.password === "") {
         return res.status(400).json({ message: "Password cannot be empty." });
     }
 
