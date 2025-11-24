@@ -10,7 +10,7 @@ connectDB(); // connect to db
 
 const app = express();
 
-// basic middleware
+// basic middleware 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan('dev'));
@@ -21,6 +21,7 @@ const userRoutes = require('./routes/users.routes');
 const localRoomsRoutes = require('./routes/localrooms.routes');
 const globalRoutes = require('./routes/global.routes');
 const branchingRoomRoutes = require('./routes/branchingroom.routes');
+
 
 // greeting route
 app.get('/api', function (req, res) {
