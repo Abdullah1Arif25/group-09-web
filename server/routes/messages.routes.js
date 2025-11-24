@@ -7,6 +7,8 @@ const MessageController = require('../controllers/messages.controllers');
 // POST createMessage
 MessagesRoute.post('/', MessageController.createMessage);
 
+// POST createResponseMessage
+MessagesRoute.post('/:messageId', MessageController.createResponseMessage);
 
 // GET getAllMessages
 MessagesRoute.get('/', MessageController.getAllMessages);

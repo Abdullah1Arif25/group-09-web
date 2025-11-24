@@ -7,6 +7,15 @@ const { Query } = require('mongoose');
 // POST createMessage
 const createMessage = async function(req, res, next){
   try {
+    if (!req.body.Body || req.body.Body.trim() === "") {
+      return res.status(400).json({ message: "Text is required" });
+    }
+    if (!req.body.Sender) {
+      return res.status(400).json({ message: "Sender is required" });
+    }
+    if (!req.body.BranchingRoom) {
+      return res.status(400).json({ message: "Branching Room is required" });
+    }
     const newMessage = await Message.create(req.body);
     res.send(201).json({message:"Successs", Object: newMessage});
     
@@ -15,6 +24,36 @@ const createMessage = async function(req, res, next){
   }
   
 };
+
+// POST createResponseMessage
+
+const createResponseMessage = async function(req, res, next){
+  try {
+//Check if the Message Already exists
+        const originalMessageId = req.params.messageId;
+        const originalMessage = await Message.findOne({messageId: originalMessageId});
+
+        if(!originalMessage){ return res.status(409).json({message:"The Message Does not exists"});}
+
+        const newReponseMessage = await Message.create(req.body);
+
+        originalMessage.ResponseIds.push(newReponseMessage._id);
+        const savedOriginalMessage = await originalMessage.save();
+        await savedOriginalMessage.populate("ResponseIds");
+
+        res.status(201).json({message: "Success", Object: newReponseMessage});
+
+
+  } catch (err) {
+    next(err);
+  }
+
+};
+
+
+
+
+
 
 
 // GET getMessageById with Filtering, Sorting, Field Selection and Pagination based on fields provided
@@ -135,4 +174,4 @@ const deleteMessageById = async function(req, res, next)  {
 
 
 
-module.exports = {createMessage, getAllMessages, getMessageById, updateMessageById, deleteAllMessages, deleteMessageById}
+module.exports = {createResponseMessage,createMessage, getAllMessages, getMessageById, updateMessageById, deleteAllMessages, deleteMessageById}
