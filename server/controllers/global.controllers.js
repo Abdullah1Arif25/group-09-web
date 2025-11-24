@@ -41,9 +41,6 @@ const updateGlobalRoom = async function (req, res, next) {
       return res.status(400).json({ message: "live Chat is required." });
     }
 
-    if (req.body.room_Id) {
-      return res.status(400).json({ message: "Not allowed to modify Global Room ID." });
-    }
     const updatedRoom = await GlobalRoom.findOneAndUpdate({},{ live_Chat },{ new: true, runValidators: true });
 
     if (!updatedRoom) {
