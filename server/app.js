@@ -18,7 +18,8 @@ app.use(cors());
 
 // routes
 const userRoutes = require('./routes/users.routes');
-const messageRoutes = require('./routes/messages.routes');
+const localRoomsRoutes = require('./routes/localrooms.routes');
+const globalRoutes = require('./routes/global.routes');
 const branchingRoomRoutes = require('./routes/branchingroom.routes');
 
 
@@ -29,15 +30,16 @@ app.get('/api', function (req, res) {
 
 // mount routes
 app.use('/api/users', userRoutes);
-app.use('/api/messages', messageRoutes);
+app.use('/api/localrooms',localRoomsRoutes );
+app.use('/api/global', globalRoutes);
 app.use('/api/branchingrooms',branchingRoomRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
   res.status(404).json({ message: 'Not Found' });
 });
- 
-// FRONTEND SERVING 
+
+// serve frontend
 app.use(history());
 const root = path.normalize(__dirname + '/..');
 const client = path.join(root, 'client', 'dist');
