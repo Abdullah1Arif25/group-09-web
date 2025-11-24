@@ -20,6 +20,7 @@ app.use(cors());
 const userRoutes = require('./routes/users.routes');
 const localRoomsRoutes = require('./routes/localrooms.routes');
 const globalRoutes = require('./routes/global.routes');
+const branchingRoomRoutes = require('./routes/branchingroom.routes');
 
 // greeting route
 app.get('/api', function (req, res) {
@@ -30,6 +31,7 @@ app.get('/api', function (req, res) {
 app.use('/api/users', userRoutes);
 app.use('/api/localrooms',localRoomsRoutes );
 app.use('/api/global', globalRoutes);
+app.use('/api/branchingrooms',branchingRoomRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
