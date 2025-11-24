@@ -7,6 +7,15 @@ const { Query } = require('mongoose');
 // POST createMessage
 const createMessage = async function(req, res, next){
   try {
+    if (!req.body.Body || req.body.Body.trim() === "") {
+      return res.status(400).json({ message: "Text is required" });
+    }
+    if (!req.body.Sender) {
+      return res.status(400).json({ message: "Sender is required" });
+    }
+    if (!req.body.BranchingRoom) {
+      return res.status(400).json({ message: "Branching Room is required" });
+    }
     const newMessage = await Message.create(req.body);
     res.send(201).json({message:"Successs", Object: newMessage});
     
@@ -16,8 +25,8 @@ const createMessage = async function(req, res, next){
   
 };
 
+// POST createResponseMessage
 
-// POST createMessage
 const createResponseMessage = async function(req, res, next){
   try {
 //Check if the Message Already exists
@@ -34,12 +43,18 @@ const createResponseMessage = async function(req, res, next){
 
         res.status(201).json({message: "Success", Object: newReponseMessage});
 
-    
+
   } catch (err) {
     next(err);
   }
-  
+
 };
+
+
+
+
+
+
 
 // GET getMessageById with Filtering, Sorting, Field Selection and Pagination based on fields provided
 const getAllMessages = async function(req, res, next){
