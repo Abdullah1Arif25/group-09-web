@@ -61,10 +61,6 @@ const updateLocalRoom =  async function(req, res, next){
             return res.status(400).json({ message: "live Chat is required." });
         }
 
-        if (req.body.roomId) {
-            return res.status(400).json({ message: "Not allowed to modify Local room ID." });
-        }
-
         const updatedRoom = await LocalRoom.findOneAndUpdate({ roomId: req.params.roomId },{ country, liveChat },{ new: true, runValidators: true });
         
         if (!updatedRoom) {
