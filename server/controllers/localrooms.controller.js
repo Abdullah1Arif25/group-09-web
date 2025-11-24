@@ -7,15 +7,19 @@ const LocalRoomRouter = express.Router();
 // Create One Local Rooms
 const createLocalRoom = async function(req, res, next){
     try{
-        const localRoomsCount = await LocalRoom.estimatedDocumentCount();
-        if(localRoomsCount>0){
-            return res.status(409).json({message:"Entity already exists"});
+        const localRoomsCount = await LocalRoom.findOne();
+        if(localRoomsCount){
+            return res.status(400).json({message:"Entity already exists"});
+        }
+        const {liveChat} = req.body;
+        if(typeof liveChat !== "boolean"){
+            res.status(400).json({message: "Invalid data type for liveChat"});
         }
         const SingleBranchingRoom = await LocalRoom.create(req.body);
         res.status(201).json({message: "Success", Object: SingleLocalRooms});
     }catch(err){
         if(err.code===11000){
-            res.status(409).json({
+            res.status(400).json({
                 message: "Entity Already Exists",
                 
             });
@@ -26,7 +30,7 @@ const createLocalRoom = async function(req, res, next){
 
 
 // GET: Read All Local Rooms
-const getAllUser = async function(req, res, next){
+const getLocalRoom = async function(req, res, next){
     try{
         const allRooms = await LocalRoom.find(req.body);
         res.status(200).json(allRooms);
@@ -34,18 +38,6 @@ const getAllUser = async function(req, res, next){
         next(err);
 
     } 
-};
-
-
-// Read One Local Rooms
-const getALocalRoom =  async function(req, res, next){
-    try{
-        const SingleLocalRooms = await LocalRoom.findOne({roomId: req.params.roomId}, req.body);
-        res.status(200).json(SingleLocalRooms);
-    }catch(err){
-        next(err);
-    } 
-
 };
 
 
@@ -57,7 +49,7 @@ const updateLocalRoom =  async function(req, res, next){
             return res.status(400).json({ message: "Country is required." });
         }
 
-        if (liveChat === undefined) {
+        if (liveChat === undefined || typeof liveChat !== "boolean") {
             return res.status(400).json({ message: "live Chat is required." });
         }
 
@@ -85,6 +77,6 @@ const deleteLocalRoomById = async function(req, res, next){
 
 };
 
-module.exports = {createLocalRoom, deleteLocalRoomById, getALocalRoom, getAllUser, updateLocalRoom};
+module.exports = {createLocalRoom, deleteLocalRoomById, getLocalRoom, updateLocalRoom};
 
 
