@@ -8,7 +8,7 @@ const userSchema = new mongoose.Schema(
       immutable: true, 
       match: [/^\d{10}$/, 'Personal number must be exactly 10 digits']},    
     language: { type: String, default: 'en' },
-    password: { type: String, required: true }
+    password: { type: String, required: true, select: false }
   },
   { timestamps: true }
 );
