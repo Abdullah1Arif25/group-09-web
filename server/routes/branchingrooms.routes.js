@@ -10,6 +10,9 @@ branchingRoomRoute.post("/", branchingRoomController.createBranchingRoom);
 // POST /branchingroom/:branchingroomId/message
 branchingRoomRoute.post("/:branchingRoomId/messages", branchingRoomController.createMessageInABranchingRoom);
 
+// Post: Create a response to a existing message in a branching room
+branchingRoomRoute.post("/:branchingRoomId/messages/:messageId", branchingRoomController.respondtoMessageInABranchingRoom);
+
 // GET: Read All Branching Rooms
 branchingRoomRoute.get("/", branchingRoomController.getAllBranchingRooms);
 
