@@ -17,6 +17,30 @@ const createMessage = async function(req, res, next){
 };
 
 
+// POST createMessage
+const createResponseMessage = async function(req, res, next){
+  try {
+//Check if the Message Already exists
+        const originalMessageId = req.params.messageId;
+        const originalMessage = await Message.findOne({messageId: originalMessageId});
+
+        if(!originalMessage){ return res.status(409).json({message:"The Message Does not exists"});}
+
+        const newReponseMessage = await Message.create(req.body);
+
+        originalMessage.ResponseIds.push(newReponseMessage._id);
+        const savedOriginalMessage = await originalMessage.save();
+        await savedOriginalMessage.populate("ResponseIds");
+
+        res.status(201).json({message: "Success", Object: newReponseMessage});
+
+    
+  } catch (err) {
+    next(err);
+  }
+  
+};
+
 // GET getMessageById with Filtering, Sorting, Field Selection and Pagination based on fields provided
 const getAllMessages = async function(req, res, next){
   try{
@@ -135,4 +159,4 @@ const deleteMessageById = async function(req, res, next)  {
 
 
 
-module.exports = {createMessage, getAllMessages, getMessageById, updateMessageById, deleteAllMessages, deleteMessageById}
+module.exports = {createResponseMessage,createMessage, getAllMessages, getMessageById, updateMessageById, deleteAllMessages, deleteMessageById}
