@@ -7,23 +7,39 @@ const LocalRoomRouter = express.Router();
 // Create One Local Rooms
 const createLocalRoom = async function(req, res, next){
     try{
-        const localRoomsCount = await LocalRoom.findOne();
-        if(localRoomsCount){
-            return res.status(400).json({message:"Entity already exists"});
+        const localRoomsCount = await LocalRoom.estimatedDocumentCount();
+        if(localRoomsCount>0){
+            await LocalRoom.deleteMany();
         }
-        const {liveChat} = req.body;
+        const { roomId, country, liveChat } = req.body;
+
         if(typeof liveChat !== "boolean"){
             res.status(400).json({message: "Invalid data type for liveChat"});
         }
-        const SingleBranchingRoom = await LocalRoom.create(req.body);
-        res.status(201).json({message: "Success", Object: SingleLocalRooms});
-    }catch(err){
-        if(err.code===11000){
-            res.status(400).json({
-                message: "Entity Already Exists",
-                
-            });
+
+        ///
+
+        if (!roomId) {
+            return res.status(400).json({ message: "Room ID is required." });
         }
+
+        if (!country || country.trim() === "") {
+            return res.status(400).json({ message: "Country is required." });
+        }
+
+        if (liveChat === undefined || typeof liveChat !== "boolean") {
+            return res.status(400).json({ message: "live Chat is required." });
+        }
+
+        const SingleLocalRooms = await LocalRoom.create({
+            roomId,
+            country,
+            liveChat
+        });
+
+        return res.status(201).json({message: "success", Object: SingleLocalRooms });
+    }catch(err){
+        next(err);
     } 
 
 };
