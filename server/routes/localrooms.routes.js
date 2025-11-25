@@ -8,13 +8,8 @@ const localRoomController = require('../controllers/localrooms.controller');
 // Create One Local Rooms
 LocalRoomRouter.post("/",localRoomController.createLocalRoom );
 
-
-// Read All Local Rooms
-LocalRoomRouter.get("/", localRoomController.getAllUser);
-
-
 // Read One Local Rooms
-LocalRoomRouter.get("/:roomId", localRoomController.getALocalRoom);
+LocalRoomRouter.get("/", localRoomController.getLocalRoom);
 
 
 // Update One Local Rooms

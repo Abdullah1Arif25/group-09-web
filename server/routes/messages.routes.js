@@ -1,12 +1,14 @@
 const express = require('express');
 const MessagesRoute = express.Router();
 const Message = require('../models/message.model');
-const MessageController = require('../controllers/messages.controllers');
+const MessageController = require('../controllers/messages.controller');
 
 
 // POST createMessage
 MessagesRoute.post('/', MessageController.createMessage);
 
+// POST createResponseMessage
+MessagesRoute.post('/:messageId', MessageController.createResponseMessage);
 
 // GET getAllMessages
 MessagesRoute.get('/', MessageController.getAllMessages);
