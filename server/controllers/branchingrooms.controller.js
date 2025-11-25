@@ -37,7 +37,7 @@ const createMessageInABranchingRoom = async function(req, res, next){
         const branchingRoomObjectId = branchingRoom._id;
 
         const newMessage = await messagesModel.create({BranchingRoom: branchingRoomObjectId, ...req.body});
-        res.status(201).json({message: "Success"});
+        res.status(201).json({message: "Success", Object: newMessage});
 
     }catch (err){
         next(err);
