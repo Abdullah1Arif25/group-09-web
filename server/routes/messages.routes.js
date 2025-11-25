@@ -1,7 +1,7 @@
 const express = require('express');
 const MessagesRoute = express.Router();
 const Message = require('../models/message.model');
-const MessageController = require('../controllers/messages.controllers');
+const MessageController = require('../controllers/messages.controller');
 
 
 // POST createMessage
