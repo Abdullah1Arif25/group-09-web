@@ -80,7 +80,7 @@ const getAllMessages = async function(req, res, next){
 
     if(req.query.fields){
       const selectedField = req.query.fields.split(",").join(" ");
-      query = query.select(selectedField);
+      query = query.select(selectedField + " messageId");
     }
     //pagination
     const limit = parseInt(req.query.limit , 10) || 10;
@@ -134,7 +134,8 @@ const updateMessageById = async function(req, res, next)  {
     if (!patchedMessage) {
       return res.status(404).json({ error: 'Message not found' });
     }
-    res.status(200).json(patchedMessage);
+    res.status(200).json({message: "success", Object: patchedMessage});
+
   } catch (err) {
     next(err);
   }
