@@ -9,7 +9,7 @@ router.post('/', createGlobalRoom);
 router.get('/', getGlobalRoom);
 
 // PUT /api/live_chat
-router.put('/', updateGlobalRoom);
+router.put('/:room_Id', updateGlobalRoom);
 
 // Delete /api/Global/:room_Id
 router.delete('/:room_Id', deleteGlobalRoom);
