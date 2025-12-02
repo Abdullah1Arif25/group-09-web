@@ -20,7 +20,7 @@ app.use(cors());
 const userRoutes = require('./routes/users.routes');
 const messageRoutes = require('./routes/messages.routes');
 const localRoomsRoutes = require('./routes/localrooms.routes');
-const globalRoutes = require('./routes/global.routes');
+const globalRoutes = require('./routes/globalrooms.routes');
 const branchingRoomRoutes = require('./routes/branchingrooms.routes');
 
 
