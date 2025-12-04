@@ -18,7 +18,7 @@ app.use(cors());
 
 // routes
 const userRoutes = require('./routes/users.routes');
-const globalRoutes = require('./routes/global.routes');
+const globalRoutes = require('./routes/globalrooms.routes');
 
 // greeting route
 app.get('/api', function (req, res) {
