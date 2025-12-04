@@ -3,8 +3,8 @@
 		"_postman_id": "01cd7c82-0900-485a-ac5e-8f0c70267996",
 		"name": "HMO Backend MS1",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "50012690",
-		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/49982966-01cd7c82-0900-485a-ac5e-8f0c70267996?action=share&source=collection_link&creator=50012690"
+		"_exporter_id": "50012449",
+		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/49982966-01cd7c82-0900-485a-ac5e-8f0c70267996?action=share&source=collection_link&creator=50012449"
 	},
 	"item": [
 		{
@@ -1654,7 +1654,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/global",
+							"raw": "http://localhost:3000/api/globalrooms/",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1662,7 +1662,8 @@
 							"port": "3000",
 							"path": [
 								"api",
-								"global"
+								"globalrooms",
+								""
 							]
 						}
 					},
@@ -1718,7 +1719,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/global/",
+							"raw": "http://localhost:3000/api/globalrooms/",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1726,7 +1727,7 @@
 							"port": "3000",
 							"path": [
 								"api",
-								"global",
+								"globalrooms",
 								""
 							]
 						}
@@ -1781,7 +1782,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/global/{{globalRoomId}}",
+							"raw": "http://localhost:3000/api/globalrooms/{{RandomGlobalRoomId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1789,8 +1790,8 @@
 							"port": "3000",
 							"path": [
 								"api",
-								"global",
-								"{{globalRoomId}}"
+								"globalrooms",
+								"{{RandomGlobalRoomId}}"
 							]
 						}
 					},
@@ -1820,7 +1821,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/api/global/{{globalRoomId}}",
+							"raw": "http://localhost:3000/api/globalrooms/{{RandomGlobalRoomId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1828,8 +1829,8 @@
 							"port": "3000",
 							"path": [
 								"api",
-								"global",
-								"{{globalRoomId}}"
+								"globalrooms",
+								"{{RandomGlobalRoomId}}"
 							]
 						}
 					},
@@ -3832,11 +3833,11 @@
 			"value": ""
 		},
 		{
-			"key": "responceMessageId",
+			"key": "responseMessageId",
 			"value": ""
 		},
 		{
-			"key": "responseMessageId",
+			"key": "responceMessageId",
 			"value": ""
 		}
 	]
