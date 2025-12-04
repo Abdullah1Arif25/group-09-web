@@ -32,7 +32,7 @@ app.get('/api', function (req, res) {
 // mount routes
 app.use('/api/users', userRoutes);
 app.use('/api/localrooms',localRoomsRoutes );
-app.use('/api/global', globalRoutes);
+app.use('/api/globalrooms', globalRoutes);
 app.use('/api/branchingrooms',branchingRoomRoutes);
 app.use('/api/messages', messageRoutes);
 
