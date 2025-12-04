@@ -10,7 +10,7 @@ connectDB(); // connect to db
 
 const app = express();
 
-// basic middleware
+// basic middleware 
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(morgan('dev'));
@@ -18,7 +18,11 @@ app.use(cors());
 
 // routes
 const userRoutes = require('./routes/users.routes');
+const messageRoutes = require('./routes/messages.routes');
+const localRoomsRoutes = require('./routes/localrooms.routes');
 const globalRoutes = require('./routes/globalrooms.routes');
+const branchingRoomRoutes = require('./routes/branchingrooms.routes');
+
 
 // greeting route
 app.get('/api', function (req, res) {
@@ -27,7 +31,10 @@ app.get('/api', function (req, res) {
 
 // mount routes
 app.use('/api/users', userRoutes);
-app.use('/api/globalrooms', globalRoutes);
+app.use('/api/localrooms',localRoomsRoutes );
+app.use('/api/global', globalRoutes);
+app.use('/api/branchingrooms',branchingRoomRoutes);
+app.use('/api/messages', messageRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
