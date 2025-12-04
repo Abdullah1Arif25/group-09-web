@@ -5,7 +5,8 @@ import LoginPage from './views/LoginPage.vue'
 
 const routes = [
   { path: '/', name: 'home', component: Home },
-  { path: '/login', name: 'login', component: LoginPage }
+  { path: '/login', name: 'login', component: LoginPage },
+  { path: '/localroom', name: 'localroom', component: LocalRoom }
 ]
 
 const router = createRouter({
