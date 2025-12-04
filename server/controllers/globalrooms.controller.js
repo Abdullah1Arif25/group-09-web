@@ -1,4 +1,4 @@
-const GlobalRoom = require('../models/global.model');
+const GlobalRoom = require('../models/globalroom.model');
 const { rawListeners } = require('../models/localroom.model');
 
 // Create global room
