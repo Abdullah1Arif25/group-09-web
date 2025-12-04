@@ -6,7 +6,7 @@ const {createGlobalRoom, getGlobalRoom, updateGlobalRoom, deleteGlobalRoom} = re
 router.post('/', createGlobalRoom);
 
 // GET /api/globalrooms
-router.get('/', getGlobalRoom);
+router.get('/:room_Id', getGlobalRoom);
 
 // PUT /api/globalrooms/:room_Id
 router.put('/:room_Id', updateGlobalRoom);
