@@ -27,7 +27,7 @@ app.get('/api', function (req, res) {
 
 // mount routes
 app.use('/api/users', userRoutes);
-app.use('/api/global', globalRoutes);
+app.use('/api/globalrooms', globalRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
