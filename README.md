@@ -6,12 +6,12 @@ This template refers to itself as `group-00-web`. In your project, use your grou
 
 ## Project Structure
 
-| File        | Purpose           | What you do?  |
-| ------------- | ------------- | ----- |
-| `server/` | Backend server code | All your server code |
-| [server/README.md](server/README.md) | Everything about the server | **READ ME** carefully! |
-| `client/` | Frontend client code | All your client code |
-| [client/README.md](client/README.md) | Everything about the client | **READ ME** carefully! |
+| File                                                 | Purpose                     | What you do?                             |
+| ---------------------------------------------------- | --------------------------- | ---------------------------------------- |
+| `server/`                                            | Backend server code         | All your server code                     |
+| [server/README.md](server/README.md)                 | Everything about the server | **READ ME** carefully!                   |
+| `client/`                                            | Frontend client code        | All your client code                     |
+| [client/README.md](client/README.md)                 | Everything about the client | **READ ME** carefully!                   |
 | [docs/LOCAL_DEPLOYMENT.md](docs/LOCAL_DEPLOYMENT.md) | Local production deployment | Deploy your app local in production mode |
 
 ## Requirements
@@ -19,20 +19,20 @@ This template refers to itself as `group-00-web`. In your project, use your grou
 The version numbers in brackets indicate the tested versions but feel free to use more recent versions.
 You can also use alternative tools if you know how to configure them (e.g., Firefox instead of Chrome).
 
-* [Git](https://git-scm.com/) (v2) => [installation instructions](https://www.atlassian.com/git/tutorials/install-git)
-  * [Add your Git username and set your email](https://docs.github.com/en/get-started/git-basics/setting-your-username-in-git)
-    * `git config --global user.name "YOUR_USERNAME"` => check `git config --global user.name`
-    * `git config --global user.email "email@example.com"` => check `git config --global user.email`
-  * > **Windows users**: We recommend to use the [Git Bash](https://www.atlassian.com/git/tutorials/git-bash) shell from your Git installation or the Bash shell from the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to run all shell commands for this project.
-* [Chalmers GitLab](https://git.chalmers.se/) => Login with your **Chalmers CID** choosing "Sign in with" **Chalmers Login**. (contact [support@chalmers.se](mailto:support@chalmers.se) if you don't have one)
-  * DIT342 course group: https://git.chalmers.se/courses/dit342
-  * [Setup SSH key with Gitlab](https://docs.gitlab.com/user/ssh/#generate-an-ssh-key-pair)
-    * Create an SSH key pair `ssh-keygen -t ed25519 -C "email@example.com"` (skip if you already have one)
-    * Add your public SSH key to your Gitlab profile under https://git.chalmers.se/-/user_settings/ssh_keys
-    * Make sure the email you use to commit is registered under https://git.chalmers.se/-/profile/emails
-  * Checkout the [Backend-Frontend](https://git.chalmers.se/courses/dit342/group-00-web) template `git clone git@git.chalmers.se:courses/dit342/group-00-web.git`
-* [Server Requirements](./server/README.md#Requirements)
-* [Client Requirements](./client/README.md#Requirements)
+- [Git](https://git-scm.com/) (v2) => [installation instructions](https://www.atlassian.com/git/tutorials/install-git)
+  - [Add your Git username and set your email](https://docs.github.com/en/get-started/git-basics/setting-your-username-in-git)
+    - `git config --global user.name "YOUR_USERNAME"` => check `git config --global user.name`
+    - `git config --global user.email "email@example.com"` => check `git config --global user.email`
+  - > **Windows users**: We recommend to use the [Git Bash](https://www.atlassian.com/git/tutorials/git-bash) shell from your Git installation or the Bash shell from the [Windows Subsystem for Linux](https://docs.microsoft.com/en-us/windows/wsl/install-win10) to run all shell commands for this project.
+- [Chalmers GitLab](https://git.chalmers.se/) => Login with your **Chalmers CID** choosing "Sign in with" **Chalmers Login**. (contact [support@chalmers.se](mailto:support@chalmers.se) if you don't have one)
+  - DIT342 course group: https://git.chalmers.se/courses/dit342
+  - [Setup SSH key with Gitlab](https://docs.gitlab.com/user/ssh/#generate-an-ssh-key-pair)
+    - Create an SSH key pair `ssh-keygen -t ed25519 -C "email@example.com"` (skip if you already have one)
+    - Add your public SSH key to your Gitlab profile under https://git.chalmers.se/-/user_settings/ssh_keys
+    - Make sure the email you use to commit is registered under https://git.chalmers.se/-/profile/emails
+  - Checkout the [Backend-Frontend](https://git.chalmers.se/courses/dit342/group-00-web) template `git clone git@git.chalmers.se:courses/dit342/group-00-web.git`
+- [Server Requirements](./server/README.md#Requirements)
+- [Client Requirements](./client/README.md#Requirements)
 
 ## Getting started
 
@@ -64,29 +64,32 @@ Open the `server` and `client` in separate VSCode workspaces or open the combine
 
 HearMeOut is a web based anonymous confession and support platform for users aged 18+. It provides a safe space for people to share their thoughts, emotions, or struggles without fear of judgment. Users register securely, then choose between local chat (people from their own country) or global chat (connect with people worldwide), the user also has the option to enter a confession room that is dedicated to only one specific topic. In global mode, all messages are automatically translated into each user’s native language, enabling real emotional exchange across cultures. To protect privacy, every time a user enters a chat room, a new random username is generated, keeping interactions fully anonymous.
 
-
 ### Pages
 
-* Registration page: 
-  * Users register using their personal number to verify eligibility. 
-  * After verification, users receive a unique ID, create a password, and choose their preferred language. 
-  * Login is done using the given ID and password.  
+- Registration page:
 
-* Home page: 
-  * Users can choose between Local or Global confession rooms.
-  * Provides quick access to the live chat and branching room menus. 
+  - Users register using their personal number to verify eligibility.
+  - After verification, users receive a unique ID, create a password, and choose their preferred language.
+  - Login is done using the given ID and password.
 
-* Local page: 
-  * Allows users to enter local confession rooms.
-  * Includes topic based subrooms (branching rooms) for more focused discussions.
+- Home page:
 
-* Global page: 
-  * Displays confession rooms that connect users from multiple countries.
-  * Enables international discussions through a live chat interface with translation, reply, and reaction features. 
+  - Users can choose between Local or Global confession rooms.
+  - Provides quick access to the live chat and branching room menus.
 
-* Confession page: 
-  * Shows how users are interacting in the confession rooms.
-  * Displays message exchanges, reactions, and user participation in real time.
+- Local page:
+
+  - Allows users to enter local confession rooms.
+  - Includes topic based subrooms (branching rooms) for more focused discussions.
+
+- Global page:
+
+  - Displays confession rooms that connect users from multiple countries.
+  - Enables international discussions through a live chat interface with translation, reply, and reaction features.
+
+- Confession page:
+  - Shows how users are interacting in the confession rooms.
+  - Displays message exchanges, reactions, and user participation in real time.
 
 ### Entity-Relationship (ER) Diagram
 
