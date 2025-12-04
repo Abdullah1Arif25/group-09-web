@@ -11,4 +11,13 @@ export default {};
 body {
   margin: 0;
 }
+.navStyle{
+  background-color: #2b0d2b;
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  padding: 10px;
+  justify-content: center;
+}
+
 </style>
