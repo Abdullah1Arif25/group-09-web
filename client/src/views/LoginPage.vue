@@ -129,7 +129,7 @@
   .input-group input {
     width: 100%;
     height: 50px;
-    border-radius: 50px;
+    border-radius: 100px !important;
     overflow: hidden;
     padding: 0 20px;
     border: none;
