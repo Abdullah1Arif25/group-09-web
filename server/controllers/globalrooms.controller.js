@@ -1,15 +1,16 @@
-const GlobalRoom = require('../models/global.model');
+const GlobalRoom = require('../models/globalroom.model');
+const { rawListeners } = require('../models/localroom.model');
 
 // Create global room
 const createGlobalRoom = async function (req, res, next) {
   try {
-    const roomExists = await GlobalRoom.findOne();
-    if (roomExists) {
-      return res.status(400).json({ message: "Global room already exists." });
+    const globalRoomCount = await GlobalRoom.estimatedDocumentCount();
+    if (globalRoomCount>0) {
+      await GlobalRoom.deleteMany();
     }
 
     const room = await GlobalRoom.create(req.body);
-    return res.status(201).json(room);
+    return res.status(201).json({message: "success", Object: room});
 
   } catch (err) {
     return next(err);
@@ -41,13 +42,13 @@ const updateGlobalRoom = async function (req, res, next) {
       return res.status(400).json({ message: "live Chat is required." });
     }
 
-    const updatedRoom = await GlobalRoom.findOneAndUpdate({},{ live_Chat },{ new: true, runValidators: true });
+    const updatedRoom = await GlobalRoom.findOneAndUpdate({room_Id: req.params.room_Id},{ live_Chat },{ new: true, runValidators: true });
 
     if (!updatedRoom) {
       return res.status(404).json({ message: "Global room not found." });
     }
 
-    return res.status(200).json({ message: "Success."});
+    return res.status(200).json({ message: "success", Object: updatedRoom });
 
   } catch (err) {
     return next(err);

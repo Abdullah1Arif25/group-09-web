@@ -20,7 +20,7 @@ app.use(cors());
 const userRoutes = require('./routes/users.routes');
 const messageRoutes = require('./routes/messages.routes');
 const localRoomsRoutes = require('./routes/localrooms.routes');
-const globalRoutes = require('./routes/global.routes');
+const globalRoutes = require('./routes/globalrooms.routes');
 const branchingRoomRoutes = require('./routes/branchingrooms.routes');
 
 
@@ -32,7 +32,7 @@ app.get('/api', function (req, res) {
 // mount routes
 app.use('/api/users', userRoutes);
 app.use('/api/localrooms',localRoomsRoutes );
-app.use('/api/global', globalRoutes);
+app.use('/api/globalrooms', globalRoutes);
 app.use('/api/branchingrooms',branchingRoomRoutes);
 app.use('/api/messages', messageRoutes);
 
