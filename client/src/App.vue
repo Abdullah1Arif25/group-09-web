@@ -1,23 +1,26 @@
 <template>
-  <!-- Only the page content (router-view) should display -->
-  <router-view />
+  <div id="app">
+    <div class="nav">
+      <router-link to="/">Home</router-link>
+      <router-link to="/login">Login</router-link>
+      <router-link to="/register">Register</router-link>
+      <router-link to="/localroom">Localroom</router-link>
+    </div>
+
+    <router-view />
+  </div>
 </template>
 
-<script>
-export default {};
-</script>
-
 <style>
-body {
-  margin: 0;
-}
-.navStyle{
-  background-color: #2b0d2b;
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  padding: 10px;
-  justify-content: center;
+.nav {
+  background: #ddd; 
+  padding: 2px;
+  text-align: center;
 }
 
+.nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: black;
+}
 </style>
