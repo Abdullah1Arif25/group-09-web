@@ -25,11 +25,36 @@
 
             <!-- Menu button -->
             <div class="MenuButtonFlex">
-                <button class="buttonIconStyle">
+                <button class="buttonIconStyle" @click="openMenu">
                     <FontAwesomeIcon icon="list-ul" size="2xl" style="color: aliceblue;" />
                 </button>
             </div>
         </div>
+
+        <!-- Side menu -->
+        <div 
+            class="sideMenuOverlay" 
+            v-if="isMenuOpen" 
+            @click="closeMenu">
+        </div>
+
+        <div 
+            class="sideMenuWrapper"
+            :class="{ menuVisible: isMenuOpen }">
+
+            <div class="sideMenuContent">
+                <button class="sideMenuButton">Health</button>
+                <button class="sideMenuButton">Education</button>
+                <button class="sideMenuButton">Travel</button>
+                <button class="sideMenuButton">Movies</button>
+                <button class="sideMenuButton">Books</button>
+                <button class="sideMenuButton">Sports</button>
+                <button class="sideMenuButton">Relationships</button>
+                <button class="sideMenuButton">Pets</button>
+                <button class="sideMenuButton">Politics</button>
+            </div>
+        </div>
+
 
         <!-- Empty boom -->
         <div class="room_box"></div>
@@ -79,25 +104,34 @@ import { Api } from '@/Api';
 import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
-
-
-export default{
+export default {
     name: 'localroom',
-    components:{
+    components: {
         FontAwesomeIcon,
     },
-    data(){
+
+    data() {
         return {
-            message : ''
-        }
+            message: '',
+            isMenuOpen: false 
+        };
     },
-    methods:{
-         async sendMessage(){
-            try{
+
+    methods: {
+        openMenu() {
+            this.isMenuOpen = true;
+        },
+        closeMenu() {
+            this.isMenuOpen = false;
+        },
+
+        async sendMessage() {
+            try {
                 var messageBody = document.getElementById("messageBody");
-                var messageId = "messageId" + Math.floor(Math.random *100000);
-                var currentTime = new  Date().toISOString();
-                const responce = await axios.post('http://localhost:3000/api/message', {
+                var messageId = "messageId" + Math.floor(Math.random() * 100000);
+                var currentTime = new Date().toISOString();
+
+                const response = await axios.post('http://localhost:3000/api/message', {
                     messageId: messageId,
                     body: messageBody,
                     SendTimestamp: currentTime,
@@ -105,30 +139,23 @@ export default{
                     ResponseIds: [],
                     Sender: "{{userObjectId}}",
                     BranchingRoom: "{{branchingRoomObjectId}}"
-
                 });
-                this.message = responce.object.message;
-                console.log("Message Send")
-            } catch(err){
+
+                this.message = response.object.message;
+                console.log("Message Sent");
+            } catch (err) {
                 console.log(err);
             }
         },
-        
-    function(){
-        src = "https://kit.fontawesome.com/",
-    crossorigin="anonymous"
-}
-
     }
-}
-
-
+};
 </script>
+
 
 <style>
 
 .backgroundStyle{
-        background-image:linear-gradient(#2b0d2b, #6d2a46);
+    background-image:linear-gradient(#2b0d2b, #6d2a46);
     min-height: 100vh;
     width: 100%;
     display: flex;
@@ -143,14 +170,11 @@ export default{
     top: 0;
     left: 0;
     right: 0;
-
     padding: 14px 20px;
     align-items: center;
     justify-content: space-between;
-
     border-bottom-left-radius: 18px;
     border-bottom-right-radius: 18px;
-
     z-index: 1000;
 }
 
@@ -193,11 +217,9 @@ export default{
     border-radius: 10px;
     padding: 6px 16px;
     margin-top: 6px;
-
     display: flex;
     align-items: center;
     justify-content: center;
-
     width: 230px; 
     max-width: 70%;
 }
@@ -216,23 +238,78 @@ export default{
 }
 
 
+.sideMenuOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 1500;
+}
+
+
+.sideMenuWrapper {
+    position: fixed;
+    top: 120px;
+    right: -360px;
+    width: 360px;
+    height: calc(100vh - 190px); 
+    background: rgba(255, 255, 255, 0.535); 
+    backdrop-filter: blur(6px);
+    border-top-left-radius: 18px;
+    border-bottom-left-radius: 18px;
+    padding: 20px;
+    transition: right 0.35s ease;
+    z-index: 1600;
+    overflow-y: auto;    
+    overflow-x: hidden;  
+}
+
+
+
+.sideMenuWrapper.menuVisible {
+    right: 0; 
+}
+
+
+.sideMenuContent {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+
+.sideMenuButton {
+    width: 100%;
+    padding: 20px;
+    background: linear-gradient(#2b0d2b, #6d2a46);
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.sideMenuButton:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+}
+
+
+
 
 .messageBoxFlex {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-
     background-image: linear-gradient(#2b0d2b, #6d2a46);
     padding: 12px 16px;
-
     display: flex;
     align-items: center;
     gap: 14px;
-
     border-top-left-radius: 18px;
     border-top-right-radius: 18px;
-
     z-index: 1000;
 }
 
@@ -258,12 +335,10 @@ export default{
 .messageBoxStyle {
     width: 100%;
     height: 45px;
-
     border-radius: 12px;
     border: none;
     padding-left: 14px;
     padding-right: 50px;
-
     font-size: 15px;
 }
 
@@ -271,12 +346,10 @@ export default{
 .sendbuttonInside {
     background: transparent;
     border: none;
-
     position: absolute;
     right: 14px;
     top: 50%;
     transform: translateY(-50%);
-
     cursor: pointer;
 }
 
