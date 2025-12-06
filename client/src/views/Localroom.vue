@@ -1,78 +1,77 @@
 <template>
     <div class="backgroundStyle">
-        <!--Head Banner -->
-        <div 
-            class="head_banner"
-            >
-            <div class="logoWrapper">
-                <img 
-                  class="logo" 
-                  src="@/assets/HMO_logo.png"
-                  alt="App Logo"
-                />
-            </div>
-            
 
-        <!-- Local Room Title and Branching Room Type -->
-        <div class="HeaderFlexBox">
-           
-            <h1 class="head_title_style">LOCAL ROOM</h1>
+        <!-- Head banner -->
+        <div class="head_banner">
+
+            <!-- Left logo -->
+            <div class="logoWrapper">
+                <img class="logo" 
+                src="@/assets/HMO_logo.png" 
+                alt="App Logo" />
+            </div>
+
+
+        <!-- Localroom title and branching room type -->
+            <div class="HeaderFlexBox">
+                <h1 class="head_title_style">LOCAL ROOM</h1>
+
                 <div class="categoryDivStyle">
                     <h2 class="categoryTitleStyle">
                         {{ branchingRoomCategory || "General"}}
                     </h2>
                 </div>
-        </div>
-        <!--Menu Button -->
-        <div class="MenuButtonFlex">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="list-ul" size="2xl"style="color: aliceblue;" />
-            </button>
-        </div>
-    </div>
+            </div>
 
-
-    <div class="room_box">
-
-    </div>
-    
-    
-    <br></br>
-
-    <!--Footer for Message Box and related Functionality-->
-    <div class= "messageBoxFlex">
-        <img 
-            class = "profileDetailWrapper"
-            src="@/assets/HMO_logo.png"
-            alt="profilePic"/>
-
-        <div class="messageBoxWrapper">
-            <div class="inputContainer">
-                <input class ='messageBoxStyle'type="text" id="messageBody" placeholder="Send a confession or help a fellow.... "/>
-                <button class="sendbuttonInside" @click="sendMessage">
-                    <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
+            <!-- Menu button -->
+            <div class="MenuButtonFlex">
+                <button class="buttonIconStyle">
+                    <FontAwesomeIcon icon="list-ul" size="2xl" style="color: aliceblue;" />
                 </button>
             </div>
         </div>
 
-        <div class="settingButtonWrapper">
+        <!-- Empty boom -->
+        <div class="room_box"></div>
+
+        <!-- Footer and bottom banner -->
+        <div class="messageBoxFlex">
+            
+            <img 
+                class="profileDetailWrapper"
+                src="@/assets/HMO_logo.png"
+                alt="profilePic"
+            />
+
+            <div class="messageBoxWrapper">
+                <div class="inputContainer">
+                <input class ='messageBoxStyle'type="text" id="messageBody" placeholder="Send a confession or help a fellow.... "/>
+                <button class="sendbuttonInside" @click="sendMessage">
+                    <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
+                    </button>
+                </div>
+            </div>
+
+            <div class="settingButtonWrapper">
             <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
-            </button>
-        </div>
+                </button>
+            </div>
 
-            <!--Exit Button -->
-        <div class="exitButtonWrapper">
+            <!-- Exit button -->
+            <div class="exitButtonWrapper">
             <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl"style="color: aliceblue;" />
-            </button>
+                </button>
+            </div>
+
         </div>
-    </div>
     
 
-    
-        </div>
-    </template>
+
+    </div>
+</template>
+
 
 
 <script>
@@ -130,148 +129,168 @@ export default{
 
 .backgroundStyle{
         background-image:linear-gradient(#2b0d2b, #6d2a46);
-        min-height: 100vh; 
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-}
-.head_title_style{
-    font-weight: 600;
-    font-size: large;
-    color: rgb(249, 249, 249);
-
-
-}
-.logo {
-  width: 150px;
-  
-}
-.profileDetailWrapper{
-    width: 12%;
-    height: 12%;
-    border-radius: 1000px;
-      object-fit: cover; 
-    flex:0 0 auto;
-}
-.sendMessageButtonStyle{
-    height: 10%;
-    
-}
-.exitButtonWrapper{
-    margin-left: 16px;
-}
-.sendButtonWrapper,.settingButtonWrapper{
-    flex:0 auto 1;
-    display:flex;
-}
-.head_banner{
-    background-image:linear-gradient(#2b0d2b, #6d2a46);
+    min-height: 100vh;
+    width: 100%;
     display: flex;
-    position:fixed;
-    top:30px;
-    left: 0px;
-    right: 0px;
-    flex-direction: row;
+    flex-direction: column;
+}
+
+
+.head_banner {
+    background-image: linear-gradient(#2b0d2b, #6d2a46);
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+
+    padding: 14px 20px;
+    align-items: center;
     justify-content: space-between;
-    align-items: center;
-    padding: 10px;
-    border-bottom-right-radius: 5px;
-    border-bottom-left-radius: 5px;
 
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+
+    z-index: 1000;
 }
-.logoWrapper,.MenuButtonFlex{
-    flex:1;
+
+.logoWrapper,
+.MenuButtonFlex {
+    flex: 1;
     display: flex;
     align-items: center;
 }
 
-.logoWrapper{
+.logoWrapper {
     justify-content: flex-start;
 }
 
-.MenuButtonFlex{
+.MenuButtonFlex {
     justify-content: flex-end;
 }
-.HeaderFlexBox{
-    align-items: center;
+
+.logo {
+    width: 100px;
+}
+
+.HeaderFlexBox {
+    flex: 2;
     display: flex;
     flex-direction: column;
-
-}
-.room_box{
-    overflow-y: scroll;
-    background-image:linear-gradient(#2b0d2b, #6d2a46);
-    
-
-}
-.messageBoxFlex{
-    background-image:linear-gradient(#2b0d2b, #6d2a46);
-    position:fixed;
-    bottom: 0px;
-    left:0px;
-    width:100%;
-
-    display: flex;
-    padding:8px 12px;
     align-items: center;
-    flex-direction: row;
-
-    
 }
 
-.messageBoxWrapper {
-  flex: 1;
-  display: flex;
-  justify-content: center; 
-
+.head_title_style {
+    font-size: 30px;
+    font-weight: 700;
+    color: rgb(249, 249, 249);
+    margin: 0;
 }
-.categoryDivStyle{
+
+
+.categoryDivStyle {
     background-color: #ffecec;
     border-radius: 10px;
-    padding-top: 5px;
-    width: 100%;
+    padding: 6px 16px;
+    margin-top: 6px;
+
     display: flex;
-        align-items: center;
+    align-items: center;
     justify-content: center;
 
+    width: 230px; 
+    max-width: 70%;
 }
 
-.categoryTitleStyle{
-    font-weight: 50%;
-    font-size:large;
+
+.categoryTitleStyle {
+    font-size: 16px;
+    margin: 0;
     color: #2b0d2b;
+}
+
+.room_box {
+    background: linear-gradient(#2b0d2b, #6d2a46);
+    flex: 1;
+    overflow-y: auto;
+}
 
 
-}
-.messageBoxStyle{
-    width: 80%;
-    border-radius: 10px;
-    padding-right: 45px;
-    height: 40px;
-    padding-left: 12px;
-    border: none;
 
+.messageBoxFlex {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+
+    background-image: linear-gradient(#2b0d2b, #6d2a46);
+    padding: 12px 16px;
+
+    display: flex;
+    align-items: center;
+    gap: 14px;
+
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+
+    z-index: 1000;
 }
-.buttonIconStyle{
-    background: transparent;
-    border: none;
+
+.profileDetailWrapper {
+    width: 48px;
+    height: 48px;
+    border-radius: 1000px;
+    object-fit: cover;
 }
-.inputContainer{
+
+
+.messageBoxWrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.inputContainer {
     position: relative;
     width: 100%;
-    
 }
 
-.sendbuttonInside{
+.messageBoxStyle {
+    width: 100%;
+    height: 45px;
+
+    border-radius: 12px;
+    border: none;
+    padding-left: 14px;
+    padding-right: 50px;
+
+    font-size: 15px;
+}
+
+
+.sendbuttonInside {
     background: transparent;
     border: none;
+
     position: absolute;
-    right: 20%;
+    right: 14px;
     top: 50%;
     transform: translateY(-50%);
+
     cursor: pointer;
 }
 
+
+.settingButtonWrapper,
+.exitButtonWrapper {
+    display: flex;
+}
+
+.buttonIconStyle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
 
 
 </style>
