@@ -1,5 +1,5 @@
 <template>
-    <div class="backgrouncStyle">
+    <div class="backgroundStyle">
         <!--Head Banner -->
         <div 
             class="head_banner"
@@ -23,7 +23,7 @@
                     </h2>
                 </div>
         </div>
-        <!--Exit Button -->
+        <!--Menu Button -->
         <div class="MenuButtonFlex">
             <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="list-ul" size="2xl"style="color: aliceblue;" />
@@ -48,11 +48,17 @@
 
         <div class="messageBoxWrapper">
             <div class="inputContainer">
-                <input class ='messageBoxStyle'type="text" id="message" v-model="messageVal" placeholder="Send a confession or help a fellow.... "/>
-                <button class="sendbuttonInside">
-                    <FontAwesomeIcon icon="paper-plane" size="xl"style="color: #2b0d2b;" />
+                <input class ='messageBoxStyle'type="text" id="messageBody" placeholder="Send a confession or help a fellow.... "/>
+                <button class="sendbuttonInside" @click="sendMessage">
+                    <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                 </button>
             </div>
+        </div>
+
+        <div class="settingButtonWrapper">
+            <button class="buttonIconStyle" >
+               <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
+            </button>
         </div>
 
             <!--Exit Button -->
@@ -71,6 +77,7 @@
 
 <script>
 import { Api } from '@/Api';
+import axios from 'axios';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 
@@ -82,10 +89,32 @@ export default{
     },
     data(){
         return {
-            messageVal : ''
+            message : ''
         }
     },
     methods:{
+         async sendMessage(){
+            try{
+                var messageBody = document.getElementById("messageBody");
+                var messageId = "messageId" + Math.floor(Math.random *100000);
+                var currentTime = new  Date().toISOString();
+                const responce = await axios.post('http://localhost:3000/api/message', {
+                    messageId: messageId,
+                    body: messageBody,
+                    SendTimestamp: currentTime,
+                    Reaction: null,
+                    ResponseIds: [],
+                    Sender: "{{userObjectId}}",
+                    BranchingRoom: "{{branchingRoomObjectId}}"
+
+                });
+                this.message = responce.object.message;
+                console.log("Message Send")
+            } catch(err){
+                console.log(err);
+            }
+        },
+        
     function(){
         src = "https://kit.fontawesome.com/",
     crossorigin="anonymous"
@@ -99,7 +128,7 @@ export default{
 
 <style>
 
-.backgrouncStyle{
+.backgroundStyle{
         background-image:linear-gradient(#2b0d2b, #6d2a46);
         min-height: 100vh; 
         width: 100%;
@@ -131,8 +160,8 @@ export default{
 .exitButtonWrapper{
     margin-left: 16px;
 }
-.sendButtonWrapper{
-    flex:1;
+.sendButtonWrapper,.settingButtonWrapper{
+    flex:0 auto 1;
     display:flex;
 }
 .head_banner{
@@ -201,18 +230,21 @@ export default{
     border-radius: 10px;
     padding-top: 5px;
     width: 100%;
+    display: flex;
+        align-items: center;
+    justify-content: center;
+
 }
 
 .categoryTitleStyle{
-    font-weight: 400;
-    font-size:medium;
+    font-weight: 50%;
+    font-size:large;
     color: #2b0d2b;
-    align-items: center;
 
 
 }
 .messageBoxStyle{
-    width: 70%;
+    width: 80%;
     border-radius: 10px;
     padding-right: 45px;
     height: 40px;
@@ -234,7 +266,7 @@ export default{
     background: transparent;
     border: none;
     position: absolute;
-    right: 15%;
+    right: 20%;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
