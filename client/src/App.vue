@@ -16,6 +16,8 @@
   background: #ddd; 
   padding: 2px;
   text-align: center;
+  position: relative;
+  z-index: 2000;
 }
 
 .nav a {
@@ -24,3 +26,4 @@
   color: black;
 }
 </style>
+
