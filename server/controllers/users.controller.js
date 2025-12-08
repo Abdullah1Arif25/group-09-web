@@ -56,13 +56,10 @@ const registerUser = async function (req, res, next) {
 
       
     }
-    const salt = await bcrypt.genSalt(8);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     const data = {
       userId,
       personalNumber,
-      password: hashedPassword,
+      password: password,
       language
     };
 
@@ -101,7 +98,7 @@ const loginUser = async function (req, res, next) {
       return res.status(401).json({ message: "Incorrect Password." });
     }
 
-    return res.status(200).json({ message: "Login successful." });
+    return res.status(200).json({ message: "Login successful." ,ObjectId: user._id});
 
   } catch (err) {
     return next(err);
