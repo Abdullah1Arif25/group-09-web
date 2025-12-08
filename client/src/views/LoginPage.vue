@@ -54,7 +54,7 @@
         this.error = "";
   
         try {
-          const response = await Api.post("/auth/login", {
+          const response = await Api.post("/users/login", {
             userId: this.userId,
             password: this.password,
           });
