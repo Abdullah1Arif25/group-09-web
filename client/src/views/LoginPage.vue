@@ -63,7 +63,7 @@
           setUserObjectId(response.data.ObjectId);
   
           localStorage.setItem("token", response.data.token);
-          this.$router.push("/home");
+          this.$router.push("/main");
   
         } catch (err) {
           this.error = err.response?.data?.error || "Login failed";
