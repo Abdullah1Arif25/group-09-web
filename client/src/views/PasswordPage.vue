@@ -141,13 +141,15 @@
   }
   
   .input-group input {
-    width: 100%;
-    height: 50px;
-    border-radius: 100px !important;
-    padding: 0 20px;
+    padding: 14px;
+    border-radius: 40px;
     border: none;
-    background: linear-gradient(90deg, #2b0d2b, #6d2a46);
-    color: white;
+    background: #f8f6f7;
+    color: #3a0f2a;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.25s ease;
   }
   
   .login-btn {
