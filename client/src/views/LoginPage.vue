@@ -38,6 +38,7 @@
   
   <script>
   import { Api } from "../Api";
+    import { getUserObjectId, setUserObjectId } from "@/cache/user.cache";
   
   export default {
     name: "LoginPage",
@@ -55,10 +56,11 @@
         this.error = "";
   
         try {
-          const response = await Api.post("/auth/login", {
+          const response = await Api.post("/users/login", {
             userId: this.userId,
             password: this.password,
           });
+          setUserObjectId(response.data.ObjectId);
   
           localStorage.setItem("token", response.data.token);
           this.$router.push("/home");
