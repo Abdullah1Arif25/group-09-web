@@ -32,7 +32,21 @@
         </div>
 
         <!-- Empty boom -->
-        <div class="room_box"></div>
+        <div class="room_box">
+             <div
+                v-for="msg in messages"
+                :key="msg._id" 
+                :class="['message-box-style', String(msg.Sender._id) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                <p class="message-text-style">
+                    {{ msg.Body }}
+                </p>
+                <small class="message-font-style">
+                    {{ new Date(msg.SendTimestamp).toLocaleDateString() }}
+                </small>
+            
+            </div>
+
+        </div>
 
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
@@ -76,7 +90,7 @@
 
 <script>
 import { Api } from '@/Api';
-import axios from 'axios';
+import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 
@@ -88,39 +102,103 @@ export default{
     },
     data(){
         return {
-            message : ''
-        }
+            message : '',
+            branchingRoomTopic: '',
+            branchingRoomId : '',
+            messages:[],
+            senderObjectId:getUserObjectId(),
+        };
     },
-    methods:{
-         async sendMessage(){
-            try{
-                var messageBody = document.getElementById("messageBody");
-                var messageId = "messageId" + Math.floor(Math.random *100000);
-                var currentTime = new  Date().toISOString();
-                const responce = await axios.post('http://localhost:3000/api/message', {
-                    messageId: messageId,
-                    body: messageBody,
-                    SendTimestamp: currentTime,
-                    Reaction: null,
-                    ResponseIds: [],
-                    Sender: "{{userObjectId}}",
-                    BranchingRoom: "{{branchingRoomObjectId}}"
+    mounted(){
+        this.getAllBranhingRooms();
 
+    },
+//    watch: {
+//          branchingRoomTopic() {
+//            this.getAllBranhingRooms();   
+//        }
+//    },
+    methods:{
+
+        async getAllBranhingRooms(){
+            try{
+
+                // Do we create a Local and Global Room, since that would be apropriate
+                const roomTopic = this.branchingRoomTopic || "General"
+                const branchingRooms = await Api.get("/branchingrooms", {
+                    params:{
+                        roomTopic:roomTopic,
+                        branchingRoomType:"LocalRoom"
+                    },
                 });
-                this.message = responce.object.message;
-                console.log("Message Send")
+                const branchingRoomList= branchingRooms.data.Body;
+                let BranchingRoom = null;
+                if(branchingRoomList.length>0){
+                    BranchingRoom = branchingRooms.data.Body[0];
+                }
+                console.log(BranchingRoom.branchingRoomId);
+                this.branchingRoomId =BranchingRoom ? BranchingRoom.branchingRoomId: '';
+
+                if(this.branchingRoomId){
+                    await this.fetchMessages();
+                }
+
+
+
             } catch(err){
                 console.log(err);
             }
         },
-        
-    function(){
-        src = "https://kit.fontawesome.com/",
-    crossorigin="anonymous"
-}
+
+        async fetchMessages(){
+            try{
+                const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
+                this.messages = allMessage.data;
+
+            } catch(err){
+                console.log(err);
+
+            }
+        },
+
+         async sendMessage(){
+            try{
+                if(!this.message.trim()) return;
+
+                if(!this.branchingRoomId){
+                    console.log("No Branching room selected");
+                    return;
+                }
+
+
+                if (!this.senderObjectId) {
+                    console.error("No sender ID in cache (user not logged in or cache lost)");
+                    this.$router.push('/login');
+                    return;
+                }
+                const messageId = "messageId" + Math.floor(Math.random() *100000);
+                const  currentTime = new  Date().toISOString();
+                const responce = await Api.post(`branchingrooms/${this.branchingRoomId}/messages`, {
+                    messageId: messageId,
+                    Body: this.message,
+                    SendTimestamp: currentTime,
+                    Reaction: null,
+                    ResponseIds: [],
+                    Sender: this.senderObjectId
+                    
+
+                });
+                await this.fetchMessages();
+                this.message = '';
+
+            } catch(err){
+                console.log(err);
+            }
+        },
 
     }
 }
+
 
 
 </script>
@@ -290,6 +368,47 @@ export default{
     background: transparent;
     border: none;
     cursor: pointer;
+}
+
+
+.room_box{
+    overflow-y: scroll;
+    background-image:linear-gradient(#2b0d2b, #6d2a46);
+    display: flex;
+    flex-direction: column;
+    padding:80px  12px 90px;
+    
+
+}
+.message-box-style {
+  padding: 10px 18px;
+  max-width: 60%;
+  margin: 4px 0;
+  border-radius: 10px;
+  color: #fdfdfd;
+}
+
+.my-message{
+  align-self: flex-end;
+  background: linear-gradient(#ffc2c2,#936480);
+  color: #2b0d2b;
+  border-bottom-right-radius: 2px;
+}
+
+
+.others-message {
+  align-self: flex-start;
+  background: linear-gradient(#1a0c1a, #4f2d3b);
+  border-bottom-left-radius: 2px;
+}
+
+.message-text-style {
+  margin: 0 0 3px 0;
+}
+
+.message-font-style {
+  font-size: 11px;
+  opacity: 0.7;
 }
 
 
