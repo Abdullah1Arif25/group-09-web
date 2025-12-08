@@ -57,7 +57,7 @@ export default {
   methods: {
     async handleRegister() {
       try {
-        await Api.post("/auth/register", {
+        await Api.post("/users/register", {
           userId: this.userId,
           personalNumber: this.personalNumber,
           language: this.language,
@@ -178,3 +178,4 @@ input:focus::placeholder {
   opacity: 0.8;
 }
 </style>
+
