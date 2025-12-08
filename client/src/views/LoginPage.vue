@@ -18,6 +18,8 @@
             <label>Password</label>
             <input v-model="password" type="password" required />
           </div>
+          
+          <router-link class="forgot-password-link" to="/">Forgot Password!</router-link>
   
           <button type="submit" class="login-btn">Login</button>
         </form>
@@ -176,5 +178,22 @@
     font-weight: 600;
     text-decoration: underline;
   }
+
+  .forgot-password-link {
+  display: block;
+  margin: -25px 0 10px 0;   
+  font-size: 16px;
+  color: #ead6e3;          
+  text-align: left;        
+  text-decoration: none;   
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-decoration: underline;
+}
+
+.forgot-password-link:hover {
+  color: #ffffff;
+}
+
   </style>
   
