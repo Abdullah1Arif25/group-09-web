@@ -16,8 +16,20 @@ const createMessage = async function(req, res, next){
     if (!req.body.BranchingRoom) {
       return res.status(400).json({ message: "Branching Room is required" });
     }
-    const newMessage = await Message.create(req.body);
-    res.send(201).json({message:"Successs", Object: newMessage});
+
+    const randomSix = Math.floor(100000 + Math.random() * 900000);
+    const messageId = req.body.messageId || ("messageId" + randomSix);
+
+    const newMessage = await Message.create({
+    messageId,
+    Body: req.body.Body,
+    Sender: req.body.Sender,
+    BranchingRoom: req.body.BranchingRoom,
+    SendTimestamp: new Date(),
+    Reaction: null,
+    ResponseIds: []
+});
+    res.status(201).json({message:"Success", Object: newMessage});
     
   } catch (err) {
     next(err);
