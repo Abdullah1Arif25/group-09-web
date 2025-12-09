@@ -20,6 +20,9 @@
       </div>
 
     </div>
+
+    <footer class="footer">© 2025 Hear Me Out — We Listen & We Don't Judge</footer>
+
   </div>
 </template>
 
@@ -107,5 +110,15 @@ export default {
     rgba(255, 194, 194, 0.35),
     rgba(147, 100, 128, 1)
   );
+}
+
+.footer {
+  position: absolute;
+  bottom: 5px;
+  width: 100%;
+  text-align: center;
+  color: rgba(255,255,255,0.6);
+  font-size: 0.85rem;
+  letter-spacing: 1px;
 }
 </style>
