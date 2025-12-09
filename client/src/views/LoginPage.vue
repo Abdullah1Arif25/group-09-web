@@ -18,6 +18,8 @@
             <label>Password</label>
             <input v-model="password" type="password" required />
           </div>
+          
+          <router-link class="forgot-password-link" to="/password">Forgot Password!</router-link>
   
           <button type="submit" class="login-btn">Login</button>
         </form>
@@ -36,6 +38,7 @@
   
   <script>
   import { Api } from "../Api";
+    import { getUserObjectId, setUserObjectId } from "@/cache/user.cache";
   
   export default {
     name: "LoginPage",
@@ -53,13 +56,14 @@
         this.error = "";
   
         try {
-          const response = await Api.post("/auth/login", {
+          const response = await Api.post("/users/login", {
             userId: this.userId,
             password: this.password,
           });
+          setUserObjectId(response.data.ObjectId);
   
           localStorage.setItem("token", response.data.token);
-          this.$router.push("/home");
+          this.$router.push("/main");
   
         } catch (err) {
           this.error = err.response?.data?.error || "Login failed";
@@ -176,5 +180,22 @@
     font-weight: 600;
     text-decoration: underline;
   }
+
+  .forgot-password-link {
+  display: block;
+  margin: -25px 0 10px 0;   
+  font-size: 16px;
+  color: #ead6e3;          
+  text-align: left;        
+  text-decoration: none;   
+  cursor: pointer;
+  transition: 0.2s ease;
+  text-decoration: underline;
+}
+
+.forgot-password-link:hover {
+  color: #ffffff;
+}
+
   </style>
   
