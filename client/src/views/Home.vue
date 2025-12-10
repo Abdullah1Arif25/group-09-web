@@ -1,4 +1,18 @@
 <template>
+  <nav class="soft-navbar">
+    <div class="nav-left">
+      <a class="nav-item" @click="$router.push('/')">Home</a>
+      <span class="divider">|</span>
+      <a class="nav-item" @click="$router.push('/about')">About</a>
+    </div>
+
+    <div class="nav-right">
+      <a class="nav-item" @click="$router.push('/contact')">Contact</a>
+      <span class="divider">|</span>
+      <a class="nav-item" @click="$router.push('/support')">Support</a>
+    </div>
+  </nav>
+
   <div class="home-wrapper">
     <div class="content-box">
 
@@ -41,6 +55,55 @@ export default {
 </script>
 
 <style scoped>
+/* Navbar */
+.soft-navbar {
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80%;
+  height: 60px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  border-radius: 40px;
+  background: radial-gradient(
+    circle at 50% 50%, 
+    rgba(255, 194, 194, 0) 0%,
+    rgba(145, 90, 123, 0.42) 100%
+  );
+  backdrop-filter: blur(50px);
+  z-index: 10;
+}
+
+.nav-item {
+  color: rgba(255,255,255,0.85);
+  font-size: 1.05rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: 0.3s;
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  color: white;
+}
+
+
+.divider {
+  color: rgba(255,255,255,0.4);
+  margin: 0 10px;
+  font-size: 1.1rem;
+}
+
+
+.nav-left, .nav-right {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
 /* Gradient background */
 .home-wrapper {
   height: 100vh;
@@ -52,7 +115,7 @@ export default {
   text-align: center;
 }
 
-/* Container for logo, titles, and buttons */
+
 .content-box {
   display: flex;
   flex-direction: column;
@@ -61,21 +124,21 @@ export default {
 
 
 .logo {
-  width: 450px;
+  width: 350px;
   margin-bottom: 20px;
 }
 
 /* Titles styling */
 .main-title {
   font-family: "Noto Serif Ethiopic", serif;
-  font-size: 45px;
+  font-size: 38px;
   font-weight: 700;
   letter-spacing: 5px; 
   margin: 0;
 }
 
 .subtitle {
-  font-size: 1.3rem;
+  font-size: 1.15rem;
   font-weight: 300;
   font-style: italic;
   margin-bottom: 40px;
