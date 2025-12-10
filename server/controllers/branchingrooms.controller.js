@@ -1,7 +1,7 @@
 const express = require("express");
 const BranchingRoom = require("../models/branchingroom.model");
 const messagesModel = require("../models/message.model");
-
+const User = require("../models/user.model");
 
 
 
@@ -72,6 +72,31 @@ const respondtoMessageInABranchingRoom = async function(req, res, next){
         next(err);
     }
 
+};
+
+// POST: Checks if user and branching room exists before joining
+const joinRoom = async function(req, res, next){
+    try{
+
+        const { userId, roomId } = req.body;
+
+        const user = await User.findOne({ userId });
+        if(!user){
+            return res.status(400).json({message: "User not found"});
+        }
+
+        const room = await BranchingRoom.findOne({ branchingRoomId: roomId });
+        if(!room){
+            return res.status(400).json({message: "Room not found"});
+        }
+
+        res.status(200).json({
+            message: "Success", userObjectId: user._id,roomObjectId: room._id
+        });
+
+    }catch(err){
+        next(err);
+    }
 };
 
 // GET: Read All Branching Rooms
@@ -258,6 +283,6 @@ const deleteMessageInBranchingRoom = async function(req, res, next){
 };
 
 
-module.exports = {respondtoMessageInABranchingRoom,createBranchingRoom,createMessageInABranchingRoom,getAMessageInABranchingRoom, getAllBranchingRooms, getAllMessagesInBranchingRoom, getBranchingRoom, updateBranchingRoomTopic, updateMessageInBranchingRoom, deleteAllBranchingRooms, deleteBranchingRoom, deleteMessageInBranchingRoom}
+module.exports = {respondtoMessageInABranchingRoom,createBranchingRoom,createMessageInABranchingRoom,joinRoom,getAMessageInABranchingRoom, getAllBranchingRooms, getAllMessagesInBranchingRoom, getBranchingRoom, updateBranchingRoomTopic, updateMessageInBranchingRoom, deleteAllBranchingRooms, deleteBranchingRoom, deleteMessageInBranchingRoom}
 
 

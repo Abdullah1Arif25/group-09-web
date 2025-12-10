@@ -5,6 +5,8 @@ const cors = require('cors');
 const history = require('connect-history-api-fallback');
 const connectDB = require('./config/database');
 const { port } = require('./config/config'); 
+const http = require("http");
+const setupSocket = require("./config/socketIO");
 
 connectDB(); // connect to db
 
@@ -58,10 +60,16 @@ app.use(function (err, req, res, next) {
   res.status(err.status || 500).json(err_res);
 });
 
+// create HTTP server
+const httpServer = http.createServer(app);
+
+// attach socket to HTTP server
+setupSocket(httpServer);
+
 // start server
-app.listen(port, function(err) {
+httpServer.listen(port, function(err) {
     if (err) throw err;
-    console.log(`Express server listening on port ${port}, in ${env} mode`);
+    console.log(`Express + SocketIO server running on port ${port}`);
     console.log(`Backend: http://localhost:${port}/api/`);
     console.log(`Frontend (production): http://localhost:${port}/`);
 });
