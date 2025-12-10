@@ -9,10 +9,29 @@
         <form @submit.prevent="handleLogin" class="form">
 
         <!-- Inputs -->
-          <div class="input-group">
-            <label>UserID</label>
-            <input v-model="userId" type="text" required />
-          </div>
+          <!-- Toggle between UserID or Personal Number -->
+            <div class="login-toggle">
+              <span 
+                :class="['toggle-option', loginMethod === 'userId' ? 'active' : '']" 
+                @click="loginMethod = 'userId'">UserID</span>
+            
+              <span class="divider">/</span>
+            
+              <span 
+                :class="['toggle-option', loginMethod === 'personalNumber' ? 'active' : '']"
+                @click="loginMethod = 'personalNumber'">Personal number</span>
+            </div>
+
+            <!-- Dynamic Input -->
+            <div class="input-group">
+              <label>{{ loginMethod === 'userId' ? 'UserID' : 'Personal Number' }}</label>
+              <input 
+                :placeholder="loginMethod === 'userId' ? ' ' : ' '" 
+                v-model="loginInput"
+                type="text"
+                required/>
+            </div>
+
   
           <div class="input-group">
             <label>Password</label>
@@ -45,7 +64,8 @@
   
     data() {
       return {
-        userId: "",
+        loginMethod: "userId", 
+        loginInput: "",
         password: "",
         error: "",
       };
@@ -53,21 +73,28 @@
   
     methods: {
       async handleLogin() {
-        this.error = "";
-  
-        try {
-          const response = await Api.post("/users/login", {
-            userId: this.userId,
-            password: this.password,
-          });
-          setUserObjectId(response.data.ObjectId);
-  
-          localStorage.setItem("token", response.data.token);
-          this.$router.push("/main");
-  
-        } catch (err) {
-          this.error = err.response?.data?.error || "Login failed";
+      this.error = "";
+
+      try {
+        const payload = {
+          password: this.password,
+        };
+
+        if (this.loginMethod === "userId") {
+          payload.userId = this.loginInput;
+        } else {
+          payload.personalNumber = this.loginInput;
         }
+
+        const response = await Api.post("/users/login", payload);
+
+        setUserObjectId(response.data.ObjectId);
+        localStorage.setItem("token", response.data.token);
+
+        this.$router.push("/main");
+      } catch (err) {
+        this.error = err.response?.data?.message || "Login failed";
+      }
       },
     },
   };
@@ -87,7 +114,7 @@
 
   .login-card {
     width: 480px;
-    padding: 55px 50px;
+    padding: 45px 45px;
     border-radius: 45px;
     background: linear-gradient(
       90deg,
@@ -121,6 +148,32 @@
     flex-direction: column;
     gap: 30px;
   }
+
+  .login-toggle {
+    display: flex;
+    justify-content: flex-start;
+    gap: 10px;
+    font-size: 16px;
+    margin-bottom: -10px;
+    margin-top: -10px;
+  }
+
+  .toggle-option {
+    cursor: pointer;
+    color: #ead6e3;
+    transition: 0.2s ease;
+  }
+
+  .toggle-option.active {
+    color: white;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  .divider {
+    color: rgba(255,255,255,0.6);
+  }
+
   
 
   .input-group label {
