@@ -18,7 +18,7 @@
 
                 <div class="categoryDivStyle">
                     <h2 class="categoryTitleStyle">
-                        {{ branchingRoomCategory || "General"}}
+                        {{ this.branchingRoomTopic}}
                     </h2>
                 </div>
             </div>
@@ -43,30 +43,30 @@
             :class="{ menuVisible: isMenuOpen }">
 
             <div class="sideMenuContent">
-                <button class="sideMenuButton">Health</button>
-                <button class="sideMenuButton">Education</button>
-                <button class="sideMenuButton">Travel</button>
-                <button class="sideMenuButton">Movies</button>
-                <button class="sideMenuButton">Books</button>
-                <button class="sideMenuButton">Sports</button>
-                <button class="sideMenuButton">Relationships</button>
-                <button class="sideMenuButton">Pets</button>
-                <button class="sideMenuButton">Politics</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('General')">General</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('Scandle')">Scandle</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('Travel')">Travel</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('Movies')">Movies</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('Books')">Books</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('Sports')">Sports</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('Relationships')">Relationships</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('Food')">Pets</button>
+                <button class="sideMenuButton" @click="changeRoomTopic('School')">Politics</button>
             </div>
         </div>
 
 
         <!-- Empty boom -->
-        <div class="room_box">
+        <div class="room-box" ref="messageBox">
              <div
                 v-for="msg in messages"
-                :key="msg._id" 
-                :class="['message-box-style', String(msg.Sender._id) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                :key="msg.senderId" 
+                :class="['messageBox-style', String(msg.senderObjectId) === String(this.senderObjectId) ? 'my-message':'others-message']">
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
                 <small class="message-font-style">
-                    {{ new Date(msg.SendTimestamp).toLocaleDateString() }}
+                    {{ new Date(msg.timestamp).toLocaleDateString() }}
                 </small>
             
             </div>
@@ -115,6 +115,7 @@
 
 <script>
 import { Api } from '@/Api';
+import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
@@ -132,18 +133,78 @@ export default {
             branchingRoomId : '',
             messages:[],
             senderObjectId:getUserObjectId(),
+            chatListner: null,
+            socket,
         };
     },
-    mounted(){
-        this.getAllBranhingRooms();
+    beforeUnmount(){
+        if(this.socket && this.chatListner){
+            this.socket.off("chat message", this.chatListner);
+        }
+    },
+    async mounted(){
+        await this.getAllBranhingRooms();
+
+        if(!this.socket.connected){
+            this.socket.connect();
+        }
+
+        this.chatListner = (msg)=>
+            this.messages.push({
+                senderId: msg.senderObjectId,
+                anonymousName: msg.sender,
+                Body: msg.Body,
+                timestamp:msg.timestamp
+
+            });
+        this.$nextTick(()=>{
+            this.scrollToBottom();
+        });
+        this.socket.on("chat message",this.chatListner);
+
+         this.$nextTick(() => {
+            this.scrollToBottom();
+        });
+
+
+        if (this.branchingRoomId && this.senderObjectId) {
+          this.socket.emit("join room", {
+            userId: this.senderObjectId,
+            roomId: this.branchingRoomId,
+          });
+        }
+
+        
 
     },
-//    watch: {
-//          branchingRoomTopic() {
-//            this.getAllBranhingRooms();   
-//        }
-//    },
+    watch: {
+        branchingRoomId(newId, oldId) {
+        if (!newId || !this.socket || !this.senderObjectId) return;
+
+        this.socket.emit("join room", {
+          userId: this.senderObjectId,
+          roomId: newId,
+        });
+
+        this.fetchMessages().then(() => {
+          this.$nextTick(() => this.scrollToBottom());
+        });
+      },
+    },
     methods:{
+
+        changeRoomTopic(newBranchingRoomTopic){
+            this.branchingRoomTopic = String(newBranchingRoomTopic);
+            this.getAllBranhingRooms();
+
+        },
+        scrollToBottom(){
+            const box = this.$refs.messageBox;
+            if(box){
+                box.scrollTop = box.scrollHeight;
+            }
+
+        },
         openMenu() {
             this.isMenuOpen = true;
         },
@@ -154,7 +215,10 @@ export default {
             try{
 
                 // Do we create a Local and Global Room, since that would be apropriate
-                const roomTopic = this.branchingRoomTopic || "General"
+                if(this.branchingRoomTopic === ''){
+                    this.branchingRoomTopic = "General";
+                }
+                const roomTopic = this.branchingRoomTopic 
                 const branchingRooms = await Api.get("/branchingrooms", {
                     params:{
                         roomTopic:roomTopic,
@@ -183,7 +247,13 @@ export default {
         async fetchMessages(){
             try{
                 const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
-                this.messages = allMessage.data;
+                this.messages = allMessage.data.map((m)=>({
+                    senderObjectId: m.Sender._id || m.Sender || null,
+                    anonymousName: m.anonymousName,
+                    Body: m.Body,timestamp:
+                    m.SendTimestamp,
+
+                }));
 
             } catch(err){
                 console.log(err);
@@ -208,7 +278,7 @@ export default {
                 }
                 const messageId = "messageId" + Math.floor(Math.random() *100000);
                 const  currentTime = new  Date().toISOString();
-                const responce = await Api.post(`branchingrooms/${this.branchingRoomId}/messages`, {
+                const messageData =  {
                     messageId: messageId,
                     Body: this.message,
                     SendTimestamp: currentTime,
@@ -217,8 +287,11 @@ export default {
                     Sender: this.senderObjectId
                     
 
-                });
-                await this.fetchMessages();
+                };
+                if (this.socket) {
+                  this.socket.emit("chat message", messageData);
+                }
+
                 this.message = '';
 
             } catch(err){
@@ -311,10 +384,9 @@ export default {
     color: #2b0d2b;
 }
 
-.room_box {
+.room-box{
     background: linear-gradient(#2b0d2b, #6d2a46);
     flex: 1;
-    overflow-y: auto;
 }
 
 
@@ -446,7 +518,7 @@ export default {
 }
 
 
-.room_box{
+.room-box{
     overflow-y: scroll;
     background-image:linear-gradient(#2b0d2b, #6d2a46);
     display: flex;
@@ -455,7 +527,7 @@ export default {
     
 
 }
-.message-box-style {
+.messageBox-style {
   padding: 10px 18px;
   max-width: 60%;
   margin: 4px 0;
