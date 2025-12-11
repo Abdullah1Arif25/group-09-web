@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "91b406ee-2998-4665-bff0-480cdbaf9f71",
-		"name": "HMO Backend MS1 Copy 2",
+		"_postman_id": "29b0de56-010e-4e8f-ba40-f580e3ec2d87",
+		"name": "HMO Backend MS1 Copy 3",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "50012449",
-		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/50012449-91b406ee-2998-4665-bff0-480cdbaf9f71?action=share&source=collection_link&creator=50012449"
+		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/50012449-29b0de56-010e-4e8f-ba40-f580e3ec2d87?action=share&source=collection_link&creator=50012449"
 	},
 	"item": [
 		{
@@ -452,58 +452,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"password\": \"aisha2004\"\n}\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/v1/users/login",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"v1",
-										"users",
-										"login"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "User ID missing",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Response is 400 userId is missing\", function () {",
-											"    pm.response.to.have.status(400);",
-											"});",
-											"",
-											"pm.test(\"Returns correct error message\", function () {",
-											"    const body = pm.response.json();",
-											"    pm.expect(body.message).to.eql(\"User ID is required.\");",
-											"});"
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"userId\": \"\",\n  \"password\": \"12345678\"\n}",
+									"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"personalNumber\": \"{{personalNumber}}\",\n  \"password\": \"{{password}}\"\n}\n",
 									"options": {
 										"raw": {
 											"language": "json"
