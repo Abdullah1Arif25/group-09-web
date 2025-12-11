@@ -97,7 +97,8 @@ HearMeOut is a web based anonymous confession and support platform for users age
 
 ## Teaser (MS3)
 
-![Teaser](./images/teaser.png)
+![Teaser](./images/teaser_1.jpg)
+
 
 ## Advanced Feature:
 

@@ -1,19 +1,32 @@
 <template>
   <div id="app">
-    <div id="nav">
+    <div class="nav">
       <router-link to="/">Home</router-link>
+      <router-link to="/register">Register</router-link>
+      <router-link to="/login">Login</router-link>
+      <router-link to="/main">Main</router-link>
+      <router-link to="/profile">Profile</router-link>
+      <router-link to="/localroom">Localroom</router-link>
+      
     </div>
-    <!-- Render the content of the current page view -->
-    <router-view/>
+
+    <router-view />
   </div>
 </template>
 
 <style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+.nav {
+  background: #ddd; 
+  padding: 2px;
   text-align: center;
-  color: #2c3e50;
+  position: relative;
+  z-index: 2000;
+}
+
+.nav a {
+  margin: 0 10px;
+  text-decoration: none;
+  color: black;
 }
 </style>
+
