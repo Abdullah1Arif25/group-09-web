@@ -5,6 +5,7 @@ import RegisterPage from './views/RegisterPage.vue'
 import LoginPage from './views/LoginPage.vue'
 import LocalRoom from './views/LocalRoom.vue'
 import MainPage from './views/MainPage.vue'
+import GlobalRoom from './views/GlobalRoom.vue'
 
 const routes = [
   { path: '/', name: 'home', component: Home },
@@ -12,6 +13,7 @@ const routes = [
   { path: '/register', name: 'Register', component: RegisterPage },
   { path: '/localroom', name: 'localroom', component: LocalRoom },
   { path: '/main', name: 'main', component: MainPage },
+  { path: '/globalroom', name: 'globalroom', component: GlobalRoom }
 ]
 
 const router = createRouter({
