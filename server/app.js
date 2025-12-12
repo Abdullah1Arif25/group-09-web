@@ -32,11 +32,11 @@ app.get('/api', function (req, res) {
 });
 
 // mount routes
-app.use('/api/users', userRoutes);
-app.use('/api/localrooms',localRoomsRoutes );
-app.use('/api/globalrooms', globalRoutes);
-app.use('/api/branchingrooms',branchingRoomRoutes);
-app.use('/api/messages', messageRoutes);
+app.use('/api/v1/users', userRoutes);
+app.use('/api/v1/localrooms',localRoomsRoutes );
+app.use('/api/v1/globalrooms', globalRoutes);
+app.use('/api/v1/branchingrooms',branchingRoomRoutes);
+app.use('/api/v1/messages', messageRoutes);
 
 // 404 fallback
 app.use('/api/*', function (req, res) {
