@@ -48,7 +48,7 @@ module.exports = function (io) {
                 return;
 
             try {
-                const responce = await fetch(`http://localhost:3000/api/branchingrooms/${socket.roomId}/messages`, {
+                const responce = await fetch(`http://localhost:3000/api/v1/branchingrooms/${socket.roomId}/messages`, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
                     body: JSON.stringify({
