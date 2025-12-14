@@ -102,6 +102,15 @@ const joinRoom = async function(req, res, next){
 // GET: Read All Branching Rooms
 const getAllBranchingRooms = async function(req, res, next){
     try{
+
+        const { branchingRoomType, language } = req.query;
+
+        if (branchingRoomType === "LocalRoom" && language !== "swe") {
+            return res.status(403).json({
+                message: "Local rooms are only available for Swedish speacking users"
+            });
+        }
+
         //Filter
         const queryParams = {};
         if(req.query.branchingRoomType !== undefined) queryParams.branchingRoomType = req.query.branchingRoomType;
