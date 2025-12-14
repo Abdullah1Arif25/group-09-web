@@ -219,10 +219,14 @@ export default {
                     this.branchingRoomTopic = "General";
                 }
                 const roomTopic = this.branchingRoomTopic 
+
+                const user = JSON.parse(localStorage.getItem("user"));
+
                 const branchingRooms = await Api.get("/branchingrooms", {
                     params:{
                         roomTopic:roomTopic,
-                        branchingRoomType:"LocalRoom"
+                        branchingRoomType:"LocalRoom",
+                        language: user.language
                     },
                 });
                 const branchingRoomList= branchingRooms.data.Body;
