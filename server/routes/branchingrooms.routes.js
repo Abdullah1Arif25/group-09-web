@@ -13,6 +13,9 @@ branchingRoomRoute.post("/:branchingRoomId/messages", branchingRoomController.cr
 // Post: Create a response to a existing message in a branching room
 branchingRoomRoute.post("/:branchingRoomId/messages/:messageId", branchingRoomController.respondtoMessageInABranchingRoom);
 
+// POST: Checks if user and branching room exists before joining
+branchingRoomRoute.post("/join", branchingRoomController.joinRoom);
+
 // GET: Read All Branching Rooms
 branchingRoomRoute.get("/", branchingRoomController.getAllBranchingRooms);
 

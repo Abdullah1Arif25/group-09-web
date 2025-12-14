@@ -1,5 +1,5 @@
 <template>
-  <div class="register-wrapper">
+  <div class="register">
     <div class="register-card">
 
       <h1 class="title">Sign up</h1>
@@ -26,7 +26,7 @@
           <input v-model="password" type="password" placeholder="Enter Password" />
         </div>
 
-        <button type="submit" class="btn-submit">REGISTER</button>
+        <button type="submit" class="btn-submit">Register</button>
 
         <p class="login-text">
           Already have an account?
@@ -57,7 +57,7 @@ export default {
   methods: {
     async handleRegister() {
       try {
-        await Api.post("/auth/register", {
+        await Api.post("/users/register", {
           userId: this.userId,
           personalNumber: this.personalNumber,
           language: this.language,
@@ -67,15 +67,19 @@ export default {
         this.$router.push("/login");
       } catch (err) {
         console.log(err.response?.data);
+
+        const { message } = err.response.data;
+        this.error = message;
+        alert(this.error);
       }
     }
   }
 };
 </script>
-
 <style scoped>
+
 /* Background */
-.register-wrapper {
+.register {
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -100,6 +104,7 @@ export default {
 }
 
 .title {
+  font-family: "Noto Serif Ethiopic", serif;
   font-size: 42px;
   font-weight: 700;
   margin-top: -10px; 
@@ -110,31 +115,29 @@ export default {
 .input-group {
   display: flex;
   flex-direction: column;
-  width: 95%;
+  width: 105%;
   margin: 0 auto;
   margin-bottom: 20px;
   text-align: left;  
 }
 
 label {
-  font-weight: 600;
+  font-weight: 400;
   font-size: 1rem;
-  background: linear-gradient(90deg, #2b0d2b, #300919);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: #2b0d2b; 
   margin-bottom: 6px;
 }
 
 /* Input feild */
 input {
   width: 100%;
-  padding: 16px;
+  padding: 15px;
   border-radius: 50px !important;
   border: none;
-  background: #f8f6f7;
+  background: #fadde8;
   color: #2b0d2b;
-  font-size: 16px;
-  text-align: center;
+  font-size: 15px;
+  text-align: left;
   outline: none;
   box-sizing: border-box;
 }
@@ -162,19 +165,20 @@ input:focus::placeholder {
     #6d2a46);
   font-size: 20px;
   font-weight: 700;
-  color: white !important;
+  margin-bottom: 10px;
+  color: white;
   cursor: pointer;
   transition: 0.25s ease;
 }
 
-.register-card a {
-  color: #59213e !important;
+.btn-submit:hover {
+  opacity: 0.8;
+}
+
+.login-text a {
+  color: #59213e;
   text-decoration: underline;
   font-weight: 600;
   transition: 0.25s ease;
-}
-
-.register-card a:hover {
-  opacity: 0.8;
 }
 </style>

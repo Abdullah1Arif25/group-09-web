@@ -2,9 +2,12 @@
   <div id="app">
     <div class="nav">
       <router-link to="/">Home</router-link>
-      <router-link to="/login">Login</router-link>
       <router-link to="/register">Register</router-link>
+      <router-link to="/login">Login</router-link>
+      <router-link to="/main">Main</router-link>
+      <router-link to="/profile">Profile</router-link>
       <router-link to="/localroom">Localroom</router-link>
+      
     </div>
 
     <router-view />
@@ -16,6 +19,8 @@
   background: #ddd; 
   padding: 2px;
   text-align: center;
+  position: relative;
+  z-index: 2000;
 }
 
 .nav a {
@@ -24,3 +29,4 @@
   color: black;
 }
 </style>
+
