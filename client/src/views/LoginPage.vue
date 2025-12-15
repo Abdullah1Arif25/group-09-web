@@ -89,7 +89,8 @@
         const response = await Api.post("/users/login", payload);
 
         setUserObjectId(response.data.ObjectId);
-        localStorage.setItem("token", response.data.token);
+        // localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data));
 
         this.$router.push("/main");
       } catch (err) {

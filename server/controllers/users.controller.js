@@ -113,7 +113,9 @@ const loginUser = async function (req, res, next) {
 
     return res.status(200).json({
       message: "Login successful.",
-      ObjectId: user._id
+      ObjectId: user._id,
+      userId: user.userId,
+      language: user.language
     });
 
   } catch (err) {

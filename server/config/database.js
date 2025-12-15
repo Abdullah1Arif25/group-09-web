@@ -5,7 +5,7 @@ function connectDB() {
   return mongoose
     .connect(mongoURI)
     .then(() => {
-      console.log('Connected to MongoDB');
+      console.log('Connected to MongoDB', mongoURI);
     })
     .catch((err) => {
       console.error('MongoDB connection error:', err);
