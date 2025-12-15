@@ -11,7 +11,9 @@
       <div class="room">
 
         <!-- LOCAL ROOM -->
-        <router-link to="/localroom" class="room-card">
+        <router-link 
+        v-if="user && user.language === 'swe'" 
+        to="/localroom" class="room-card">
           <div class="room-text">LOCAL ROOM</div>
           <img 
             class="room-icon"
@@ -39,8 +41,14 @@
 <script>
 export default {
   name: "HomePage",
+  data() {
+    return {
+      user: JSON.parse(localStorage.getItem("user")),
+    };
+  },
 };
 </script>
+
 
 <style scoped>
 .page-wrapper {
