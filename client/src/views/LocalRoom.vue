@@ -61,7 +61,10 @@
              <div
                 v-for="msg in messages"
                 :key="msg.senderId" 
-                :class="['messageBox-style', String(msg.senderObjectId) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                :class="['messageBox-style', String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                <small class="message-font-style">
+                    {{ msg.anonymousName}}
+                </small>
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
@@ -83,12 +86,14 @@
             />
 
             <div class="messageBoxWrapper">
-                <div class="inputContainer">
-                <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                <button class="sendbuttonInside" @click="sendMessage">
-                    <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
-                    </button>
-                </div>
+                
+                <form class="inputContainer" @submit.prevent="sendMessage">
+                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
+                        <button class="sendbuttonInside" @click="sendMessage">
+                            <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
+                        </button>
+                </form>
+                
             </div>
 
             <div class="settingButtonWrapper">
@@ -144,27 +149,25 @@ export default {
     },
     async mounted(){
         await this.getAllBranhingRooms();
+        await this.scrollToBottom();
 
         if(!this.socket.connected){
             this.socket.connect();
         }
 
-        this.chatListner = (msg)=>
+        this.chatListner = (msg)=>{
             this.messages.push({
                 senderId: msg.senderObjectId,
-                anonymousName: msg.sender,
+                anonymousName: msg.senderAnonymousName,
                 Body: msg.Body,
                 timestamp:msg.timestamp
 
             });
-        this.$nextTick(()=>{
+             this.$nextTick(() => {
             this.scrollToBottom();
         });
+        };
         this.socket.on("chat message",this.chatListner);
-
-         this.$nextTick(() => {
-            this.scrollToBottom();
-        });
 
 
         if (this.branchingRoomId && this.senderObjectId) {
@@ -178,6 +181,12 @@ export default {
 
     },
     watch: {
+         messages() {
+            this.$nextTick(() => {
+                this.scrollToBottom();
+            });
+        },
+
         branchingRoomId(newId, oldId) {
         if (!newId || !this.socket || !this.senderObjectId) return;
 
@@ -196,12 +205,13 @@ export default {
         changeRoomTopic(newBranchingRoomTopic){
             this.branchingRoomTopic = String(newBranchingRoomTopic);
             this.getAllBranhingRooms();
+            this.closeMenu();
 
         },
         scrollToBottom(){
-            const box = this.$refs.messageBox;
-            if(box){
-                box.scrollTop = box.scrollHeight;
+            const lastMessage = this.$refs.messageBox.lastElementChild;
+            if(lastMessage){
+                lastMessage.scrollIntoView({ behavior:'smooth'});
             }
 
         },
@@ -252,7 +262,7 @@ export default {
             try{
                 const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
                 this.messages = allMessage.data.map((m)=>({
-                    senderObjectId: m.Sender._id || m.Sender || null,
+                    senderId: m.Sender._id,
                     anonymousName: m.anonymousName,
                     Body: m.Body,timestamp:
                     m.SendTimestamp,
@@ -362,8 +372,8 @@ export default {
 }
 
 .head_title_style {
-    font-size: 30px;
-    font-weight: 700;
+    font-size: 1vw;
+    font-weight:bolder ;
     color: rgb(249, 249, 249);
     margin: 0;
 }
@@ -561,6 +571,4 @@ export default {
   font-size: 11px;
   opacity: 0.7;
 }
-
-
 </style>
