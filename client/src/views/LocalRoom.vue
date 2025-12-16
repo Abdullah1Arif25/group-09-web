@@ -56,15 +56,23 @@
         </div>
 
 
-        <!-- Empty boom -->
-        <div class="room-box" ref="messageBox">
+        <!-- Empty room -->
+        <div class="room-box" ref="messageBox" @click="closeOptionMenu">
+
+
+            <!--Message-->
              <div
                 v-for="msg in messages"
-                :key="msg.senderId" 
-                :class="['messageBox-style', String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                :key="msg.messageId" 
+                class="messageRow"
+                :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
+                    activeMessageOption === msg.messageId ? 'messageActive' : ''
+                ]">
+                <div class="messageDetailWrapper">
                 <small class="message-font-style">
                     {{ msg.anonymousName}}
                 </small>
+
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
@@ -172,6 +180,7 @@ export default {
             senderObjectId:getUserObjectId(),
             chatListner: null,
             socket,
+            activeMessageOption: null
         };
     },
     beforeUnmount(){
@@ -247,6 +256,14 @@ export default {
             }
 
         },
+        openOptionMenu(messageId){
+            this.activeMessageOption=messageId;
+
+        },
+        closeOptionMenu(){
+            this.activeMessageOption=null;
+
+        },
         openMenu() {
             this.isMenuOpen = true;
         },
@@ -300,6 +317,7 @@ export default {
                 const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
                 this.messages = allMessage.data.map((m)=>({
                     senderId: m.Sender._id,
+                    messageId:m.messageId,
                     anonymousName: m.anonymousName,
                     Body: m.Body,timestamp:
                     m.SendTimestamp,
@@ -411,8 +429,8 @@ export default {
 }
 
 .head_title_style {
-    font-size: 1vw;
-    font-weight:bolder ;
+    font-size: clamp(10px, 5vw, 35px);
+    font-weight: bolder;
     color: rgb(249, 249, 249);
     margin: 0;
 }
@@ -435,9 +453,14 @@ export default {
     color: #2b0d2b;
 }
 
-.room-box{
+/* Room Container */
+.room-box {
     background: linear-gradient(#2b0d2b, #6d2a46);
     flex: 1;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 12px 90px;
 }
 
 /* Side Menu */
@@ -687,22 +710,8 @@ export default {
     cursor: pointer;
 }
 
-
-.room-box{
-    overflow-y: scroll;
-    background-image:linear-gradient(#2b0d2b, #6d2a46);
-    display: flex;
-    flex-direction: column;
-    padding:80px  12px 90px;
-    
-
-}
 .messageBox-style {
-  padding: 10px 18px;
-  max-width: 60%;
-  margin: 4px 0;
-  border-radius: 10px;
-  color: #fdfdfd;
+    color: #fdfdfd;
 }
 
 /* CSS Variables */
