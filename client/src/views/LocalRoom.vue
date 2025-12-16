@@ -56,23 +56,66 @@
         </div>
 
 
-        <!-- Empty boom -->
-        <div class="room_box">
+        <!-- Empty room -->
+        <div class="room-box" ref="messageBox" @click="closeOptionMenu">
+
+
+            <!--Message-->
              <div
                 v-for="msg in messages"
-                :key="msg._id" 
-                :class="['message-box-style', String(msg.Sender._id) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                :key="msg.messageId" 
+                class="messageRow"
+                :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
+                    activeMessageOption === msg.messageId ? 'messageActive' : ''
+                ]">
+                <div class="messageDetailWrapper">
+                <small class="message-font-style">
+                    {{ msg.anonymousName}}
+                </small>
+
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
+
                 <small class="message-font-style">
                     {{ new Date(msg.SendTimestamp).toLocaleDateString() }}
                 </small>
-            
+                </div>
+
+
+                <!--Option Button-->
+
+
+                <div 
+                    class="optionButtonWrapper">
+                    <button class="optionButtonStyle" @click.stop="openOptionMenu(msg.messageId)">•••</button>
+                </div>
+
+                <!--Option Menu-->
+                
+                <div 
+                    class="optionMenuOverlay"
+                    v-if="activeMessageOption === msg.messageId"
+                    @click.self="closeOptionMenu()"
+                    :class="{ visibleOption: activeMessageOption }">
+
+                    <div class="optionMenuContent" @click.stop>
+                        <button class="optionMenuButton" @click="replyToMessage(activeMessageOption)">Reply</button>
+                        <button class="optionMenuButton" @click="reactToMessage(activeMessageOption)">React</button>
+                        <button class="optionMenuButton" @click="editMessage(activeMessageOption)">Edit</button>
+                        <button class="optionMenuButton" @click="deleteMessage(activeMessageOption)">Delete</button>
+                    </div>
+                </div>
+
             </div>
 
         </div>
+            
 
+            
+           
+
+        
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
             
@@ -99,7 +142,7 @@
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" >
+            <button class="buttonIconStyle" @click="exitRoom()">
                <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl"style="color: aliceblue;" />
                 </button>
             </div>
@@ -132,6 +175,9 @@ export default {
             branchingRoomId : '',
             messages:[],
             senderObjectId:getUserObjectId(),
+            chatListner: null,
+            socket,
+            activeMessageOption: null
         };
     },
     mounted(){
@@ -144,11 +190,38 @@ export default {
 //        }
 //    },
     methods:{
+
+        changeRoomTopic(newBranchingRoomTopic){
+            this.branchingRoomTopic = String(newBranchingRoomTopic);
+            this.getAllBranhingRooms();
+            this.closeMenu();
+
+        },
+        scrollToBottom(){
+            const lastMessage = this.$refs.messageBox.lastElementChild;
+            if(lastMessage){
+                lastMessage.scrollIntoView({ behavior:'smooth'});
+            }
+
+        },
+        openOptionMenu(messageId){
+            this.activeMessageOption=messageId;
+
+        },
+        closeOptionMenu(){
+            this.activeMessageOption=null;
+
+        },
         openMenu() {
             this.isMenuOpen = true;
         },
         closeMenu() {
             this.isMenuOpen = false;
+        },
+        exitRoom(){
+            this.socket.on("disconnect");
+            this.$route.push('/main');
+
         },
         async getAllBranhingRooms(){
             try{
@@ -183,7 +256,14 @@ export default {
         async fetchMessages(){
             try{
                 const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
-                this.messages = allMessage.data;
+                this.messages = allMessage.data.map((m)=>({
+                    senderId: m.Sender._id,
+                    messageId:m.messageId,
+                    anonymousName: m.anonymousName,
+                    Body: m.Body,timestamp:
+                    m.SendTimestamp,
+
+                }));
 
             } catch(err){
                 console.log(err);
@@ -234,15 +314,15 @@ export default {
 
 <style>
 
-.backgroundStyle{
-    background-image:linear-gradient(#2b0d2b, #6d2a46);
+.backgroundStyle {
+    background-image: linear-gradient(#2b0d2b, #6d2a46);
     min-height: 100vh;
     width: 100%;
     display: flex;
     flex-direction: column;
 }
 
-
+/* Header */
 .head_banner {
     background-image: linear-gradient(#2b0d2b, #6d2a46);
     display: flex;
@@ -250,12 +330,14 @@ export default {
     top: 0;
     left: 0;
     right: 0;
-    padding: 14px 20px;
+    padding: clamp(6px, 1vw, 26px) clamp(0px, 0vw, 15px);
+    padding-right: 10px;
     align-items: center;
     justify-content: space-between;
     border-bottom-left-radius: 18px;
     border-bottom-right-radius: 18px;
     z-index: 1000;
+    height: var(--header-h);
 }
 
 .logoWrapper,
@@ -274,7 +356,7 @@ export default {
 }
 
 .logo {
-    width: 100px;
+    width: clamp(55px, 12vw, 100px);
 }
 
 .HeaderFlexBox {
@@ -285,12 +367,11 @@ export default {
 }
 
 .head_title_style {
-    font-size: 30px;
-    font-weight: 700;
+    font-size: clamp(10px, 5vw, 35px);
+    font-weight: bolder;
     color: rgb(249, 249, 249);
     margin: 0;
 }
-
 
 .categoryDivStyle {
     background-color: #ffecec;
@@ -300,24 +381,27 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 230px; 
+    width: clamp(200px, 20vw, 400px);
     max-width: 70%;
 }
 
-
 .categoryTitleStyle {
-    font-size: 16px;
+    font-size: clamp(14px, 2vw, 50px);
     margin: 0;
     color: #2b0d2b;
 }
 
-.room_box {
+/* Room Container */
+.room-box {
     background: linear-gradient(#2b0d2b, #6d2a46);
     flex: 1;
-    overflow-y: auto;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 12px 90px;
 }
 
-
+/* Side Menu */
 .sideMenuOverlay {
     position: fixed;
     inset: 0;
@@ -325,46 +409,41 @@ export default {
     z-index: 1500;
 }
 
-
 .sideMenuWrapper {
     position: fixed;
-    top: 120px;
+    top: var(--header-h);
     right: -360px;
-    width: 360px;
-    height: calc(100vh - 190px); 
-    background: rgba(255, 255, 255, 0.535); 
+    width: clamp(300px, 35vw, 400px);
+    height: calc(100dvh - var(--header-h) - var(--footer-h));
+    background: rgba(255, 255, 255, 0.535);
     backdrop-filter: blur(6px);
     border-top-left-radius: 18px;
     border-bottom-left-radius: 18px;
-    padding: 20px;
+    padding: 14px 9px;
     transition: right 0.35s ease;
     z-index: 1600;
-    overflow-y: auto;    
-    overflow-x: hidden;  
+    overflow-y: auto;
+    overflow-x: hidden;
 }
-
-
 
 .sideMenuWrapper.menuVisible {
-    right: 0; 
+    right: 0;
 }
-
 
 .sideMenuContent {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 10px;
 }
-
 
 .sideMenuButton {
     width: 100%;
-    padding: 20px;
+    padding: 12px 0px;
     background: linear-gradient(#2b0d2b, #6d2a46);
     border: none;
     border-radius: 16px;
     color: #fff;
-    font-size: 18px;
+    font-size: clamp(10px, 5vw, 20px);
     font-weight: 500;
     cursor: pointer;
     transition: 0.2s ease;
@@ -375,31 +454,82 @@ export default {
     transform: scale(1.02);
 }
 
+/* Messages */
+.messageRow {
+    position: relative;
+    padding: clamp(5px, 1vw, 35px) clamp(15px, 2vw, 40px);
+    max-width: 60%;
+    min-width: 260px;
+    display: flex;
+    flex-direction: row;
+    margin: 6px 0;
+    border-radius: 10px;
+}
 
+.messageActive {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
 
+.my-message {
+    align-self: flex-end;
+    background: linear-gradient(#ffc2c2, #936480);
+    color: #2b0d2b;
+    border-bottom-right-radius: 2px;
+}
 
+.others-message {
+    align-self: flex-start;
+    background: linear-gradient(#311731, #4f2d3b);
+    color: #ffffff;
+    border-bottom-left-radius: 2px;
+}
+
+.others-message .message-text-style {
+    color: #ffffff;
+}
+
+.others-message .message-font-style {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.message-text-style {
+    margin: 0 0 3px 0;
+}
+
+.message-font-style {
+    font-size: 1wmax;
+    opacity: 0.7;
+}
+
+.messageDetailWrapper {
+    display: flex;
+    flex: 2;
+    flex-direction: column;
+}
+
+/* Message Box (Footer) */
 .messageBoxFlex {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     background-image: linear-gradient(#2b0d2b, #6d2a46);
-    padding: 12px 16px;
+    padding: clamp(2px, 1.5vw, 25px) clamp(2px, 0.5vw, 10px);
     display: flex;
     align-items: center;
-    gap: 14px;
+    gap: clamp(2px, 0.5vw, 5px);
     border-top-left-radius: 18px;
     border-top-right-radius: 18px;
     z-index: 1000;
+    height: var(--footer-h);
 }
 
 .profileDetailWrapper {
-    width: 48px;
-    height: 48px;
+    width: 6vmax;
+    height: 5vmax;
     border-radius: 1000px;
     object-fit: cover;
 }
-
 
 .messageBoxWrapper {
     flex: 1;
@@ -419,9 +549,8 @@ export default {
     border: none;
     padding-left: 14px;
     padding-right: 50px;
-    font-size: 15px;
+    font-size: clamp(1.5rem, 8vw, 5rem);
 }
-
 
 .sendbuttonInside {
     background: transparent;
@@ -433,7 +562,81 @@ export default {
     cursor: pointer;
 }
 
+/* Option Menu */
+.optionButtonWrapper {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
 
+.optionButtonStyle {
+    background: transparent;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.optionButtonStyle:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.optionMenuOverlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    background: rgba(40, 20, 35, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 10px;
+    z-index: 20000;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.others-message.optionMenuOverlay {
+    left: 10px;
+    right: auto;
+}
+
+.optionMenuOverlay.visibleOption {
+    right: 0;
+}
+
+.optionMenuContent {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.optionMenuButton {
+    all: unset;
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.optionMenuButton:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+
+/* Utility Classes */
 .settingButtonWrapper,
 .exitButtonWrapper {
     display: flex;
@@ -445,45 +648,14 @@ export default {
     cursor: pointer;
 }
 
-
-.room_box{
-    overflow-y: scroll;
-    background-image:linear-gradient(#2b0d2b, #6d2a46);
-    display: flex;
-    flex-direction: column;
-    padding:80px  12px 90px;
-    
-
-}
-.message-box-style {
-  padding: 10px 18px;
-  max-width: 60%;
-  margin: 4px 0;
-  border-radius: 10px;
-  color: #fdfdfd;
+.messageBox-style {
+    color: #fdfdfd;
 }
 
-.my-message{
-  align-self: flex-end;
-  background: linear-gradient(#ffc2c2,#936480);
-  color: #2b0d2b;
-  border-bottom-right-radius: 2px;
-}
-
-
-.others-message {
-  align-self: flex-start;
-  background: linear-gradient(#1a0c1a, #4f2d3b);
-  border-bottom-left-radius: 2px;
-}
-
-.message-text-style {
-  margin: 0 0 3px 0;
-}
-
-.message-font-style {
-  font-size: 11px;
-  opacity: 0.7;
+/* CSS Variables */
+:root {
+    --header-h: clamp(95px, 15vh, 130px);
+    --footer-h: clamp(70px, 10vh, 100px);
 }
 
 
