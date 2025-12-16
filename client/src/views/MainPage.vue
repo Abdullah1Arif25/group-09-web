@@ -2,12 +2,18 @@
   <div class="page-wrapper">
     <div class="page-card">
 
+      <div class="top-buttons">
+        <router-link to="/profile" class="top-btn">Profile</router-link>
+      </div>
+
       <h1 class="title">HOME PAGE</h1>
 
       <div class="room">
 
         <!-- LOCAL ROOM -->
-        <router-link to="/localroom" class="room-card">
+        <router-link 
+        v-if="user && user.language === 'swe'" 
+        to="/localroom" class="room-card">
           <div class="room-text">LOCAL ROOM</div>
           <img 
             class="room-icon"
@@ -35,8 +41,14 @@
 <script>
 export default {
   name: "HomePage",
+  data() {
+    return {
+      user: JSON.parse(localStorage.getItem("user")),
+    };
+  },
 };
 </script>
+
 
 <style scoped>
 .page-wrapper {
@@ -55,6 +67,33 @@ export default {
   justify-content: center; 
   height: 100vh;         
 }
+
+.top-buttons {
+  position: absolute;
+  top: 55px;
+  right: 40px;
+}
+
+.top-btn {
+  background: #e6d5deda;
+  padding: 10px 40px;
+  border-radius: 10px;
+  color: #3a0f2a;
+  font-size: 1rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: 0.25s ease;
+}
+
+.top-btn:hover {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 194, 194, 0.32),
+    #a77b99
+  );
+  color: white;
+}
+
 
 .title {
   color: white;

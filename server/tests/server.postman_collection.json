@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "01cd7c82-0900-485a-ac5e-8f0c70267996",
-		"name": "HMO Backend MS1",
+		"_postman_id": "29b0de56-010e-4e8f-ba40-f580e3ec2d87",
+		"name": "HMO Backend MS1 Copy 3",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "50012449",
-		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/49982966-01cd7c82-0900-485a-ac5e-8f0c70267996?action=share&source=collection_link&creator=50012449"
+		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/50012449-29b0de56-010e-4e8f-ba40-f580e3ec2d87?action=share&source=collection_link&creator=50012449"
 	},
 	"item": [
 		{
@@ -74,7 +74,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -82,6 +82,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -123,7 +124,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -131,6 +132,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -172,7 +174,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -180,6 +182,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -221,7 +224,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -229,6 +232,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -270,7 +274,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -278,6 +282,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -319,7 +324,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -327,6 +332,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -368,7 +374,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -376,6 +382,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -417,7 +424,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/register",
+									"raw": "http://localhost:3000/api/v1/users/register",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -425,6 +432,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"register"
 									]
@@ -444,7 +452,7 @@
 								"header": [],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"personalNumber\": \"236484\",\n  \"language\": \"en\",\n  \"password\": \"12345678\"\n}\n",
+									"raw": "{\n  \"userId\": \"{{userId}}\",\n  \"personalNumber\": \"{{personalNumber}}\",\n  \"password\": \"{{password}}\"\n}\n",
 									"options": {
 										"raw": {
 											"language": "json"
@@ -452,7 +460,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/login",
+									"raw": "http://localhost:3000/api/v1/users/login",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -460,56 +468,7 @@
 									"port": "3000",
 									"path": [
 										"api",
-										"users",
-										"login"
-									]
-								}
-							},
-							"response": []
-						},
-						{
-							"name": "User ID missing",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Response is 400 userId is missing\", function () {",
-											"    pm.response.to.have.status(400);",
-											"});",
-											"",
-											"pm.test(\"Returns correct error message\", function () {",
-											"    const body = pm.response.json();",
-											"    pm.expect(body.message).to.eql(\"User ID is required.\");",
-											"});"
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\n  \"userId\": \"\",\n  \"password\": \"12345678\"\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/users/login",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
+										"v1",
 										"users",
 										"login"
 									]
@@ -552,7 +511,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/login",
+									"raw": "http://localhost:3000/api/v1/users/login",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -560,6 +519,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"login"
 									]
@@ -614,7 +574,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/login",
+									"raw": "http://localhost:3000/api/v1/users/login",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -622,6 +582,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"login"
 									]
@@ -675,7 +636,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/login",
+									"raw": "http://localhost:3000/api/v1/users/login",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -683,6 +644,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"login"
 									]
@@ -734,7 +696,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{userId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{userId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -742,6 +704,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{userId}}"
 									]
@@ -787,7 +750,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{randomUserId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{randomUserId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -795,6 +758,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{randomUserId}}"
 									]
@@ -830,8 +794,12 @@
 								{
 									"listen": "prerequest",
 									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
 										"packages": {},
-										"type": "text/javascript"
+										"requests": {}
 									}
 								}
 							],
@@ -848,7 +816,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{randomUserId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{randomUserId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -856,6 +824,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{randomUserId}}"
 									]
@@ -885,8 +854,12 @@
 								{
 									"listen": "prerequest",
 									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
 										"packages": {},
-										"type": "text/javascript"
+										"requests": {}
 									}
 								}
 							],
@@ -903,7 +876,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{userId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{userId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -911,6 +884,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{userId}}"
 									]
@@ -951,7 +925,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{userId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{userId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -959,6 +933,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{userId}}"
 									]
@@ -1000,7 +975,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{userId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{userId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1008,6 +983,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{userId}}"
 									]
@@ -1048,7 +1024,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{userId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{userId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1056,6 +1032,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{userId}}"
 									]
@@ -1096,7 +1073,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/users/{{userId}}",
+									"raw": "http://localhost:3000/api/v1/users/{{userId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1104,6 +1081,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"{{userId}}"
 									]
@@ -1122,7 +1100,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/users/noise",
+									"raw": "http://localhost:3000/api/v1/users/noise",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1130,6 +1108,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"noise"
 									]
@@ -1163,7 +1142,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/users/noise",
+									"raw": "http://localhost:3000/api/v1/users/noise",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1171,6 +1150,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"users",
 										"noise"
 									]
@@ -1246,7 +1226,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/localrooms",
+									"raw": "http://localhost:3000/api/v1/localrooms",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1254,6 +1234,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"localrooms"
 									]
 								}
@@ -1309,7 +1290,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/localrooms",
+									"raw": "http://localhost:3000/api/v1/localrooms",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1317,6 +1298,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"localrooms"
 									]
 								}
@@ -1384,7 +1366,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/localrooms/{{LocalRoomId}}",
+									"raw": "http://localhost:3000/api/v1/localrooms/{{LocalRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1392,6 +1374,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"localrooms",
 										"{{LocalRoomId}}"
 									]
@@ -1459,7 +1442,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/localrooms/{{LocalRoomId}}",
+									"raw": "http://localhost:3000/api/v1/localrooms/{{LocalRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1467,6 +1450,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"localrooms",
 										"{{LocalRoomId}}"
 									]
@@ -1534,7 +1518,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/localrooms/{{LocalRoomId}}",
+									"raw": "http://localhost:3000/api/v1/localrooms/{{LocalRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1542,6 +1526,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"localrooms",
 										"{{LocalRoomId}}"
 									]
@@ -1575,7 +1560,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/localrooms/{{LocalRoomId}}",
+									"raw": "http://localhost:3000/api/v1/localrooms/{{LocalRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1583,6 +1568,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"localrooms",
 										"{{LocalRoomId}}"
 									]
@@ -1654,7 +1640,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/globalrooms/",
+							"raw": "http://localhost:3000/api/v1/globalrooms/",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1662,6 +1648,7 @@
 							"port": "3000",
 							"path": [
 								"api",
+								"v1",
 								"globalrooms",
 								""
 							]
@@ -1719,7 +1706,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/globalrooms/",
+							"raw": "http://localhost:3000/api/v1/globalrooms/",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1727,6 +1714,7 @@
 							"port": "3000",
 							"path": [
 								"api",
+								"v1",
 								"globalrooms",
 								""
 							]
@@ -1782,7 +1770,7 @@
 							}
 						},
 						"url": {
-							"raw": "http://localhost:3000/api/globalrooms/{{RandomGlobalRoomId}}",
+							"raw": "http://localhost:3000/api/v1/globalrooms/{{RandomGlobalRoomId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1790,6 +1778,7 @@
 							"port": "3000",
 							"path": [
 								"api",
+								"v1",
 								"globalrooms",
 								"{{RandomGlobalRoomId}}"
 							]
@@ -1821,7 +1810,7 @@
 						"method": "DELETE",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/api/globalrooms/{{RandomGlobalRoomId}}",
+							"raw": "http://localhost:3000/api/v1/globalrooms/{{RandomGlobalRoomId}}",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -1829,6 +1818,7 @@
 							"port": "3000",
 							"path": [
 								"api",
+								"v1",
 								"globalrooms",
 								"{{RandomGlobalRoomId}}"
 							]
@@ -1938,7 +1928,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms",
+									"raw": "http://localhost:3000/api/v1/branchingrooms",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1946,6 +1936,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms"
 									]
 								}
@@ -1986,7 +1977,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms",
+									"raw": "http://localhost:3000/api/v1/branchingrooms",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -1994,6 +1985,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms"
 									]
 								}
@@ -2034,7 +2026,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms",
+									"raw": "http://localhost:3000/api/v1/branchingrooms",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2042,6 +2034,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms"
 									]
 								}
@@ -2127,7 +2120,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{randomBranchingRoomId}}/messages/",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2135,6 +2128,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{randomBranchingRoomId}}",
 										"messages",
@@ -2218,7 +2212,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{randomBranchingRoomId}}/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2226,6 +2220,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{randomBranchingRoomId}}",
 										"messages",
@@ -2303,7 +2298,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2311,6 +2306,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										""
 									]
@@ -2377,7 +2373,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/?branchingRoomType={{roomType}}&fields=branchingRoomId,branchingRoomType&sort=-createdAt",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/?branchingRoomType={{roomType}}&fields=branchingRoomId,branchingRoomType&sort=-createdAt",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2385,6 +2381,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										""
 									],
@@ -2447,7 +2444,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{branchingRoomId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{branchingRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2455,6 +2452,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{branchingRoomId}}"
 									]
@@ -2505,7 +2503,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{branchingRoomId}}/messages",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{branchingRoomId}}/messages",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2513,6 +2511,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{branchingRoomId}}",
 										"messages"
@@ -2542,7 +2541,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{branchingRoomId}}/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{branchingRoomId}}/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2550,6 +2549,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{branchingRoomId}}",
 										"messages",
@@ -2610,7 +2610,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{randomBranchingRoomId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2618,6 +2618,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{randomBranchingRoomId}}"
 									]
@@ -2670,7 +2671,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{randomBranchingRoomId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2678,6 +2679,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{randomBranchingRoomId}}"
 									]
@@ -2730,7 +2732,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{randomBranchingRoomId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2738,6 +2740,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{randomBranchingRoomId}}"
 									]
@@ -2791,7 +2794,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{randomBranchingRoomId}}/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2799,6 +2802,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{randomBranchingRoomId}}",
 										"messages",
@@ -2834,7 +2838,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{branchingRoomId}}/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{branchingRoomId}}/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2842,6 +2846,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{branchingRoomId}}",
 										"messages",
@@ -2872,7 +2877,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/{{randomBranchingRoomId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2880,6 +2885,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										"{{randomBranchingRoomId}}"
 									]
@@ -2908,7 +2914,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/branchingrooms/",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2916,6 +2922,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"branchingrooms",
 										""
 									]
@@ -2984,7 +2991,7 @@
 									"raw": "{\n  \"messageId\": \"{{randomMessageId}}\",\n  \"Body\": \"I am also a part of the thread\",\n  \"SendTimestamp\": \"2025-11-19T01:47:00.000Z\",\n  \"Reaction\": \"😂\",\n  \"ResponseIds\": [],\n  \"Sender\": \"{{userObjectId}}\",\n  \"BranchingRoom\": \"{{branchingRoomObjectId}}\"\n}"
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/messages",
+									"raw": "http://localhost:3000/api/v1/messages",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2992,6 +2999,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages"
 									]
 								}
@@ -3068,7 +3076,7 @@
 									"raw": "{\n  \"messageId\": \"{{responseMessageId}}\",\n  \"Body\":\"hello\",\n  \"SendTimestamp\": \"2025-11-19T01:45:00.000Z\",\n  \"Reaction\": \"❤️\", \n  \"ResponseIds\": [],\n  \"Sender\": \"{{userObjectId}}\", \n  \"BranchingRoom\": \"{{branchingRoomObjectId}}\"\n}"
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/messages/{{randomMessageId}}",
+									"raw": "http://localhost:3000/api/v1/messages/{{randomMessageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3076,6 +3084,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										"{{randomMessageId}}"
 									]
@@ -3147,7 +3156,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/messages",
+									"raw": "http://localhost:3000/api/v1/messages",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3155,6 +3164,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages"
 									]
 								}
@@ -3222,7 +3232,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/messages/",
+									"raw": "http://localhost:3000/api/v1/messages/",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3230,6 +3240,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										""
 									]
@@ -3297,7 +3308,7 @@
 									}
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/messages/",
+									"raw": "http://localhost:3000/api/v1/messages/",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3305,6 +3316,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										""
 									]
@@ -3413,7 +3425,7 @@
 									"raw": "{\n  \"Reaction\": [\"😡\"]\n\n}"
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/messages/?fields=Body,Reaction",
+									"raw": "http://localhost:3000/api/v1/messages/?fields=Body,Reaction",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3421,6 +3433,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										""
 									],
@@ -3453,7 +3466,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3461,6 +3474,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										"{{messageId}}"
 									]
@@ -3487,7 +3501,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/messages/awdawd",
+									"raw": "http://localhost:3000/api/v1/messages/awdawd",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3495,6 +3509,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										"awdawd"
 									]
@@ -3576,7 +3591,7 @@
 									"raw": "{\n  \"Reaction\": \"😡\"\n\n}"
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3584,6 +3599,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										"{{messageId}}"
 									]
@@ -3631,7 +3647,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/messages/{{randomMessageId}}",
+									"raw": "http://localhost:3000/api/v1/messages/{{randomMessageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3639,6 +3655,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										"{{randomMessageId}}"
 									]
@@ -3675,7 +3692,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/messages/",
+									"raw": "http://localhost:3000/api/v1/messages/",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3683,6 +3700,7 @@
 									"port": "3000",
 									"path": [
 										"api",
+										"v1",
 										"messages",
 										""
 									]

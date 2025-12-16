@@ -14,13 +14,21 @@
 
         <!-- Localroom title and branching room type -->
             <div class="HeaderFlexBox">
-                <h1 class="head_title_style">LOCAL ROOM</h1>
-
+                
+                <div class="roomTittle">
+                    <h1 class="head_title_style">GLOBAL ROOM</h1>
+                    <img
+                    class="global-icon"
+                    src="@/assets/Global_logo.png"
+                    alt="Global Room"
+                    />
+                </div>
                 <div class="categoryDivStyle">
                     <h2 class="categoryTitleStyle">
                         {{ this.branchingRoomTopic}}
                     </h2>
-                </div>
+         
+            </div>
             </div>
 
             <!-- Menu button -->
@@ -61,53 +69,18 @@
              <div
                 v-for="msg in messages"
                 :key="msg.senderId" 
-                :class="['messageBox-style', String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message']">
-                <small class="message-font-style">
-                    {{ msg.anonymousName}}
-                </small>
+                :class="['messageBox-style', String(msg.senderObjectId) === String(this.senderObjectId) ? 'my-message':'others-message']">
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
-
                 <small class="message-font-style">
                     {{ new Date(msg.timestamp).toLocaleDateString() }}
                 </small>
-                </div>
-
-
-                <!--Option Button-->
-
-
-                <div 
-                    class="optionButtonWrapper">
-                    <button class="optionButtonStyle" @click.stop="openOptionMenu(msg.messageId)">•••</button>
-                </div>
-
-                <!--Option Menu-->
-                
-                <div 
-                    class="optionMenuOverlay"
-                    v-if="activeMessageOption === msg.messageId"
-                    @click.self="closeOptionMenu()"
-                    :class="{ visibleOption: activeMessageOption }">
-
-                    <div class="optionMenuContent" @click.stop>
-                        <button class="optionMenuButton" @click="replyToMessage(activeMessageOption)">Reply</button>
-                        <button class="optionMenuButton" @click="reactToMessage(activeMessageOption)">React</button>
-                        <button class="optionMenuButton" @click="editMessage(activeMessageOption)">Edit</button>
-                        <button class="optionMenuButton" @click="deleteMessage(activeMessageOption)">Delete</button>
-                    </div>
-                </div>
-
+            
             </div>
 
         </div>
-            
 
-            
-           
-
-        
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
             
@@ -118,26 +91,24 @@
             />
 
             <div class="messageBoxWrapper">
-                
-                <form class="inputContainer" @submit.prevent="sendMessage">
-                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                        <button class="sendbuttonInside" @click="sendMessage">
-                            <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
-                        </button>
-                </form>
-                
+                <div class="inputContainer">
+                <input class ='messageBoxStyle' type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
+                <button class="sendbuttonInside" @click="sendMessage">
+                    <FontAwesomeIcon  icon="paper-plane" size="xl" style="color: #2b0d2b;"  />
+                    </button>
+                </div>
             </div>
 
             <div class="settingButtonWrapper">
             <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
+               <FontAwesomeIcon icon="gear" size="2xl" style="color: aliceblue;" />
                 </button>
             </div>
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" @click="exitRoom()">
-               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl"style="color: aliceblue;" />
+            <button class="buttonIconStyle" >
+               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;" />
                 </button>
             </div>
 
@@ -157,7 +128,7 @@ import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
 export default {
-    name: 'localroom',
+    name: 'globalroom',
     components: {
         FontAwesomeIcon,
     },
@@ -181,25 +152,27 @@ export default {
     },
     async mounted(){
         await this.getAllBranhingRooms();
-        await this.scrollToBottom();
 
         if(!this.socket.connected){
             this.socket.connect();
         }
 
-        this.chatListner = (msg)=>{
+        this.chatListner = (msg)=>
             this.messages.push({
                 senderId: msg.senderObjectId,
-                anonymousName: msg.senderAnonymousName,
+                anonymousName: msg.sender,
                 Body: msg.Body,
                 timestamp:msg.timestamp
 
             });
-             this.$nextTick(() => {
+        this.$nextTick(()=>{
             this.scrollToBottom();
         });
-        };
         this.socket.on("chat message",this.chatListner);
+
+         this.$nextTick(() => {
+            this.scrollToBottom();
+        });
 
 
         if (this.branchingRoomId && this.senderObjectId) {
@@ -213,12 +186,6 @@ export default {
 
     },
     watch: {
-         messages() {
-            this.$nextTick(() => {
-                this.scrollToBottom();
-            });
-        },
-
         branchingRoomId(newId, oldId) {
         if (!newId || !this.socket || !this.senderObjectId) return;
 
@@ -237,13 +204,12 @@ export default {
         changeRoomTopic(newBranchingRoomTopic){
             this.branchingRoomTopic = String(newBranchingRoomTopic);
             this.getAllBranhingRooms();
-            this.closeMenu();
 
         },
         scrollToBottom(){
-            const lastMessage = this.$refs.messageBox.lastElementChild;
-            if(lastMessage){
-                lastMessage.scrollIntoView({ behavior:'smooth'});
+            const box = this.$refs.messageBox;
+            if(box){
+                box.scrollTop = box.scrollHeight;
             }
 
         },
@@ -253,11 +219,6 @@ export default {
         closeMenu() {
             this.isMenuOpen = false;
         },
-        exitRoom(){
-            this.socket.on("disconnect");
-            this.$route.push('/main');
-
-        },
         async getAllBranhingRooms(){
             try{
 
@@ -266,14 +227,10 @@ export default {
                     this.branchingRoomTopic = "General";
                 }
                 const roomTopic = this.branchingRoomTopic 
-
-                const user = JSON.parse(localStorage.getItem("user"));
-
                 const branchingRooms = await Api.get("/branchingrooms", {
                     params:{
                         roomTopic:roomTopic,
-                        branchingRoomType:"LocalRoom",
-                        language: user.language
+                        branchingRoomType:"GlobalRoom"
                     },
                 });
                 const branchingRoomList= branchingRooms.data.Body;
@@ -299,7 +256,7 @@ export default {
             try{
                 const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
                 this.messages = allMessage.data.map((m)=>({
-                    senderId: m.Sender._id,
+                    senderObjectId: m.Sender._id || m.Sender || null,
                     anonymousName: m.anonymousName,
                     Body: m.Body,timestamp:
                     m.SendTimestamp,
@@ -358,15 +315,15 @@ export default {
 
 <style>
 
-.backgroundStyle {
-    background-image: linear-gradient(#2b0d2b, #6d2a46);
+.backgroundStyle{
+    background-image:linear-gradient(#2b0d2b, #6d2a46);
     min-height: 100vh;
     width: 100%;
     display: flex;
     flex-direction: column;
 }
 
-/* Header */
+
 .head_banner {
     background-image: linear-gradient(#2b0d2b, #6d2a46);
     display: flex;
@@ -374,14 +331,12 @@ export default {
     top: 0;
     left: 0;
     right: 0;
-    padding: clamp(6px, 1vw, 26px) clamp(0px, 0vw, 15px);
-    padding-right: 10px;
+    padding: 14px 20px;
     align-items: center;
     justify-content: space-between;
     border-bottom-left-radius: 18px;
     border-bottom-right-radius: 18px;
     z-index: 1000;
-    height: var(--header-h);
 }
 
 .logoWrapper,
@@ -400,7 +355,7 @@ export default {
 }
 
 .logo {
-    width: clamp(55px, 12vw, 100px);
+    width: 100px;
 }
 
 .HeaderFlexBox {
@@ -408,14 +363,29 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
 .head_title_style {
-    font-size: 1vw;
-    font-weight:bolder ;
+    font-size: 30px;
+    font-weight: 700;
     color: rgb(249, 249, 249);
     margin: 0;
 }
+
+.global-icon {
+    width: 35px;  
+    height: 40px;
+    object-fit: contain;
+}
+
+.roomTittle {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
 
 .categoryDivStyle {
     background-color: #ffecec;
@@ -425,12 +395,13 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: clamp(200px, 20vw, 400px);
+    width: 230px; 
     max-width: 70%;
 }
 
+
 .categoryTitleStyle {
-    font-size: clamp(14px, 2vw, 50px);
+    font-size: 16px;
     margin: 0;
     color: #2b0d2b;
 }
@@ -440,7 +411,7 @@ export default {
     flex: 1;
 }
 
-/* Side Menu */
+
 .sideMenuOverlay {
     position: fixed;
     inset: 0;
@@ -448,41 +419,46 @@ export default {
     z-index: 1500;
 }
 
+
 .sideMenuWrapper {
     position: fixed;
-    top: var(--header-h);
+    top: 120px;
     right: -360px;
-    width: clamp(300px, 35vw, 400px);
-    height: calc(100dvh - var(--header-h) - var(--footer-h));
-    background: rgba(255, 255, 255, 0.535);
+    width: 360px;
+    height: calc(100vh - 190px); 
+    background: rgba(255, 255, 255, 0.535); 
     backdrop-filter: blur(6px);
     border-top-left-radius: 18px;
     border-bottom-left-radius: 18px;
-    padding: 14px 9px;
+    padding: 20px;
     transition: right 0.35s ease;
     z-index: 1600;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto;    
+    overflow-x: hidden;  
 }
 
+
+
 .sideMenuWrapper.menuVisible {
-    right: 0;
+    right: 0; 
 }
+
 
 .sideMenuContent {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 18px;
 }
+
 
 .sideMenuButton {
     width: 100%;
-    padding: 12px 0px;
+    padding: 20px;
     background: linear-gradient(#2b0d2b, #6d2a46);
     border: none;
     border-radius: 16px;
     color: #fff;
-    font-size: clamp(10px, 5vw, 20px);
+    font-size: 18px;
     font-weight: 500;
     cursor: pointer;
     transition: 0.2s ease;
@@ -493,82 +469,31 @@ export default {
     transform: scale(1.02);
 }
 
-/* Messages */
-.messageRow {
-    position: relative;
-    padding: clamp(5px, 1vw, 35px) clamp(15px, 2vw, 40px);
-    max-width: 60%;
-    min-width: 260px;
-    display: flex;
-    flex-direction: row;
-    margin: 6px 0;
-    border-radius: 10px;
-}
 
-.messageActive {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
-}
 
-.my-message {
-    align-self: flex-end;
-    background: linear-gradient(#ffc2c2, #936480);
-    color: #2b0d2b;
-    border-bottom-right-radius: 2px;
-}
 
-.others-message {
-    align-self: flex-start;
-    background: linear-gradient(#311731, #4f2d3b);
-    color: #ffffff;
-    border-bottom-left-radius: 2px;
-}
-
-.others-message .message-text-style {
-    color: #ffffff;
-}
-
-.others-message .message-font-style {
-    color: rgba(255, 255, 255, 0.75);
-}
-
-.message-text-style {
-    margin: 0 0 3px 0;
-}
-
-.message-font-style {
-    font-size: 1wmax;
-    opacity: 0.7;
-}
-
-.messageDetailWrapper {
-    display: flex;
-    flex: 2;
-    flex-direction: column;
-}
-
-/* Message Box (Footer) */
 .messageBoxFlex {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
     background-image: linear-gradient(#2b0d2b, #6d2a46);
-    padding: clamp(2px, 1.5vw, 25px) clamp(2px, 0.5vw, 10px);
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    gap: clamp(2px, 0.5vw, 5px);
+    gap: 14px;
     border-top-left-radius: 18px;
     border-top-right-radius: 18px;
     z-index: 1000;
-    height: var(--footer-h);
 }
 
 .profileDetailWrapper {
-    width: 6vmax;
-    height: 5vmax;
+    width: 48px;
+    height: 48px;
     border-radius: 1000px;
     object-fit: cover;
 }
+
 
 .messageBoxWrapper {
     flex: 1;
@@ -588,8 +513,9 @@ export default {
     border: none;
     padding-left: 14px;
     padding-right: 50px;
-    font-size: clamp(1.5rem, 8vw, 5rem);
+    font-size: 15px;
 }
+
 
 .sendbuttonInside {
     background: transparent;
@@ -601,81 +527,7 @@ export default {
     cursor: pointer;
 }
 
-/* Option Menu */
-.optionButtonWrapper {
-    flex: 1;
-    display: flex;
-    justify-content: flex-end;
-    align-items: center;
-}
 
-.optionButtonStyle {
-    background: transparent;
-    border: none;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: background 0.15s ease;
-}
-
-.optionButtonStyle:hover {
-    background: rgba(255, 255, 255, 0.18);
-}
-
-.optionMenuOverlay {
-    position: absolute;
-    left: 0;
-    right: 0;
-    top: 100%;
-    margin-top: 8px;
-    background: rgba(40, 20, 35, 0.92);
-    backdrop-filter: blur(8px);
-    border-radius: 14px;
-    padding: 10px;
-    z-index: 20000;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-}
-
-.others-message.optionMenuOverlay {
-    left: 10px;
-    right: auto;
-}
-
-.optionMenuOverlay.visibleOption {
-    right: 0;
-}
-
-.optionMenuContent {
-    display: flex;
-    flex-direction: row;
-    gap: 10px;
-    justify-content: space-between;
-}
-
-.optionMenuButton {
-    all: unset;
-    flex: 1;
-    padding: 12px 0;
-    border-radius: 12px;
-    font-size: 15px;
-    font-weight: 500;
-    color: #fff;
-    text-align: center;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.18);
-    transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.optionMenuButton:hover {
-    background: rgba(255, 255, 255, 0.28);
-    transform: translateY(-1px);
-}
-
-/* Utility Classes */
 .settingButtonWrapper,
 .exitButtonWrapper {
     display: flex;
@@ -705,9 +557,29 @@ export default {
   color: #fdfdfd;
 }
 
-/* CSS Variables */
-:root {
-    --header-h: clamp(95px, 15vh, 130px);
-    --footer-h: clamp(70px, 10vh, 100px);
+.my-message{
+  align-self: flex-end;
+  background: linear-gradient(#ffc2c2,#936480);
+  color: #2b0d2b;
+  border-bottom-right-radius: 2px;
 }
+
+
+.others-message {
+  align-self: flex-start;
+  background: linear-gradient(#1a0c1a, #4f2d3b);
+  border-bottom-left-radius: 2px;
+}
+
+.message-text-style {
+  margin: 0 0 3px 0;
+}
+
+.message-font-style {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
+
 </style>
+
