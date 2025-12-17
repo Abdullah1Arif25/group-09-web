@@ -4,8 +4,13 @@
 
       <div class="top-buttons">
         <router-link to="/profile" class="top-btn">Profile</router-link>
+        <router-link
+          v-if="user.userId === 'admin'"
+          to="/admin"
+          class="top-btn">
+          Admin
+        </router-link>
       </div>
-
       <h1 class="title">HOME PAGE</h1>
 
       <div class="room">
@@ -45,7 +50,13 @@ export default {
     return {
       user: JSON.parse(localStorage.getItem("user")),
     };
+    
   },
+  computed: {
+    isAdmin() {
+      return this.user.userId === "admin";
+    }
+  }
 };
 </script>
 
@@ -72,6 +83,8 @@ export default {
   position: absolute;
   top: 55px;
   right: 40px;
+  display: flex;        
+  gap: 12px;
 }
 
 .top-btn {
