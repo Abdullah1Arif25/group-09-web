@@ -116,7 +116,7 @@ const getAllBranchingRooms = async function(req, res, next){
         if(req.query.branchingRoomType !== undefined) queryParams.branchingRoomType = req.query.branchingRoomType;
         if(req.query.roomTopic !== undefined) queryParams.roomTopic = req.query.roomTopic;
 
-        let query = BranchingRoom.find(queryParams).populate("parentRoomId");
+        let query = BranchingRoom.find(queryParams);
 
 
         //Sorting
