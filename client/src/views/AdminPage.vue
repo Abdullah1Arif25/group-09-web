@@ -8,7 +8,9 @@
       <div class="controls">
         <button class="admin-button">Create Topic Rooms</button>
         <button class="admin-button">Display Users</button>
-        <button class="admin-button">Delete All Messages</button>
+        <button class="admin-button" @click="deleteAllMessages">
+            Delete All Messages
+            </button>
       </div>
 
       <h2 class="section-title">Chat Control</h2>
@@ -38,15 +40,13 @@
             @change="toggleGlobalChat"
           />
 
-          <div class="status">
-            {{ globalChatStatus }}
-          </div>
+          <div class="status">{{ globalChatStatus }}</div>
         </div>
       </div>
 
     </div>
 
-    <!-- POPUP -->
+    <!-- Popup -->
     <div v-if="showPopup" class="popup">
       <p>All messages were successfully deleted.</p>
       <button @click="showPopup = false">Continue</button>
@@ -96,22 +96,22 @@ export default {
 
   methods: {
     async fetchRooms() {
-  try {
-    const localRes = await Api.get("/localrooms");
-    this.localRoom = localRes.data[0];
-    
-  } catch (err) {
-    console.error("Failed to load local rooms", err);
-  }
+        try {
+            const localRes = await Api.get("/localrooms");
+            this.localRoom = localRes.data[0];
+            
+        } catch (err) {
+            console.error("Failed to load local rooms", err);
+        }
+        
+        try {
+            const globalRes = await Api.get("/globalrooms");
+            this.globalRoom = globalRes.data;
 
-  try {
-    const globalRes = await Api.get("/globalrooms");
-    this.globalRoom = globalRes.data;
-
-    } catch (err) {
-      console.error("Failed to load global rooms", err);
-    }
-  },  
+        } catch (err) {
+            console.error("Failed to load global rooms", err);
+        }
+    },  
 
     async toggleLocalChat() {
         await Api.put(`/localrooms/${this.localRoom._id}`, {liveChat: this.localRoom.liveChat
@@ -123,6 +123,14 @@ export default {
         await Api.put(`/globalrooms/${this.globalRoom.room_Id}`, {
             live_Chat: this.globalRoom.live_Chat});
     },
+
+    async deleteAllMessages() {
+        try {
+            await Api.delete("/messages");
+            this.showPopup = true;
+        } catch (err) {
+            alert("Failed to delete messages");
+        }},
 
   }
 };
@@ -251,6 +259,29 @@ export default {
 
 .toggle:checked::before {
   transform: translateX(24px);
+}
+
+.popup {
+  position: fixed;
+  bottom: 30px;
+  background: #6d2a46;
+  color: white;
+  padding: 20px 28px;
+  border-radius: 22px;
+  text-align: center;
+  z-index: 1000;
+}
+
+
+.popup button {
+  padding: 8px 26px;
+  border-radius: 16px;
+  border: none;
+  cursor: pointer;
+  background: #f6e3ea;
+  color: #6d2a46;
+  font-weight: 600;
+  transition: 0.2s ease;
 }
 </style>
 
