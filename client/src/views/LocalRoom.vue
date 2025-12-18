@@ -100,10 +100,10 @@
                     :class="{ visibleOption: activeMessageOption }">
 
                     <div class="optionMenuContent" @click.stop>
-                        <button class="optionMenuButton" @click="replyToMessage(activeMessageOption)">Reply</button>
+                        <button class="optionMenuButton" @click="replyToMessage(msg)">Reply</button>
                         <button class="optionMenuButton" @click="reactToMessage(activeMessageOption)">React</button>
-                        <button class="optionMenuButton" @click="editMessage(activeMessageOption)">Edit</button>
-                        <button class="optionMenuButton" @click="deleteMessage(activeMessageOption)">Delete</button>
+                        <button class="optionMenuButton" @click="editMessage(msg)">Edit</button>
+                        <button class="optionMenuButton" @click="deleteMessage()">Delete</button>
                     </div>
                 </div>
 
@@ -129,7 +129,7 @@
                 
                 <form class="inputContainer" @submit.prevent="sendMessage">
                     <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                        <button class="sendbuttonInside" @click="sendMessage">
+                        <button class="sendbuttonInside" type="submit">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                         </button>
                 </form>
@@ -180,12 +180,14 @@ export default {
             senderObjectId:getUserObjectId(),
             chatListner: null,
             socket,
-            activeMessageOption: null
+            activeMessageOption: null,
+            parentMessageId: ''
         };
     },
     beforeUnmount(){
         if(this.socket && this.chatListner){
             this.socket.off("chat message", this.chatListner);
+            this.socket.off("respond to a message", this.chatListner);
         }
     },
     async mounted(){
@@ -197,8 +199,11 @@ export default {
         }
 
         this.chatListner = (msg)=>{
+            const messageExists = this.messages.some(m => m.messageId === msg.messageId);
+            if(messageExists) return;
             this.messages.push({
                 senderId: msg.senderObjectId,
+                messageId: msg.messageId,
                 anonymousName: msg.senderAnonymousName,
                 Body: msg.Body,
                 timestamp:msg.timestamp
@@ -209,6 +214,7 @@ export default {
         });
         };
         this.socket.on("chat message",this.chatListner);
+        this.socket.on("respond to a message", this.chatListner);
 
 
         if (this.branchingRoomId && this.senderObjectId) {
@@ -275,6 +281,16 @@ export default {
             this.$route.push('/main');
 
         },
+        async replyToMessage(msg){
+            const parentMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+            if(!parentMessage){
+                console.log("The Message Does not exist");
+            }
+
+            this.parentMessageId = msg.messageId;
+            this.closeOptionMenu();
+
+        },
         async getAllBranhingRooms(){
             try{
 
@@ -329,6 +345,19 @@ export default {
 
             }
         },
+        async deleteMessage(){
+            try{
+                await Api.delete(`/branchingrooms/${this.branchingRoomId}/messages/${this.parentMessageId}`);
+                this.parentMessage = '';
+
+            }catch(err){
+
+            }
+
+        },
+        async editMessage(msg){
+
+        },
 
          async sendMessage(){
             try{
@@ -345,7 +374,7 @@ export default {
                     this.$router.push('/login');
                     return;
                 }
-                const messageId = "messageId" + Math.floor(Math.random() *100000);
+                const messageId = this.parentMessageId ? `responceMessageId${Math.floor(Math.random() * 100000)}`: `messageId${Math.floor(Math.random() * 100000)}`;
                 const  currentTime = new  Date().toISOString();
                 const messageData =  {
                     messageId: messageId,
@@ -357,8 +386,18 @@ export default {
                     
 
                 };
-                if (this.socket) {
+
+                const payload = {
+                    responceMessageData:messageData,
+                    parentMessageId:this.parentMessageId
+                }
+                
+                if (this.socket && this.parentMessageId === '') {
                   this.socket.emit("chat message", messageData);
+                } else{
+                    
+                    this.socket.emit("respond to a message", payload);
+                     this.parentMessageId = '';
                 }
 
                 this.message = '';
