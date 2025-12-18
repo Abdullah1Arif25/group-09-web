@@ -61,6 +61,7 @@
 
 
             <!--Message-->
+
              <div
                 v-for="msg in messages"
                 :key="msg.messageId" 
@@ -150,18 +151,16 @@
             />
 
             <div class="messageBoxWrapper">
-                
                 <form class="inputContainer" @submit.prevent="sendMessage">
                     <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
                         <button class="sendbuttonInside" type="submit">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                         </button>
                 </form>
-                
             </div>
 
             <div class="settingButtonWrapper">
-            <button class="buttonIconStyle" >
+            <button class="buttonIconStyle">
                <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
                 </button>
             </div>
@@ -174,10 +173,8 @@
             </div>
 
         </div>
-    
-
-
     </div>
+
 </template>
 
 
@@ -317,7 +314,6 @@ export default {
 
     async getAllBranhingRooms() {
       const user = JSON.parse(localStorage.getItem("user"));
-
       const res = await Api.get("/branchingrooms", {
         params: {
           roomTopic: this.branchingRoomTopic || "General",
@@ -376,9 +372,9 @@ export default {
       this.message = '';
     },
 
-    toggleReactionMenu(messageId) {
+    toggleReactionMenu(msg) {
       this.showReactionsForMessage =
-        this.showReactionsForMessage === messageId ? null : messageId;
+        this.showReactionsForMessage === msg.messageId ? null : msg.messageId;
     },
 
     async reactToMessage(messageId, reaction) {
