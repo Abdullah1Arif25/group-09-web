@@ -200,243 +200,27 @@ export default {
   name: 'localroom',
   components: { FontAwesomeIcon },
 
-    data() {
-        return {
-            message : '',
-            isMenuOpen: false ,
-            branchingRoomTopic: 'General',
-            branchingRoomId : '',
-            messages:[],
-            senderObjectId:getUserObjectId(),
-            chatListner: null,
-            socket,
-            activeMessageOption: null,
-            parentMessageId: '',
-            chatListner: null,
-            activeMessageOption: null,
-            showReactionsForMessage: null,
-            REACTIONS
-        };
-    },
-    beforeUnmount(){
-        if(this.socket && this.chatListner){
-            this.socket.off("chat message", this.chatListner);
-            this.socket.off("respond to a message", this.chatListner);
-        }
-    },
-    async mounted(){
-        await this.getAllBranhingRooms();
-        await this.scrollToBottom();
-
-
-        this.chatListner = (msg)=>{
-            const messageExists = this.messages.some(m => m.messageId === msg.messageId);
-            if(messageExists) return;
-            this.messages.push({
-                senderId: msg.senderObjectId,
-                messageId: msg.messageId,
-                anonymousName: msg.senderAnonymousName,
-                Body: msg.Body,
-                timestamp:msg.timestamp
-
-            });
-             this.$nextTick(() => {
-            this.scrollToBottom();
-        });
-        };
-        this.socket.on("chat message",this.chatListner);
-        this.socket.on("respond to a message", this.chatListner);
-
-        if(this.branchingRoomId && this.senderObjectId){
-            this.socket.emit('join room', {
-                userId: this.senderObjectId,
-                roomId: this.branchingRoomId
-            });
-        }
-    },
-    watch: {
-         messages() {
-            this.$nextTick(() => {
-                this.scrollToBottom();
-            });
-        },
-
-        branchingRoomId(newId, oldId) {
-        if (!newId || !this.socket || !this.senderObjectId) return;
-
-        this.socket.emit("join room", {
-          userId: this.senderObjectId,
-          roomId: newId,
-        });
-
-        this.fetchMessages().then(() => {
-          this.$nextTick(() => this.scrollToBottom());
-        });
-      },
-    },
-    methods:{
-
-        changeRoomTopic(newBranchingRoomTopic){
-            this.branchingRoomTopic = String(newBranchingRoomTopic);
-            this.getAllBranhingRooms();
-            this.closeMenu();
-
-        },
-        scrollToBottom(){
-            const lastMessage = this.$refs.messageBox.lastElementChild;
-            if(lastMessage){
-                lastMessage.scrollIntoView({ behavior:'smooth'});
-            }
-
-        },
-        openOptionMenu(messageId){
-            this.activeMessageOption=messageId;
-
-        },
-        closeOptionMenu(){
-            this.activeMessageOption=null;
-
-        },
-        openMenu() {
-            this.isMenuOpen = true;
-        },
-        closeMenu() {
-            this.isMenuOpen = false;
-        },
-        exitRoom(){
-            this.socket.on("disconnect");
-            this.$route.push('/main');
-
-        },
-        async replyToMessage(msg){
-            const parentMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
-            if(!parentMessage){
-                console.log("The Message Does not exist");
-            }
-
-            this.parentMessageId = msg.messageId;
-            this.closeOptionMenu();
-
-        },
-        async getAllBranhingRooms(){
-            try{
-
-                // Do we create a Local and Global Room, since that would be apropriate
-                if(this.branchingRoomTopic === ''){
-                    this.branchingRoomTopic = "General";
-                }
-                const roomTopic = this.branchingRoomTopic 
-
-                const user = JSON.parse(localStorage.getItem("user"));
-
-                const branchingRooms = await Api.get("/branchingrooms", {
-                    params:{
-                        roomTopic:roomTopic,
-                        branchingRoomType:"LocalRoom",
-                        language: user.language
-                    },
-                });
-                const branchingRoomList= branchingRooms.data.Body;
-                let BranchingRoom = null;
-                if(branchingRoomList.length>0){
-                    BranchingRoom = branchingRooms.data.Body[0];
-                }
-                console.log(BranchingRoom.branchingRoomId);
-                this.branchingRoomId =BranchingRoom ? BranchingRoom.branchingRoomId: '';
-
-                if(this.branchingRoomId){
-                    await this.fetchMessages();
-                }
-
-
-
-            } catch(err){
-                console.log(err);
-            }
-        },
-
-        async fetchMessages(){
-            try{
-                const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
-                this.messages = allMessage.data.map((m)=>({
-                    senderId: m.Sender._id,
-                    messageId:m.messageId,
-                    anonymousName: m.anonymousName,
-                    Body: m.Body,timestamp:
-                    m.SendTimestamp,
-
-                }));
-
-            } catch(err){
-                console.log(err);
-
-            }
-        },
-        async deleteMessage(){
-            try{
-                await Api.delete(`/branchingrooms/${this.branchingRoomId}/messages/${this.parentMessageId}`);
-                this.parentMessage = '';
-
-            }catch(err){
-
-            }
-
-        },
-        async editMessage(msg){
-
-        },
-
-         async sendMessage(){
-            try{
-                if(!this.message.trim()) return;
-
-                if(!this.branchingRoomId){
-                    console.log("No Branching room selected");
-                    return;
-                }
-
-
-                if (!this.senderObjectId) {
-                    console.error("No sender ID in cache (user not logged in or cache lost)");
-                    this.$router.push('/login');
-                    return;
-                }
-                const messageId = this.parentMessageId ? `responceMessageId${Math.floor(Math.random() * 100000)}`: `messageId${Math.floor(Math.random() * 100000)}`;
-                const  currentTime = new  Date().toISOString();
-                const messageData =  {
-                    messageId: messageId,
-                    Body: this.message,
-                    SendTimestamp: currentTime,
-                    Reaction: null,
-                    ResponseIds: [],
-                    Sender: this.senderObjectId
-                    
-
-                };
-
-                const payload = {
-                    responceMessageData:messageData,
-                    parentMessageId:this.parentMessageId
-                }
-                
-                if (this.socket && this.parentMessageId === '') {
-                  this.socket.emit("chat message", messageData);
-                } else{
-                    
-                    this.socket.emit("respond to a message", payload);
-                     this.parentMessageId = '';
-                }
-
-                this.message = '';
-
-            } catch(err){
-                console.log(err);
-            }
-        },
+  data() {
+    return {
+      message: '',
+      isMenuOpen: false,
+      branchingRoomTopic: 'General',
+      branchingRoomId: '',
+      messages: [],
+      senderObjectId: getUserObjectId(),
+      socket,
+      chatListner: null,
+      activeMessageOption: null,
+      parentMessageId: '',
+      showReactionsForMessage: null,
+      REACTIONS
+    };
+  },
 
   beforeUnmount() {
     if (this.socket && this.chatListner) {
       this.socket.off("chat message", this.chatListner);
+      this.socket.off("respond to a message", this.chatListner);
     }
   },
 
@@ -449,19 +233,23 @@ export default {
     }
 
     this.chatListner = (msg) => {
+      const exists = this.messages.some(m => m.messageId === msg.messageId);
+      if (exists) return;
+
       this.messages.push({
         senderId: msg.senderObjectId,
+        messageId: msg.messageId,
         anonymousName: msg.senderAnonymousName,
         Body: msg.Body,
         timestamp: msg.timestamp,
-        messageId: msg.messageId,
-        reactions: msg.Reactions || [] 
+        reactions: msg.Reactions || []
       });
 
       this.$nextTick(this.scrollToBottom);
     };
 
     this.socket.on("chat message", this.chatListner);
+    this.socket.on("respond to a message", this.chatListner);
 
     if (this.branchingRoomId && this.senderObjectId) {
       this.socket.emit("join room", {
@@ -491,6 +279,12 @@ export default {
   },
 
   methods: {
+    changeRoomTopic(newTopic) {
+      this.branchingRoomTopic = String(newTopic);
+      this.getAllBranhingRooms();
+      this.closeMenu();
+    },
+
     scrollToBottom() {
       const box = this.$refs.messageBox;
       if (box && box.lastElementChild) {
@@ -500,7 +294,6 @@ export default {
 
     openOptionMenu(messageId) {
       this.activeMessageOption = messageId;
-      console.log(this.activeMessageOption);
     },
 
     closeOptionMenu() {
@@ -508,62 +301,60 @@ export default {
       this.showReactionsForMessage = null;
     },
 
-    toggleReactionMenu(msg) {
-        const originalMessage= Api.get(`branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`)
-        if (!originalMessage){
-            console.log('This Message Does not Exist');
-        }
+    openMenu() {
+      this.isMenuOpen = true;
+    },
 
-        this.showReactionsForMessage = this.showReactionsForMessage === msg.messageId ? null : msg.messageId;
-        console.log('Message ID is saved');
+    closeMenu() {
+      this.isMenuOpen = false;
+    },
+
+    async replyToMessage(msg) {
+      await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+      this.parentMessageId = msg.messageId;
+      this.closeOptionMenu();
     },
 
     async getAllBranhingRooms() {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
+      const user = JSON.parse(localStorage.getItem("user"));
 
-        const res = await Api.get("/branchingrooms", {
-          params: {
-            roomTopic: this.branchingRoomTopic,
-            branchingRoomType: "LocalRoom",
-            language: user.language
-          }
-        });
-
-        const room = res.data.Body?.[0];
-        this.branchingRoomId = room ? room.branchingRoomId : '';
-
-        if (this.branchingRoomId) {
-          await this.fetchMessages();
+      const res = await Api.get("/branchingrooms", {
+        params: {
+          roomTopic: this.branchingRoomTopic || "General",
+          branchingRoomType: "LocalRoom",
+          language: user.language
         }
-      } catch (err) {
-        console.error(err);
+      });
+
+      const room = res.data.Body?.[0];
+      this.branchingRoomId = room ? room.branchingRoomId : '';
+
+      if (this.branchingRoomId) {
+        await this.fetchMessages();
       }
     },
 
     async fetchMessages() {
-      try {
-        const res = await Api.get(
-          `/branchingrooms/${this.branchingRoomId}/messages`
-        );
+      const res = await Api.get(
+        `/branchingrooms/${this.branchingRoomId}/messages`
+      );
 
-        this.messages = res.data.map(m => ({
-          senderId: m.Sender._id,
-          messageId: m.messageId,
-          anonymousName: m.anonymousName,
-          Body: m.Body,
-          timestamp: m.SendTimestamp,
-          reactions: m.Reactions || [] 
-        }));
-      } catch (err) {
-        console.error(err);
-      }
+      this.messages = res.data.map(m => ({
+        senderId: m.Sender._id,
+        messageId: m.messageId,
+        anonymousName: m.anonymousName,
+        Body: m.Body,
+        timestamp: m.SendTimestamp,
+        reactions: m.Reactions || []
+      }));
     },
 
     async sendMessage() {
       if (!this.message.trim() || !this.branchingRoomId) return;
 
-      const messageId = "messageId" + Math.floor(Math.random() * 100000);
+      const messageId = this.parentMessageId
+        ? `responceMessageId${Math.floor(Math.random() * 100000)}`
+        : `messageId${Math.floor(Math.random() * 100000)}`;
 
       const payload = {
         messageId,
@@ -572,45 +363,43 @@ export default {
         Sender: this.senderObjectId
       };
 
-      this.socket.emit("chat message", payload);
+      if (this.parentMessageId) {
+        this.socket.emit("respond to a message", {
+          responceMessageData: payload,
+          parentMessageId: this.parentMessageId
+        });
+        this.parentMessageId = '';
+      } else {
+        this.socket.emit("chat message", payload);
+      }
+
       this.message = '';
     },
 
- 
+    toggleReactionMenu(messageId) {
+      this.showReactionsForMessage =
+        this.showReactionsForMessage === messageId ? null : messageId;
+    },
+
     async reactToMessage(messageId, reaction) {
-      try {
-
-        console.log(messageId)
-
-        console.log(reaction);
-
-
-
-        const res = await Api.post(
-          `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
-          {
-            reaction,
-            userId: this.senderObjectId
-          }
-        );
-        
-        
-        const msg = this.messages.find(m => m.messageId === messageId);
-        if (msg) {
-          msg.reactions = res.data.reactions || [];
+      const res = await Api.post(
+        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
+        {
+          reaction,
+          userId: this.senderObjectId
         }
+      );
 
-
-
-        this.closeOptionMenu();
-      } catch (err) {
-        console.error("Reaction failed", err);
+      const msg = this.messages.find(m => m.messageId === messageId);
+      if (msg) {
+        msg.reactions = res.data.reactions || [];
       }
+
+      this.closeOptionMenu();
     }
   }
-}
+};
 </script>
-
 
 
 <style>
