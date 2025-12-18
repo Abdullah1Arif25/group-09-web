@@ -57,7 +57,7 @@
 
 
         <!-- Empty room -->
-        <div class="room-box" ref="messageBox" @click="closeOptionMenu">
+        <div class="room-box" ref="messageBox" @click="closeAllOptions">
 
 
             <!--Message-->
@@ -80,8 +80,19 @@
                 <small class="message-font-style">
                     {{ new Date(msg.timestamp).toLocaleDateString() }}
                 </small>
+
                 </div>
 
+                <div
+                  v-if="msg.reactions && msg.reactions.length"
+                  class="messageReactions">
+                  <span
+                    v-for="(r, index) in msg.reactions"
+                    :key="index"
+                    class="reactionEmoji">
+                    {{ r.reaction }}
+                  </span>
+                </div>
 
                 <!--Option Button-->
 
@@ -90,38 +101,56 @@
                     class="optionButtonWrapper">
                     <button class="optionButtonStyle" @click.stop="openOptionMenu(msg.messageId)">•••</button>
                 </div>
-
-                <!--Option Menu-->
                 
+                <!-- Option Menu -->
                 <div 
                     class="optionMenuOverlay"
                     v-if="activeMessageOption === msg.messageId"
-                    @click.self="closeOptionMenu()"
-                    :class="{ visibleOption: activeMessageOption }">
+                    @click.self="closeOptionMenu()">
 
                     <div class="optionMenuContent" @click.stop>
                         <button class="optionMenuButton" @click="replyToMessage(msg)">Reply</button>
-                        <button class="optionMenuButton" @click="reactToMessage(activeMessageOption)">React</button>
+                        <button class="optionMenuButton" @click="toggleReactionMenu(msg)">React</button>
                         <button class="optionMenuButton" @click="editMessage(msg)">Edit</button>
-                        <button class="optionMenuButton" @click="deleteMessage()">Delete</button>
+                        <button class="optionMenuButton" @click="deleteMessage(msg)">Delete</button>
+                    </div>
+
+                    <!-- Reaction Menu -->
+
+
+                    <div
+                        v-if="showReactionsForMessage === activeMessageOption"
+                        class="reactionPicker">
+                        <button
+                            v-for="reaction in REACTIONS"
+                            :key="reaction.type"
+                            class="reactionButton"
+                            @click="reactToMessage(this.activeMessageOption, reaction.emoji)">
+                            {{ reaction.emoji }}
+                        </button>
                     </div>
                 </div>
 
             </div>
 
         </div>
-            
 
-            
         <!--Parent Message in case of responce-->   
         <div
-         v-if="this.replyOptionActive"
+         v-if="this.replyBannerActive"
          class ="parentMessageResponceLayout"
-         :class="[this.replyOptionActive ? showParentMessage: '']">
-         <small>Replying to</small>
-         <p>{{this.activeMessageOption }}</p>
+         :class="[this.replyBannerActive ? showParentMessage: '']">
+
+         <div class="parentMessageTextLayout">
+            <small>Replying to {{this.replyBannerActive }}</small>
+            <p>{{this.parentMessageContent }}</p>
+
+         </div>
+         <button @click.self="DisableReplyBanner()" class="closeButtonIconStyle">x</button>
+
 
         </div>
+
         
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
@@ -133,14 +162,12 @@
             />
 
             <div class="messageBoxWrapper">
-                
                 <form class="inputContainer" @submit.prevent="sendMessage">
                     <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
                         <button class="sendbuttonInside" type="submit">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                         </button>
                 </form>
-                
             </div>
 
             <div class="settingButtonWrapper">
@@ -157,10 +184,8 @@
             </div>
 
         </div>
-    
-
-
     </div>
+
 </template>
 
 
@@ -171,11 +196,17 @@ import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
+const REACTIONS = [
+  { type: "like", emoji: "👍" },
+  { type: "love", emoji: "❤️" },
+  { type: "laugh", emoji: "😂" },
+  { type: "sad", emoji: "😢" },
+  { type: "angry", emoji: "😡" }
+];
+
 export default {
-    name: 'localroom',
-    components: {
-        FontAwesomeIcon,
-    },
+  name: 'localroom',
+  components: { FontAwesomeIcon },
 
   data() {
     return {
@@ -191,7 +222,8 @@ export default {
       parentMessageId: '',
       showReactionsForMessage: null,
       REACTIONS,
-      replyOptionActive: false,
+      replyBannerActive: null,
+      parentMessageContent: ''
     };
   },
 
@@ -237,28 +269,35 @@ export default {
     }
   },
 
-    watch: {
-         messages() {
-            this.$nextTick(() => {
-                this.scrollToBottom();
-            });
-        },
-
-        branchingRoomId(newId, oldId) {
-        if (!newId || !this.socket || !this.senderObjectId) return;
-
-        this.socket.emit("join room", {
-          userId: this.senderObjectId,
-          roomId: newId,
-        });
-
-        this.fetchMessages().then(() => {
-          this.$nextTick(() => this.scrollToBottom());
-        });
-      },
+  watch: {
+    messages() {
+      this.$nextTick(this.scrollToBottom);
     },
 
+    branchingRoomId(newId) {
+      if (!newId || !this.senderObjectId) return;
+
+      this.socket.emit("join room", {
+        userId: this.senderObjectId,
+        roomId: newId
+      });
+
+      this.fetchMessages().then(() => {
+        this.$nextTick(this.scrollToBottom);
+      });
+    }
+  },
+
   methods: {
+    DisableReplyBanner(){
+        this.replyBannerActive = false;
+    },
+    closeAllOptions(){
+        this.closeOptionMenu();
+        this.closeMenu();
+
+
+    },
     changeRoomTopic(newTopic) {
       this.branchingRoomTopic = String(newTopic);
       this.getAllBranhingRooms();
@@ -292,12 +331,13 @@ export default {
     async replyToMessage(msg) {
       await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
       this.parentMessageId = msg.messageId;
+      this.replyBannerActive = msg.messageId;
+      this.parentMessageContent = msg.Body;
       this.closeOptionMenu();
     },
 
     async getAllBranhingRooms() {
       const user = JSON.parse(localStorage.getItem("user"));
-
       const res = await Api.get("/branchingrooms", {
         params: {
           roomTopic: this.branchingRoomTopic || "General",
@@ -329,75 +369,51 @@ export default {
       }));
     },
 
- async deleteMessage(){
-            try{
-                await Api.delete(`/branchingrooms/${this.branchingRoomId}/messages/${this.activeMessageOption}`);
-                this.parentMessage = '';
+    async sendMessage() {
+      if (!this.message.trim() || !this.branchingRoomId) return;
 
-            }catch(err){
+      const messageId = this.parentMessageId
+        ? `responceMessageId${Math.floor(Math.random() * 100000)}`
+        : `messageId${Math.floor(Math.random() * 100000)}`;
 
-            }
+      const payload = {
+        messageId,
+        Body: this.message,
+        SendTimestamp: new Date().toISOString(),
+        Sender: this.senderObjectId
+      };
 
-        },
-        async editMessage(msg){
+      if (this.parentMessageId) {
+        this.socket.emit("respond to a message", {
+          responceMessageData: payload,
+          parentMessageId: this.parentMessageId
+        });
+        this.parentMessageId = '';
+      } else {
+        this.socket.emit("chat message", payload);
+      }
 
-        },
+      this.message = '';
+      this.replyBannerActive=null;
+      parentMessageContent=null;
+    },
 
-         async sendMessage(){
-            try{
-                if(!this.message.trim()) return;
-
-                if(!this.branchingRoomId){
-                    console.log("No Branching room selected");
-                    return;
-                }
-
-
-                if (!this.senderObjectId) {
-                    console.error("No sender ID in cache (user not logged in or cache lost)");
-                    this.$router.push('/login');
-                    return;
-                }
-                const messageId = this.activeMessageOption ? `responceMessageId${Math.floor(Math.random() * 100000)}`: `messageId${Math.floor(Math.random() * 100000)}`;
-                const  currentTime = new  Date().toISOString();
-                const messageData =  {
-                    messageId: messageId,
-                    Body: this.message,
-                    SendTimestamp: currentTime,
-                    Reaction: null,
-                    ResponseIds: [],
-                    Sender: this.senderObjectId
-                    
-
-                };
-
-                const payload = {
-                    responceMessageData:messageData,
-                    parentMessageId:this.activeMessageOption
-                }
-
-                if (this.socket && this.activeMessageOption === '') {
-                  this.socket.emit("chat message", messageData);
-                } else{
-                    
-                    this.socket.emit("respond to a message", payload);
-                     this.activeMessageOption = '';
-                     this.replyOptionActive= false;
-                }
-
-                this.message = '';
-
-            } catch(err){
-                console.log(err);
-            }
-        },
-
-    toggleReactionMenu(messageId) {
+    toggleReactionMenu(msg) {
       this.showReactionsForMessage =
-        this.showReactionsForMessage === messageId ? null : messageId;
+        this.showReactionsForMessage === msg.messageId ? null : msg.messageId;
     },
 
     async reactToMessage(messageId, reaction) {
+        const originalMessage = await Api.get( `/branchingrooms/${this.branchingRoomId}/messages/${messageId}`);
+        const reactionList = originalMessage.data.Reactions;
+
+        const existingReaction = reactionList.find(
+          r => r.userId === this.senderObjectId
+        );
+        if (existingReaction){
+            throw new Error("Only one reaction is reaction")
+            return;
+        };
       const res = await Api.post(
         `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
         {
@@ -564,8 +580,9 @@ export default {
 .messageRow {
     position: relative;
     padding: clamp(5px, 1vw, 35px) clamp(15px, 2vw, 40px);
-    max-width: 60%;
-    min-width: 260px;
+    width: fit-content;
+    max-width: clamp(320px, 80vw, 900px);
+    min-width: clamp(220px, 45vw, 320px);
     display: flex;
     flex-direction: row;
     margin: 6px 0;
@@ -611,9 +628,11 @@ export default {
     display: flex;
     flex: 2;
     flex-direction: column;
+    min-height: 0; 
+    overflow: visible;
 }
 
-/* Message Box (Footer) */
+
 .messageBoxFlex {
     position: fixed;
     bottom: 0;
@@ -660,18 +679,28 @@ export default {
 
 .parentMessageResponceLayout{
     position: fixed;
-    top: 79%;
-    width: 100%;
+    bottom:var(--footer-h);
+    display: flex;
+    left:12px;
+    right:12px;
+    width: auto;
     margin-top: 8px;
     background: rgba(193, 133, 178, 0.92);
     backdrop-filter: blur(8px);
     border-radius: 14px;
     padding: 10px;
     z-index: 20000;
+    height: clamp(7vh, 65px, 15vh);
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
+
+.parentMessageTextLayout{
+    flex-direction: column;
+    flex: 3dvh;
+
+}
 .showParentMessage{
-    right: 20px;
+    right: 30px;
 }
 
 .sendbuttonInside {
@@ -758,7 +787,7 @@ export default {
     transform: translateY(-1px);
 }
 
-/* Utility Classes */
+
 .settingButtonWrapper,
 .exitButtonWrapper {
     display: flex;
@@ -770,13 +799,71 @@ export default {
     cursor: pointer;
 }
 
+.closeButtonIconStyle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
 .messageBox-style {
     color: #fdfdfd;
 }
 
-/* CSS Variables */
+
 :root {
     --header-h: clamp(95px, 15vh, 130px);
     --footer-h: clamp(70px, 10vh, 100px);
 }
+
+.reactionPicker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: rgba(40, 20, 35, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    z-index: 20001;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.reactionButton {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.reactionButton:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.messageReactionFloating {
+  position: absolute;
+  bottom: -12px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+.reaction-right {
+  right: 12px;
+}
+
+.reaction-left {
+  left: 12px;
+}
+
 </style>
