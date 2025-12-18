@@ -96,7 +96,7 @@
                 
             </div>
 
-            <div class="settingButtonWrapper">
+            <div class="settingButtonWrapper"  @click="showSettings = true">
             <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
                 </button>
@@ -111,18 +111,20 @@
 
         </div>
         
-        <div v-if="isFrozen" class="frozen-overlay">
+                <div v-if="isFrozen" class="frozen-overlay">
             <div class="frozen-card">
                 <p class="frozen-text">
                     Chat is paused. This room is currently unavailable.
                 </p>
                 <button class="frozen-exit-button" @click="goToMain">
                     Exit
-                 </button>
+                </button>
             </div>
         </div>
 
     </div>
+
+    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
 </template>
 
 
@@ -132,11 +134,13 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import  SettingsPopup  from './SettingsPopup.vue';
 
 export default {
     name: 'localroom',
     components: {
         FontAwesomeIcon,
+        SettingsPopup
     },
 
     data() {
@@ -150,6 +154,7 @@ export default {
             chatListner: null,
             socket,
             isFrozen: false,
+            showSettings: false
         };
     },
     beforeUnmount(){

@@ -99,7 +99,7 @@
                 </div>
             </div>
 
-            <div class="settingButtonWrapper">
+            <div class="settingButtonWrapper" @click="showSettings = true">
             <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="gear" size="2xl" style="color: aliceblue;" />
                 </button>
@@ -125,6 +125,7 @@
         </div>
 
     </div>
+    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
 </template>
 
 
@@ -134,11 +135,13 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import  SettingsPopup  from './SettingsPopup.vue';
 
 export default {
     name: 'globalroom',
     components: {
         FontAwesomeIcon,
+        SettingsPopup
     },
 
     data() {
@@ -152,6 +155,7 @@ export default {
             chatListner: null,
             socket,
             isFrozen: false,
+            showSettings: false
         };
     },
     beforeUnmount(){
