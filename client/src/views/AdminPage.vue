@@ -7,7 +7,10 @@
       <!-- Buttons -->
       <div class="controls">
         <button class="admin-button">Create Topic Rooms</button>
-        <button class="admin-button">Display Users</button>
+        <button class="admin-button" @click="$router.push('/admin/users')">
+        Display Users
+        </button>
+
         <button class="admin-button" @click="deleteAllMessages">
             Delete All Messages
             </button>
@@ -71,7 +74,7 @@ export default {
         _id: null,
         live_Chat: false
       },
-      showPopup: false
+      showPopup: false,
     };
   },
 
@@ -131,7 +134,6 @@ export default {
         } catch (err) {
             alert("Failed to delete messages");
         }},
-
   }
 };
 </script>
@@ -156,6 +158,8 @@ export default {
     rgba(255, 194, 194, 0.18),
     #936480);
   backdrop-filter: blur(14px);
+  max-height: 90vh;    
+  overflow-y: auto;
 }
 
 .admin-title {
@@ -229,6 +233,7 @@ export default {
   font-size: 14px;
   font-weight: 500;
   color: #6d2a46;
+  width: 40px;
 }
 
 .toggle {
@@ -272,7 +277,6 @@ export default {
   z-index: 1000;
 }
 
-
 .popup button {
   padding: 8px 26px;
   border-radius: 16px;
@@ -282,6 +286,13 @@ export default {
   color: #6d2a46;
   font-weight: 600;
   transition: 0.2s ease;
+}
+
+@media (max-height: 700px) {
+  .admin {
+    max-height: 85vh;
+    padding: 24px 20px;
+  }
 }
 </style>
 
