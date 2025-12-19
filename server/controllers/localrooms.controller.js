@@ -91,6 +91,33 @@ const updateLocalRoom = async (req, res, next) => {
   }
 };
 
+// Update One Local Room
+const updateLocalRoom = async (req, res, next) => {
+  try {
+    const liveChat = req.body.liveChat;
+
+    if (liveChat !== true && liveChat !== false) {
+      return res.status(400).json({ message: "liveChat must be true or false" });
+    }
+
+    const updatedRoom = await LocalRoom.findOneAndUpdate(
+      { _id: req.params.roomId },
+      { liveChat },
+      { new: true }
+    );
+
+    if (!updatedRoom) {
+      return res.status(404).json({ message: "Local room not found" });
+    }
+
+
+    res.status(200).json(updatedRoom);
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 
 // Delete One Local Rooms
 const deleteLocalRoomById = async function(req, res, next){
