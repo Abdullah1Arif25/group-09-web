@@ -78,7 +78,7 @@ const respondtoMessageInABranchingRoom = async function(req, res, next){
 const reactToMessageInABranchingRoom = async function (req, res, next) {
     try {
         const { branchingRoomId, messageId } = req.params;
-        const { reaction, userId } = req.body;  // ← Get from request body
+        const { reaction, userId } = req.body; 
 
         const validReactions = ['👍', '❤️', '😂', '😢', '😡'];
         console.log()

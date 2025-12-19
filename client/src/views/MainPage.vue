@@ -5,6 +5,7 @@
       <div class="top-buttons">
         <router-link to="/profile" class="top-btn">Profile</router-link>
       </div>
+
       <h1 class="title">HOME PAGE</h1>
 
       <div class="room">
@@ -44,8 +45,8 @@ export default {
     return {
       user: JSON.parse(localStorage.getItem("user")),
     };
-    
   },
+};
 </script>
 
 
