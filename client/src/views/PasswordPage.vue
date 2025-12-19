@@ -101,7 +101,7 @@
   };
   </script>
   
-  <style>
+  <style scoped>
 
   .login-wrapper {
     min-height: 100vh;

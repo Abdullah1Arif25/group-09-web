@@ -161,7 +161,7 @@ export default {
 };
   </script>
   
-  <style>
+  <style scoped>
 .profile-wrapper {
   min-height: 100vh;
   display: flex;

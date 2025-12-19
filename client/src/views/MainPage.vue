@@ -4,19 +4,26 @@
 
       <div class="top-buttons">
         <router-link to="/profile" class="top-btn">Profile</router-link>
+        <router-link
+          v-if="user.userId === 'admin'"
+          to="/admin"
+          class="top-btn">
+          Admin
+        </router-link>
       </div>
-
       <h1 class="title">HOME PAGE</h1>
 
       <div class="room">
 
         <!-- LOCAL ROOM -->
-        <router-link to="/localroom" class="room-card">
+        <router-link 
+        v-if="user && user.language === 'swe'" 
+        to="/localroom" class="room-card">
           <div class="room-text">LOCAL ROOM</div>
-          <img 
+          <img
             class="room-icon"
-            src="@/assets/Local_logo.png" 
-            alt="Local Room" 
+            src="@/assets/Local_logo.png"
+            alt="Local Room"
           />
         </router-link>
 
@@ -39,8 +46,20 @@
 <script>
 export default {
   name: "HomePage",
+  data() {
+    return {
+      user: JSON.parse(localStorage.getItem("user")),
+    };
+    
+  },
+  computed: {
+    isAdmin() {
+      return this.user.userId === "admin";
+    }
+  }
 };
 </script>
+
 
 <style scoped>
 .page-wrapper {
@@ -56,14 +75,16 @@ export default {
   padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: center; 
-  height: 100vh;         
+  justify-content: center;
+  min-height: 100vh;
 }
 
 .top-buttons {
   position: absolute;
   top: 55px;
   right: 40px;
+  display: flex;        
+  gap: 12px;
 }
 
 .top-btn {
@@ -86,31 +107,28 @@ export default {
   color: white;
 }
 
-
 .title {
-  color: white;
-  position: absolute;
-  top: 40px;       
-  left: 50%;
-  transform: translateX(-50%);
   color: white;
   font-size: 2.8rem;
   font-weight: bold;
-  margin: 0;
+  margin: 20px 0 40px;
+  text-align: center;
 }
 
 .room {
   display: flex;
   gap: 2rem;
   justify-content: center;
+  flex-wrap: wrap;
 }
+
 .room-card {
   background: linear-gradient(
     90deg,
     rgba(255, 194, 194, 0.82),
     #936480
   );
-  width: 400px;
+  max-width: 400px;
   height: 310px;
   border-radius: 40px;
   padding: 3rem;
@@ -120,7 +138,6 @@ export default {
   text-decoration: none;
   transition: transform 0.18s ease, background 0.18s ease;
 }
-
 
 .room-card:hover {
   transform: scale(1.05);
@@ -133,15 +150,63 @@ export default {
 
 .room-text {
   color: white;
-  font-size: 2.1rem;  
+  font-size: 2.1rem;
   font-weight: bold;
   margin-bottom: 1.8rem;
 }
-
 
 .room-icon {
   max-width: 260px;
   max-height: 170px;
 }
 
+@media (max-height: 700px) {
+  .room-card {
+    width: 320px;
+    height: 250px;
+    padding: 2rem;
+  }
+
+  .room-text {
+    font-size: 1.6rem;
+  }
+
+  .room-icon {
+    max-width: 200px;
+    max-height: 130px;
+  }
+}
+
+@media (max-width: 768px) {
+  .room {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .room-card {
+    max-width: 90%;
+    height: auto;
+    padding: 2rem;
+  }
+
+  .room-text {
+    font-size: 1.6rem;
+  }
+
+  .room-icon {
+    max-width: 180px;
+    max-height: 140px;
+  }
+}
+
+@media (max-width: 480px) {
+  .title {
+    font-size: 2rem;
+  }
+
+  .top-btn {
+    padding: 8px 20px;
+    font-size: 0.9rem;
+  }
+}
 </style>

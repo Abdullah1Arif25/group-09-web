@@ -1,6 +1,7 @@
 <template>
     <div class="backgroundStyle" :class="{ light: isLight }">
 
+
         <!-- Head banner -->
         <div class="head_banner">
 
@@ -12,15 +13,23 @@
             </div>
 
 
-        <!-- Localroom title and branching room type -->
+        <!-- Globalroom title and branching room type -->
             <div class="HeaderFlexBox">
-                <h1 class="head_title_style">LOCAL ROOM</h1>
-
+                
+                <div class="roomTittle">
+                    <h1 class="head_title_style">GLOBAL ROOM</h1>
+                    <img
+                    class="global-icon"
+                    src="@/assets/Global_logo.png"
+                    alt="Global Room"
+                    />
+                </div>
                 <div class="categoryDivStyle">
                     <h2 class="categoryTitleStyle">
                         {{ this.branchingRoomTopic}}
                     </h2>
-                </div>
+         
+            </div>
             </div>
 
             <!-- Menu button -->
@@ -56,7 +65,7 @@
         </div>
 
 
-        <!-- Empty room -->
+              <!-- Empty room -->
         <div class="room-box" ref="messageBox" @click="closeAllOptions">
 
 
@@ -113,9 +122,11 @@
                         <button class="optionMenuButton" @click="toggleReactionMenu(msg)">React</button>
                         <button class="optionMenuButton" @click="editMessage(msg)">Edit</button>
                         <button class="optionMenuButton" @click="deleteMessage(msg)">Delete</button>
+                        <button class="optionMenuButton" @click="translateMessage(msg)">Translate</button>
                     </div>
 
                     <!-- Reaction Menu -->
+
                     <div
                         v-if="showReactionsForMessage === activeMessageOption"
                         class="reactionPicker">
@@ -133,6 +144,7 @@
 
         </div>
 
+        
         <!--Parent Message in case of responce-->   
         <div
          v-if="this.replyBannerActive"
@@ -149,7 +161,7 @@
 
         </div>
 
-        
+
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
             
@@ -176,14 +188,14 @@
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" @click="exitRoom()">
-               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl"style="color: aliceblue;" />
+            <button class="buttonIconStyle">
+               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;"/>
                 </button>
             </div>
 
         </div>
-    </div>
 
+    </div>
 </template>
 
 
@@ -193,7 +205,6 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-
 const REACTIONS = [
   { type: "like", emoji: "👍" },
   { type: "love", emoji: "❤️" },
@@ -203,156 +214,149 @@ const REACTIONS = [
 ];
 
 export default {
-  name: 'localroom',
-  components: { FontAwesomeIcon },
-
-  data() {
-    return {
-      message: '',
-      isMenuOpen: false,
-      branchingRoomTopic: 'General',
-      branchingRoomId: '',
-      messages: [],
-      senderObjectId: getUserObjectId(),
-      socket,
-      chatListner: null,
-      activeMessageOption: null,
-      parentMessageId: '',
-      showReactionsForMessage: null,
-      REACTIONS,
-      replyBannerActive: null,
-      parentMessageContent: '',
-      isLight: false,
-
-    };
-  },
-
-  beforeUnmount() {
-    if (this.socket && this.chatListner) {
-      this.socket.off("chat message", this.chatListner);
-      this.socket.off("respond to a message", this.chatListner);
-    }
-  },
-
-  async mounted() {
-    await this.getAllBranhingRooms();
-    this.scrollToBottom();
-
-    if (!this.socket.connected) {
-      this.socket.connect();
-    }
-
-    this.chatListner = (msg) => {
-      const exists = this.messages.some(m => m.messageId === msg.messageId);
-      if (exists) return;
-
-      this.messages.push({
-        senderId: msg.senderObjectId,
-        messageId: msg.messageId,
-        anonymousName: msg.senderAnonymousName,
-        Body: msg.Body,
-        timestamp: msg.timestamp,
-        reactions: msg.Reactions || []
-      });
-
-      this.$nextTick(this.scrollToBottom);
-    };
-
-    this.socket.on("chat message", this.chatListner);
-    this.socket.on("respond to a message", this.chatListner);
-
-    if (this.branchingRoomId && this.senderObjectId) {
-      this.socket.emit("join room", {
-        userId: this.senderObjectId,
-        roomId: this.branchingRoomId
-      });
-    }
-  },
-
-  watch: {
-    messages() {
-      this.$nextTick(this.scrollToBottom);
+    name: 'globalroom',
+    components: {
+        FontAwesomeIcon,
     },
 
-    branchingRoomId(newId) {
-      if (!newId || !this.senderObjectId) return;
+    data() {
+        return {
+            message : '',
+            isMenuOpen: false ,
+            branchingRoomTopic: '',
+            branchingRoomId : '',
+            messages:[],
+            senderObjectId:getUserObjectId(),
+            chatListner: null,
+            socket,
+            activeMessageOption: null,
+            parentMessageId: '',
+            showReactionsForMessage: null,
+            REACTIONS,
+            replyBannerActive: null,
+            parentMessageContent: '',
+            isLight: false,
 
-      this.socket.emit("join room", {
-        userId: this.senderObjectId,
-        roomId: newId
-      });
-
-      this.fetchMessages().then(() => {
-        this.$nextTick(this.scrollToBottom);
-      });
-    }
-  },
-
-  methods: {
-    DisableReplyBanner(){
-        this.replyBannerActive = false;
+        };
     },
-    closeAllOptions(){
-        this.closeOptionMenu();
-        this.closeMenu();
+    beforeUnmount(){
+        if(this.socket && this.chatListner){
+            this.socket.off("chat message", this.chatListner);
+            this.socket.off("chat-frozen");
+            this.socket.off("chat-unfrozen");
+        }
+    },
+    async mounted(){
+        await this.getAllBranhingRooms();
 
+        if(!this.socket.connected){
+            this.socket.connect();
+        }
+
+        this.chatListner = (msg)=>
+            this.messages.push({
+                senderId: msg.senderObjectId,
+                anonymousName: msg.sender,
+                Body: msg.Body,
+                timestamp:msg.timestamp
+
+            });
+        this.$nextTick(()=>{
+            this.scrollToBottom();
+        });
+        this.socket.on("chat message",this.chatListner);
+
+         this.$nextTick(() => {
+            this.scrollToBottom();
+        });
+
+
+        if (this.branchingRoomId && this.senderObjectId) {
+          this.socket.emit("join room", {
+            userId: this.senderObjectId,
+            roomId: this.branchingRoomId,
+          });
+        }
+
+        
 
     },
-    changeRoomTopic(newTopic) {
-      this.branchingRoomTopic = String(newTopic);
-      this.getAllBranhingRooms();
-      this.closeMenu();
-    },
+    watch: {
+        branchingRoomId(newId, oldId) {
+        if (!newId || !this.socket || !this.senderObjectId) return;
 
-    scrollToBottom() {
-      const box = this.$refs.messageBox;
-      if (box && box.lastElementChild) {
-        box.lastElementChild.scrollIntoView({ behavior: 'smooth' });
-      }
-    },
+        this.socket.emit("join room", {
+          userId: this.senderObjectId,
+          roomId: newId,
+        });
 
-    openOptionMenu(messageId) {
+        this.fetchMessages().then(() => {
+          this.$nextTick(() => this.scrollToBottom());
+        });
+      },
+    },
+    methods:{
+
+        changeRoomTopic(newBranchingRoomTopic){
+            this.branchingRoomTopic = String(newBranchingRoomTopic);
+            this.getAllBranhingRooms();
+
+        },
+            openOptionMenu(messageId) {
       this.activeMessageOption = messageId;
     },
+        scrollToBottom(){
+            const box = this.$refs.messageBox;
+            if(box){
+                box.scrollTop = box.scrollHeight;
+            }
 
-    closeOptionMenu() {
-      this.activeMessageOption = null;
-      this.showReactionsForMessage = null;
-    },
+        },
+        openMenu() {
+            this.isMenuOpen = true;
+        },
+        closeMenu() {
+            this.isMenuOpen = false;
+        },
+        async getAllBranhingRooms(){
+            try{
 
-    openMenu() {
-      this.isMenuOpen = true;
-    },
+                // Do we create a Local and Global Room, since that would be apropriate
+                if(this.branchingRoomTopic === ''){
+                    this.branchingRoomTopic = "General";
+                }
+                const roomTopic = this.branchingRoomTopic 
+                const branchingRooms = await Api.get("/branchingrooms", {
+                    params:{
+                        roomTopic:roomTopic,
+                        branchingRoomType:"GlobalRoom"
+                    },
+                });
+                const branchingRoomList= branchingRooms.data.Body;
+                let BranchingRoom = null;
+                if(branchingRoomList.length>0){
+                    BranchingRoom = branchingRooms.data.Body[0];
+                }
+                console.log(BranchingRoom.branchingRoomId);
+                this.branchingRoomId =BranchingRoom ? BranchingRoom.branchingRoomId: '';
 
-    closeMenu() {
-      this.isMenuOpen = false;
-    },
+                if(this.branchingRoomId){
+                    await this.fetchMessages();
+                }
 
-    async replyToMessage(msg) {
-      await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
-      this.parentMessageId = msg.messageId;
-      this.replyBannerActive = msg.messageId;
-      this.parentMessageContent = msg.Body;
-      this.closeOptionMenu();
-    },
 
-    async getAllBranhingRooms() {
-      const user = JSON.parse(localStorage.getItem("user"));
-      const res = await Api.get("/branchingrooms", {
-        params: {
-          roomTopic: this.branchingRoomTopic || "General",
-          branchingRoomType: "LocalRoom",
-          language: user.language
-        }
-      });
 
-      const room = res.data.Body?.[0];
-      this.branchingRoomId = room ? room.branchingRoomId : '';
-
-      if (this.branchingRoomId) {
-        await this.fetchMessages();
-      }
-    },
+            } catch(err){
+                console.log(err);
+            }
+        },
+         async replyToMessage(msg) {
+            await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+            this.parentMessageId = msg.messageId;
+            this.replyBannerActive = msg.messageId;
+            this.parentMessageContent = msg.Body;
+            this.closeOptionMenu();
+        },
 
     async fetchMessages() {
       const res = await Api.get(
@@ -395,7 +399,7 @@ export default {
 
       this.message = '';
       this.replyBannerActive=null;
-      parentMessageContent=null;
+      this.parentMessageContent='';
     },
 
     toggleReactionMenu(msg) {
@@ -428,27 +432,34 @@ export default {
       }
 
       this.closeOptionMenu();
-    }, 
+    },
 
-    toggleTheme() {
+        goToMain() {
+            this.$router.push("/main");
+        },
+
+        toggleTheme() {
             this.isLight = !this.isLight;
         },
-  }
-};
+
+
+    }
+}
+   
 </script>
 
 
 <style>
 
-.backgroundStyle {
-    background-image: linear-gradient(#2b0d2b, #6d2a46);
+.backgroundStyle{
+    background-image:linear-gradient(#2b0d2b, #6d2a46);
     min-height: 100vh;
     width: 100%;
     display: flex;
     flex-direction: column;
 }
 
-/* Header */
+
 .head_banner {
     background-image: linear-gradient(#2b0d2b, #6d2a46);
     display: flex;
@@ -456,14 +467,12 @@ export default {
     top: 0;
     left: 0;
     right: 0;
-    padding: clamp(6px, 1vw, 26px) clamp(0px, 0vw, 15px);
-    padding-right: 10px;
+    padding: 14px 20px;
     align-items: center;
     justify-content: space-between;
     border-bottom-left-radius: 18px;
     border-bottom-right-radius: 18px;
     z-index: 1000;
-    height: var(--header-h);
 }
 
 .logoWrapper,
@@ -482,7 +491,7 @@ export default {
 }
 
 .logo {
-    width: clamp(55px, 12vw, 100px);
+    width: 100px;
 }
 
 .HeaderFlexBox {
@@ -490,14 +499,29 @@ export default {
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
 }
 
 .head_title_style {
-    font-size: clamp(10px, 5vw, 35px);
-    font-weight: bolder;
+    font-size: 30px;
+    font-weight: 700;
     color: rgb(249, 249, 249);
     margin: 0;
 }
+
+.global-icon {
+    width: 35px;  
+    height: 40px;
+    object-fit: contain;
+}
+
+.roomTittle {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+}
+
 
 .categoryDivStyle {
     background-color: #ffecec;
@@ -507,27 +531,23 @@ export default {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: clamp(200px, 20vw, 400px);
+    width: 230px; 
     max-width: 70%;
 }
 
+
 .categoryTitleStyle {
-    font-size: clamp(14px, 2vw, 50px);
+    font-size: 16px;
     margin: 0;
     color: #2b0d2b;
 }
 
-/* Room Container */
-.room-box {
+.room-box{
     background: linear-gradient(#2b0d2b, #6d2a46);
     flex: 1;
-    overflow-y: scroll;
-    display: flex;
-    flex-direction: column;
-    padding: 80px 12px 90px;
 }
 
-/* Side Menu */
+
 .sideMenuOverlay {
     position: fixed;
     inset: 0;
@@ -535,41 +555,46 @@ export default {
     z-index: 1500;
 }
 
+
 .sideMenuWrapper {
     position: fixed;
-    top: var(--header-h);
+    top: 120px;
     right: -360px;
-    width: clamp(300px, 35vw, 400px);
-    height: calc(100dvh - var(--header-h) - var(--footer-h));
-    background: rgba(255, 255, 255, 0.535);
+    width: 360px;
+    height: calc(100vh - 190px); 
+    background: rgba(255, 255, 255, 0.535); 
     backdrop-filter: blur(6px);
     border-top-left-radius: 18px;
     border-bottom-left-radius: 18px;
-    padding: 14px 9px;
+    padding: 20px;
     transition: right 0.35s ease;
     z-index: 1600;
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow-y: auto;    
+    overflow-x: hidden;  
 }
 
+
+
 .sideMenuWrapper.menuVisible {
-    right: 0;
+    right: 0; 
 }
+
 
 .sideMenuContent {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 18px;
 }
+
 
 .sideMenuButton {
     width: 100%;
-    padding: 12px 0px;
+    padding: 20px;
     background: linear-gradient(#2b0d2b, #6d2a46);
     border: none;
     border-radius: 16px;
     color: #fff;
-    font-size: clamp(10px, 5vw, 20px);
+    font-size: 18px;
     font-weight: 500;
     cursor: pointer;
     transition: 0.2s ease;
@@ -580,61 +605,7 @@ export default {
     transform: scale(1.02);
 }
 
-/* Messages */
-.messageRow {
-    position: relative;
-    padding: clamp(5px, 1vw, 35px) clamp(15px, 2vw, 40px);
-    width: fit-content;
-    max-width: clamp(320px, 80vw, 900px);
-    min-width: clamp(220px, 45vw, 320px);
-    display: flex;
-    flex-direction: row;
-    margin: 6px 0;
-    border-radius: 10px;
-}
 
-.messageActive {
-    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
-}
-
-.my-message {
-    align-self: flex-end;
-    background: linear-gradient(#ffc2c2, #936480);
-    color: #2b0d2b;
-    border-bottom-right-radius: 2px;
-}
-
-.others-message {
-    align-self: flex-start;
-    background: linear-gradient(#311731, #4f2d3b);
-    color: #ffffff;
-    border-bottom-left-radius: 2px;
-}
-
-.others-message .message-text-style {
-    color: #ffffff;
-}
-
-.others-message .message-font-style {
-    color: rgba(255, 255, 255, 0.75);
-}
-
-.message-text-style {
-    margin: 0 0 3px 0;
-}
-
-.message-font-style {
-    font-size: 1wmax;
-    opacity: 0.7;
-}
-
-.messageDetailWrapper {
-    display: flex;
-    flex: 2;
-    flex-direction: column;
-    min-height: 0; 
-    overflow: visible;
-}
 
 
 .messageBoxFlex {
@@ -643,22 +614,22 @@ export default {
     left: 0;
     right: 0;
     background-image: linear-gradient(#2b0d2b, #6d2a46);
-    padding: clamp(2px, 1.5vw, 25px) clamp(2px, 0.5vw, 10px);
+    padding: 12px 16px;
     display: flex;
     align-items: center;
-    gap: clamp(2px, 0.5vw, 5px);
+    gap: 14px;
     border-top-left-radius: 18px;
     border-top-right-radius: 18px;
     z-index: 1000;
-    height: var(--footer-h);
 }
 
 .profileDetailWrapper {
-    width: 6vmax;
-    height: 5vmax;
+    width: 48px;
+    height: 48px;
     border-radius: 1000px;
     object-fit: cover;
 }
+
 
 .messageBoxWrapper {
     flex: 1;
@@ -678,34 +649,9 @@ export default {
     border: none;
     padding-left: 14px;
     padding-right: 50px;
-    font-size: clamp(1.5rem, 8vw, 5rem);
+    font-size: 15px;
 }
 
-.parentMessageResponceLayout{
-    position: fixed;
-    bottom:var(--footer-h);
-    display: flex;
-    left:12px;
-    right:12px;
-    width: auto;
-    margin-top: 8px;
-    background: rgba(193, 133, 178, 0.92);
-    backdrop-filter: blur(8px);
-    border-radius: 14px;
-    padding: 10px;
-    z-index: 20000;
-    height: clamp(7vh, 65px, 15vh);
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-}
-
-.parentMessageTextLayout{
-    flex-direction: column;
-    flex: 3dvh;
-
-}
-.showParentMessage{
-    right: 30px;
-}
 
 .sendbuttonInside {
     background: transparent;
@@ -716,6 +662,60 @@ export default {
     transform: translateY(-50%);
     cursor: pointer;
 }
+
+
+.settingButtonWrapper,
+.exitButtonWrapper {
+    display: flex;
+}
+
+.buttonIconStyle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+
+.room-box{
+    overflow-y: scroll;
+    background-image:linear-gradient(#2b0d2b, #6d2a46);
+    display: flex;
+    flex-direction: column;
+    padding:80px  12px 90px;
+    
+
+}
+.messageBox-style {
+  padding: 10px 18px;
+  max-width: 60%;
+  margin: 4px 0;
+  border-radius: 10px;
+  color: #fdfdfd;
+}
+
+.my-message{
+  align-self: flex-end;
+  background: linear-gradient(#ffc2c2,#936480);
+  color: #2b0d2b;
+  border-bottom-right-radius: 2px;
+}
+
+
+.others-message {
+  align-self: flex-start;
+  background: linear-gradient(#1a0c1a, #4f2d3b);
+  border-bottom-left-radius: 2px;
+}
+
+.message-text-style {
+  margin: 0 0 3px 0;
+}
+
+.message-font-style {
+  font-size: 11px;
+  opacity: 0.7;
+}
+
 
 /* Option Menu */
 .optionButtonWrapper {
@@ -791,85 +791,6 @@ export default {
     transform: translateY(-1px);
 }
 
-
-.settingButtonWrapper,
-.exitButtonWrapper {
-    display: flex;
-}
-
-.buttonIconStyle {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-}
-
-.closeButtonIconStyle {
-    background: transparent;
-    border: none;
-    cursor: pointer;
-}
-.messageBox-style {
-    color: #fdfdfd;
-}
-
-
-:root {
-    --header-h: clamp(95px, 15vh, 130px);
-    --footer-h: clamp(70px, 10vh, 100px);
-}
-
-.reactionPicker {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    background: rgba(40, 20, 35, 0.95);
-    backdrop-filter: blur(8px);
-    border-radius: 14px;
-    padding: 8px;
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
-    z-index: 20001;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
-}
-
-.reactionButton {
-    background: rgba(255, 255, 255, 0.1);
-    border: none;
-    border-radius: 10px;
-    padding: 6px 10px;
-    font-size: 18px;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
-}
-
-.reactionButton:hover {
-    background: rgba(255, 255, 255, 0.25);
-    transform: scale(1.1);
-}
-
-.messageReactionFloating {
-  position: absolute;
-  bottom: -12px;
-  background: rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(6px);
-  border-radius: 999px;
-  padding: 4px 8px;
-  font-size: 14px;
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-}
-
-
-.reaction-right {
-  right: 12px;
-}
-
-.reaction-left {
-  left: 12px;
-}
-
 .light.backgroundStyle {
   background: linear-gradient(#f5e1e6, #d6b2bf);
 }
@@ -901,6 +822,7 @@ export default {
 .light .categoryTitleStyle {
   color: #5a2b44;
 }
+
 
 .light .room-box {
   background: linear-gradient(#f5e1e6, #d6b2bf);
