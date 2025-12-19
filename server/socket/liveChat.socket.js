@@ -2,6 +2,8 @@ const { generateAnonymousName, deleteAnonymousName } = require("../services/anon
 require("dotenv").config();
 const {createMessageInABranchingRoom} = require("../services/createMessageInBranchingRoom.services");
 const {responceToMessageInABranchingRoom} = require("../services/responceToMessageInABranchingRoom.services");
+const { checkChat } = require("../services/chatAccess.services");
+
 
 
 
@@ -19,9 +21,14 @@ module.exports = function (io) {
 
         // user joins room
         socket.on("join room", async (data) => {
-            
-            
             const { userId, roomId } = data;
+            
+            const allowed = await checkChat(roomId);
+            if (!allowed) {
+                socket.emit("chat-frozen");
+                return;
+            }
+
             console.log("➡ join room:", { socketId: socket.id, userId, roomId });
 
             try {
@@ -49,6 +56,12 @@ module.exports = function (io) {
 
         // user sends message
         socket.on("chat message", async (messageData) => {
+            const allowed = await checkChat(socket.roomId);
+            if (!allowed) {
+                socket.emit("chat-frozen");
+                return;
+            }
+
             if (!socket.roomId) 
                 return;
 
