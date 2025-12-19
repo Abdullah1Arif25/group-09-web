@@ -22,7 +22,6 @@ module.exports = function (io) {
         socket.on("join room", async (data) => {
             const { userId, roomId } = data;
             
-            const allowed = await checkChat(roomId);
             if (!allowed) {
                 socket.emit("chat-frozen");
                 return;
@@ -55,7 +54,6 @@ module.exports = function (io) {
 
         // user sends message
         socket.on("chat message", async (messageData) => {
-            const allowed = await checkChat(socket.roomId);
             if (!allowed) {
                 socket.emit("chat-frozen");
                 return;
