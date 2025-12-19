@@ -57,11 +57,10 @@
 
 
         <!-- Empty room -->
-        <div class="room-box" ref="messageBox" @click="closeOptionMenu">
+        <div class="room-box" ref="messageBox" @click="closeAllOptions">
 
 
             <!--Message-->
-
              <div
                 v-for="msg in messages"
                 :key="msg.messageId" 
@@ -135,10 +134,22 @@
             </div>
 
         </div>
-            
 
-            
-           
+        <!--Parent Message in case of responce-->   
+        <div
+         v-if="this.replyBannerActive"
+         class ="parentMessageResponceLayout"
+         :class="[this.replyBannerActive ? showParentMessage: '']">
+
+         <div class="parentMessageTextLayout">
+            <small>Replying to {{this.replyBannerActive }}</small>
+            <p>{{this.parentMessageContent }}</p>
+
+         </div>
+         <button @click.self="DisableReplyBanner()" class="closeButtonIconStyle">x</button>
+
+
+        </div>
 
         
         <!-- Footer and bottom banner -->
@@ -160,7 +171,7 @@
             </div>
 
             <div class="settingButtonWrapper">
-            <button class="buttonIconStyle">
+            <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
                 </button>
             </div>
@@ -210,7 +221,9 @@ export default {
       activeMessageOption: null,
       parentMessageId: '',
       showReactionsForMessage: null,
-      REACTIONS
+      REACTIONS,
+      replyBannerActive: null,
+      parentMessageContent: ''
     };
   },
 
@@ -276,6 +289,15 @@ export default {
   },
 
   methods: {
+    DisableReplyBanner(){
+        this.replyBannerActive = false;
+    },
+    closeAllOptions(){
+        this.closeOptionMenu();
+        this.closeMenu();
+
+
+    },
     changeRoomTopic(newTopic) {
       this.branchingRoomTopic = String(newTopic);
       this.getAllBranhingRooms();
@@ -309,6 +331,8 @@ export default {
     async replyToMessage(msg) {
       await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
       this.parentMessageId = msg.messageId;
+      this.replyBannerActive = msg.messageId;
+      this.parentMessageContent = msg.Body;
       this.closeOptionMenu();
     },
 
@@ -370,6 +394,8 @@ export default {
       }
 
       this.message = '';
+      this.replyBannerActive=null;
+      parentMessageContent=null;
     },
 
     toggleReactionMenu(msg) {
@@ -378,6 +404,16 @@ export default {
     },
 
     async reactToMessage(messageId, reaction) {
+        const originalMessage = await Api.get( `/branchingrooms/${this.branchingRoomId}/messages/${messageId}`);
+        const reactionList = originalMessage.data.Reactions;
+
+        const existingReaction = reactionList.find(
+          r => r.userId === this.senderObjectId
+        );
+        if (existingReaction){
+            throw new Error("Only one reaction is reaction")
+            return;
+        };
       const res = await Api.post(
         `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
         {
@@ -641,6 +677,32 @@ export default {
     font-size: clamp(1.5rem, 8vw, 5rem);
 }
 
+.parentMessageResponceLayout{
+    position: fixed;
+    bottom:var(--footer-h);
+    display: flex;
+    left:12px;
+    right:12px;
+    width: auto;
+    margin-top: 8px;
+    background: rgba(193, 133, 178, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 10px;
+    z-index: 20000;
+    height: clamp(7vh, 65px, 15vh);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.parentMessageTextLayout{
+    flex-direction: column;
+    flex: 3dvh;
+
+}
+.showParentMessage{
+    right: 30px;
+}
+
 .sendbuttonInside {
     background: transparent;
     border: none;
@@ -737,6 +799,11 @@ export default {
     cursor: pointer;
 }
 
+.closeButtonIconStyle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+}
 .messageBox-style {
     color: #fdfdfd;
 }
