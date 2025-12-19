@@ -188,7 +188,7 @@
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle">
+            <button class="buttonIconStyle" @click="showSettings = true">
                <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;"/>
                 </button>
             </div>
@@ -196,6 +196,7 @@
         </div>
 
     </div>
+    <SettingsPopup v-if="showSettings" @close="showSettings = false"/>
 </template>
 
 
@@ -205,6 +206,7 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import SettingsPopup from "./SettingsPopup.vue";
 const REACTIONS = [
   { type: "like", emoji: "👍" },
   { type: "love", emoji: "❤️" },
@@ -217,6 +219,7 @@ export default {
     name: 'globalroom',
     components: {
         FontAwesomeIcon,
+        SettingsPopup
     },
 
     data() {
@@ -236,6 +239,7 @@ export default {
             replyBannerActive: null,
             parentMessageContent: '',
             isLight: false,
+            showSettings: false,
 
         };
     },
