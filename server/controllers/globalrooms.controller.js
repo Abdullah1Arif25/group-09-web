@@ -55,6 +55,8 @@ const updateGlobalRoom = async function (req, res, next) {
   }
 };
 
+
+
 // Delete global room
 const deleteGlobalRoom = async function (req, res, next) {
   try {

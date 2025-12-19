@@ -8,7 +8,6 @@
       <router-link to="/profile">Profile</router-link>
       <router-link to="/localroom">Localroom</router-link>
       <router-link to="/globalroom">Globalroom</router-link>
-
       
     </div>
 

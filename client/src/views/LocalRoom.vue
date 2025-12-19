@@ -56,24 +56,100 @@
         </div>
 
 
-        <!-- Empty boom -->
-        <div class="room-box" ref="messageBox">
+        <!-- Empty room -->
+        <div class="room-box" ref="messageBox" @click="closeAllOptions">
+
+
+            <!--Message-->
              <div
                 v-for="msg in messages"
-                :key="msg.senderId" 
-                :class="['messageBox-style', String(msg.senderObjectId) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                :key="msg.messageId" 
+                class="messageRow"
+                :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
+                    activeMessageOption === msg.messageId ? 'messageActive' : ''
+                ]">
+                <div class="messageDetailWrapper">
+                <small class="message-font-style">
+                    {{ msg.anonymousName}}
+                </small>
+
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
+
                 <small class="message-font-style">
                     {{ new Date(msg.timestamp).toLocaleDateString() }}
                 </small>
-            
+
+                </div>
+
+                <div
+                  v-if="msg.reactions && msg.reactions.length"
+                  class="messageReactions">
+                  <span
+                    v-for="(r, index) in msg.reactions"
+                    :key="index"
+                    class="reactionEmoji">
+                    {{ r.reaction }}
+                  </span>
+                </div>
+
+                <!--Option Button-->
+
+
+                <div 
+                    class="optionButtonWrapper">
+                    <button class="optionButtonStyle" @click.stop="openOptionMenu(msg.messageId)">•••</button>
+                </div>
+                
+                <!-- Option Menu -->
+                <div 
+                    class="optionMenuOverlay"
+                    v-if="activeMessageOption === msg.messageId"
+                    @click.self="closeOptionMenu()">
+
+                    <div class="optionMenuContent" @click.stop>
+                        <button class="optionMenuButton" @click="replyToMessage(msg)">Reply</button>
+                        <button class="optionMenuButton" @click="toggleReactionMenu(msg)">React</button>
+                        <button class="optionMenuButton" @click="editMessage(msg)">Edit</button>
+                        <button class="optionMenuButton" @click="deleteMessage(msg)">Delete</button>
+                    </div>
+
+                    <!-- Reaction Menu -->
+                    <div
+                        v-if="showReactionsForMessage === activeMessageOption"
+                        class="reactionPicker">
+                        <button
+                            v-for="reaction in REACTIONS"
+                            :key="reaction.type"
+                            class="reactionButton"
+                            @click="reactToMessage(this.activeMessageOption, reaction.emoji)">
+                            {{ reaction.emoji }}
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
         </div>
 
+        <!--Parent Message in case of responce-->   
+        <div
+         v-if="this.replyBannerActive"
+         class ="parentMessageResponceLayout"
+         :class="[this.replyBannerActive ? showParentMessage: '']">
 
+         <div class="parentMessageTextLayout">
+            <small>Replying to {{this.replyBannerActive }}</small>
+            <p>{{this.parentMessageContent }}</p>
+
+         </div>
+         <button @click.self="DisableReplyBanner()" class="closeButtonIconStyle">x</button>
+
+
+        </div>
+
+        
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
             
@@ -84,12 +160,12 @@
             />
 
             <div class="messageBoxWrapper">
-                <div class="inputContainer">
-                <input class="messageBoxStyle" type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                <button class="sendbuttonInside" @click="sendMessage">
-                    <FontAwesomeIcon  icon="paper-plane" size="xl"  />
-                    </button>
-                </div>
+                <form class="inputContainer" @submit.prevent="sendMessage">
+                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
+                        <button class="sendbuttonInside" type="submit">
+                            <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
+                        </button>
+                </form>
             </div>
 
             <div class="ThemeToggle">
@@ -100,13 +176,12 @@
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" />
+            <button class="buttonIconStyle" @click="exitRoom()">
+               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl"style="color: aliceblue;" />
                 </button>
             </div>
 
         </div>
-    
     </div>
 
 </template>
@@ -119,63 +194,128 @@ import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 
+const REACTIONS = [
+  { type: "like", emoji: "👍" },
+  { type: "love", emoji: "❤️" },
+  { type: "laugh", emoji: "😂" },
+  { type: "sad", emoji: "😢" },
+  { type: "angry", emoji: "😡" }
+];
+
 export default {
-    name: 'localroom',
-    components: {
-        FontAwesomeIcon,
-    },
+  name: 'localroom',
+  components: { FontAwesomeIcon },
 
   data() {
     return {
       message: '',
       isMenuOpen: false,
-      branchingRoomTopic: '',
+      branchingRoomTopic: 'General',
       branchingRoomId: '',
       messages: [],
       senderObjectId: getUserObjectId(),
-      chatListner: null,
       socket,
-      isLight: false,
+      chatListner: null,
+      activeMessageOption: null,
+      parentMessageId: '',
+      showReactionsForMessage: null,
+      REACTIONS,
+      replyBannerActive: null,
+      parentMessageContent: ''
     };
-  },
-
-  mounted() {
-    this.initSocket();
-    this.getAllBranhingRooms();
   },
 
   beforeUnmount() {
     if (this.socket && this.chatListner) {
       this.socket.off("chat message", this.chatListner);
+      this.socket.off("respond to a message", this.chatListner);
+    }
+  },
+
+  async mounted() {
+    await this.getAllBranhingRooms();
+    this.scrollToBottom();
+
+    if (!this.socket.connected) {
+      this.socket.connect();
+    }
+
+    this.chatListner = (msg) => {
+      const exists = this.messages.some(m => m.messageId === msg.messageId);
+      if (exists) return;
+
+      this.messages.push({
+        senderId: msg.senderObjectId,
+        messageId: msg.messageId,
+        anonymousName: msg.senderAnonymousName,
+        Body: msg.Body,
+        timestamp: msg.timestamp,
+        reactions: msg.Reactions || []
+      });
+
+      this.$nextTick(this.scrollToBottom);
+    };
+
+    this.socket.on("chat message", this.chatListner);
+    this.socket.on("respond to a message", this.chatListner);
+
+    if (this.branchingRoomId && this.senderObjectId) {
+      this.socket.emit("join room", {
+        userId: this.senderObjectId,
+        roomId: this.branchingRoomId
+      });
+    }
+  },
+
+  watch: {
+    messages() {
+      this.$nextTick(this.scrollToBottom);
+    },
+
+    branchingRoomId(newId) {
+      if (!newId || !this.senderObjectId) return;
+
+      this.socket.emit("join room", {
+        userId: this.senderObjectId,
+        roomId: newId
+      });
+
+      this.fetchMessages().then(() => {
+        this.$nextTick(this.scrollToBottom);
+      });
     }
   },
 
   methods: {
-    toggleTheme() {
-      this.isLight = !this.isLight;
+    DisableReplyBanner(){
+        this.replyBannerActive = false;
     },
+    closeAllOptions(){
+        this.closeOptionMenu();
+        this.closeMenu();
 
-    async initSocket() {
-      if (!this.socket.connected) this.socket.connect();
 
-      this.chatListner = (msg) =>
-        this.messages.push({
-          senderObjectId: msg.senderObjectId,
-          Body: msg.Body,
-          timestamp: msg.timestamp,
-        });
-
-      this.socket.on("chat message", this.chatListner);
     },
-
-    changeRoomTopic(topic) {
-      this.branchingRoomTopic = topic;
+    changeRoomTopic(newTopic) {
+      this.branchingRoomTopic = String(newTopic);
       this.getAllBranhingRooms();
+      this.closeMenu();
     },
 
     scrollToBottom() {
       const box = this.$refs.messageBox;
-      if (box) box.scrollTop = box.scrollHeight;
+      if (box && box.lastElementChild) {
+        box.lastElementChild.scrollIntoView({ behavior: 'smooth' });
+      }
+    },
+
+    openOptionMenu(messageId) {
+      this.activeMessageOption = messageId;
+    },
+
+    closeOptionMenu() {
+      this.activeMessageOption = null;
+      this.showReactionsForMessage = null;
     },
 
     openMenu() {
@@ -186,45 +326,108 @@ export default {
       this.isMenuOpen = false;
     },
 
-    async getAllBranhingRooms() {
-      if (!this.branchingRoomTopic) this.branchingRoomTopic = "General";
+    async replyToMessage(msg) {
+      await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+      this.parentMessageId = msg.messageId;
+      this.replyBannerActive = msg.messageId;
+      this.parentMessageContent = msg.Body;
+      this.closeOptionMenu();
+    },
 
+    async getAllBranhingRooms() {
       const user = JSON.parse(localStorage.getItem("user"));
       const res = await Api.get("/branchingrooms", {
         params: {
-          roomTopic: this.branchingRoomTopic,
+          roomTopic: this.branchingRoomTopic || "General",
           branchingRoomType: "LocalRoom",
-          language: user.language,
-        },
+          language: user.language
+        }
       });
 
-      const room = res.data.Body[0];
-      this.branchingRoomId = room?.branchingRoomId || "";
+      const room = res.data.Body?.[0];
+      this.branchingRoomId = room ? room.branchingRoomId : '';
 
-      if (this.branchingRoomId) this.fetchMessages();
+      if (this.branchingRoomId) {
+        await this.fetchMessages();
+      }
     },
 
     async fetchMessages() {
-      const res = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
+      const res = await Api.get(
+        `/branchingrooms/${this.branchingRoomId}/messages`
+      );
+
       this.messages = res.data.map(m => ({
-        senderObjectId: m.Sender?._id,
+        senderId: m.Sender._id,
+        messageId: m.messageId,
+        anonymousName: m.anonymousName,
         Body: m.Body,
         timestamp: m.SendTimestamp,
+        reactions: m.Reactions || []
       }));
     },
 
     async sendMessage() {
-      if (!this.message.trim()) return;
+      if (!this.message.trim() || !this.branchingRoomId) return;
 
-      this.socket.emit("chat message", {
+      const messageId = this.parentMessageId
+        ? `responceMessageId${Math.floor(Math.random() * 100000)}`
+        : `messageId${Math.floor(Math.random() * 100000)}`;
+
+      const payload = {
+        messageId,
         Body: this.message,
         SendTimestamp: new Date().toISOString(),
-        Sender: this.senderObjectId,
-      });
+        Sender: this.senderObjectId
+      };
+
+      if (this.parentMessageId) {
+        this.socket.emit("respond to a message", {
+          responceMessageData: payload,
+          parentMessageId: this.parentMessageId
+        });
+        this.parentMessageId = '';
+      } else {
+        this.socket.emit("chat message", payload);
+      }
 
       this.message = '';
+      this.replyBannerActive=null;
+      parentMessageContent=null;
     },
-  },
+
+    toggleReactionMenu(msg) {
+      this.showReactionsForMessage =
+        this.showReactionsForMessage === msg.messageId ? null : msg.messageId;
+    },
+
+    async reactToMessage(messageId, reaction) {
+        const originalMessage = await Api.get( `/branchingrooms/${this.branchingRoomId}/messages/${messageId}`);
+        const reactionList = originalMessage.data.Reactions;
+
+        const existingReaction = reactionList.find(
+          r => r.userId === this.senderObjectId
+        );
+        if (existingReaction){
+            throw new Error("Only one reaction is reaction")
+            return;
+        };
+      const res = await Api.post(
+        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
+        {
+          reaction,
+          userId: this.senderObjectId
+        }
+      );
+
+      const msg = this.messages.find(m => m.messageId === messageId);
+      if (msg) {
+        msg.reactions = res.data.reactions || [];
+      }
+
+      this.closeOptionMenu();
+    }
+  }
 };
 </script>
 
@@ -235,104 +438,433 @@ export default {
 
 
 .backgroundStyle {
-  background: linear-gradient(#2b0d2b, #6d2a46);
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
+    background-image: linear-gradient(#2b0d2b, #6d2a46);
+    min-height: 100vh;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
 }
 
-.head_banner,
-.messageBoxFlex {
-  background: linear-gradient(#2b0d2b, #6d2a46);
+/* Header */
+.head_banner {
+    background-image: linear-gradient(#2b0d2b, #6d2a46);
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: clamp(6px, 1vw, 26px) clamp(0px, 0vw, 15px);
+    padding-right: 10px;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom-left-radius: 18px;
+    border-bottom-right-radius: 18px;
+    z-index: 1000;
+    height: var(--header-h);
 }
 
+.logoWrapper,
+.MenuButtonFlex {
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
 
-.light.backgroundStyle {
-  background: linear-gradient(#f5e1e6, #d6b2bf);
+.logoWrapper {
+    justify-content: flex-start;
+}
+
+.MenuButtonFlex {
+    justify-content: flex-end;
+}
+
+.logo {
+    width: clamp(55px, 12vw, 100px);
+}
+
+.HeaderFlexBox {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
 .head_title_style {
-  color: white;
+    font-size: clamp(10px, 5vw, 35px);
+    font-weight: bolder;
+    color: rgb(249, 249, 249);
+    margin: 0;
+}
+
+.categoryDivStyle {
+    background-color: #ffecec;
+    border-radius: 10px;
+    padding: 6px 16px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: clamp(200px, 20vw, 400px);
+    max-width: 70%;
+}
+
+.categoryTitleStyle {
+    font-size: clamp(14px, 2vw, 50px);
+    margin: 0;
+    color: #2b0d2b;
+}
+
+/* Room Container */
+.room-box {
+    background: linear-gradient(#2b0d2b, #6d2a46);
+    flex: 1;
+    overflow-y: scroll;
+    display: flex;
+    flex-direction: column;
+    padding: 80px 12px 90px;
+}
+
+/* Side Menu */
+.sideMenuOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.25);
+    z-index: 1500;
+}
+
+.sideMenuWrapper {
+    position: fixed;
+    top: var(--header-h);
+    right: -360px;
+    width: clamp(300px, 35vw, 400px);
+    height: calc(100dvh - var(--header-h) - var(--footer-h));
+    background: rgba(255, 255, 255, 0.535);
+    backdrop-filter: blur(6px);
+    border-top-left-radius: 18px;
+    border-bottom-left-radius: 18px;
+    padding: 14px 9px;
+    transition: right 0.35s ease;
+    z-index: 1600;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.sideMenuWrapper.menuVisible {
+    right: 0;
+}
+
+.sideMenuContent {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.sideMenuButton {
+    width: 100%;
+    padding: 12px 0px;
+    background: linear-gradient(#2b0d2b, #6d2a46);
+    border: none;
+    border-radius: 16px;
+    color: #fff;
+    font-size: clamp(10px, 5vw, 20px);
+    font-weight: 500;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.sideMenuButton:hover {
+    opacity: 0.8;
+    transform: scale(1.02);
+}
+
+/* Messages */
+.messageRow {
+    position: relative;
+    padding: clamp(5px, 1vw, 35px) clamp(15px, 2vw, 40px);
+    width: fit-content;
+    max-width: clamp(320px, 80vw, 900px);
+    min-width: clamp(220px, 45vw, 320px);
+    display: flex;
+    flex-direction: row;
+    margin: 6px 0;
+    border-radius: 10px;
+}
+
+.messageActive {
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.25);
+}
+
+.my-message {
+    align-self: flex-end;
+    background: linear-gradient(#ffc2c2, #936480);
+    color: #2b0d2b;
+    border-bottom-right-radius: 2px;
+}
+
+.others-message {
+    align-self: flex-start;
+    background: linear-gradient(#311731, #4f2d3b);
+    color: #ffffff;
+    border-bottom-left-radius: 2px;
+}
+
+.others-message .message-text-style {
+    color: #ffffff;
+}
+
+.others-message .message-font-style {
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.message-text-style {
+    margin: 0 0 3px 0;
+}
+
+.message-font-style {
+    font-size: 1wmax;
+    opacity: 0.7;
+}
+
+.messageDetailWrapper {
+    display: flex;
+    flex: 2;
+    flex-direction: column;
+    min-height: 0; 
+    overflow: visible;
 }
 
 
-.light .head_title_style {
-  color: #2b0d2b; 
+.messageBoxFlex {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-image: linear-gradient(#2b0d2b, #6d2a46);
+    padding: clamp(2px, 1.5vw, 25px) clamp(2px, 0.5vw, 10px);
+    display: flex;
+    align-items: center;
+    gap: clamp(2px, 0.5vw, 5px);
+    border-top-left-radius: 18px;
+    border-top-right-radius: 18px;
+    z-index: 1000;
+    height: var(--footer-h);
 }
 
-.buttonIconStyle svg {
-  color: white;
+.profileDetailWrapper {
+    width: 6vmax;
+    height: 5vmax;
+    border-radius: 1000px;
+    object-fit: cover;
+}
+
+.messageBoxWrapper {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+}
+
+.inputContainer {
+    position: relative;
+    width: 100%;
+}
+
+.messageBoxStyle {
+    width: 100%;
+    height: 45px;
+    border-radius: 12px;
+    border: none;
+    padding-left: 14px;
+    padding-right: 50px;
+    font-size: clamp(1.5rem, 8vw, 5rem);
+}
+
+.parentMessageResponceLayout{
+    position: fixed;
+    bottom:var(--footer-h);
+    display: flex;
+    left:12px;
+    right:12px;
+    width: auto;
+    margin-top: 8px;
+    background: rgba(193, 133, 178, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 10px;
+    z-index: 20000;
+    height: clamp(7vh, 65px, 15vh);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.parentMessageTextLayout{
+    flex-direction: column;
+    flex: 3dvh;
+
+}
+.showParentMessage{
+    right: 30px;
+}
+
+.sendbuttonInside {
+    background: transparent;
+    border: none;
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+/* Option Menu */
+.optionButtonWrapper {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+.optionButtonStyle {
+    background: transparent;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.optionButtonStyle:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.optionMenuOverlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    background: rgba(40, 20, 35, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 10px;
+    z-index: 20000;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.others-message.optionMenuOverlay {
+    left: 10px;
+    right: auto;
+}
+
+.optionMenuOverlay.visibleOption {
+    right: 0;
+}
+
+.optionMenuContent {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.optionMenuButton {
+    all: unset;
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.optionMenuButton:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
 }
 
 
-.light .buttonIconStyle svg {
-  color: #2b0d2b;
+.settingButtonWrapper,
+.exitButtonWrapper {
+    display: flex;
 }
 
-.light .head_banner {
-  background: linear-gradient(#f3dbe3, #caa0b1);
+.buttonIconStyle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
 }
 
-.light .categoryDivStyle {
-  background: #ffffff;
+.closeButtonIconStyle {
+    background: transparent;
+    border: none;
+    cursor: pointer;
 }
-
-.light .categoryTitleStyle {
-  color: #5a2b44;
-}
-
-.light .room-box {
-  background: linear-gradient(#f5e1e6, #d6b2bf);
-}
-
-.light .sideMenuWrapper {
-  background: rgba(255, 255, 255, 0.85);
-}
-
-.light .sideMenuButton {
-  background: linear-gradient(#7a3b5a, #9a5f7a);
-}
-
-.light .messageBoxFlex {
-  background: linear-gradient(#f3dbe3, #caa0b1);
-}
-
-.light .messageBoxStyle {
-  background: white;
-  color: #2b0d2b;
-}
-
-.light .others-message {
-  background: linear-gradient(#7a3b5a, #9a5f7a);
-}
-
-.light .my-message {
-  background: white;
-  color: #2b0d2b;
-}
-
-.light .ThemeToggle {
-  border-color: rgba(0,0,0,0.25);
-  color: #2b0d2b;
-}
-
-.light .ThemeToggle:hover {
-  background: rgba(0,0,0,0.08);
+.messageBox-style {
+    color: #fdfdfd;
 }
 
 
-.ThemeToggle {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.35);
-  color: white;
-  padding: 6px 8px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: 0.3s;
+:root {
+    --header-h: clamp(95px, 15vh, 130px);
+    --footer-h: clamp(70px, 10vh, 100px);
 }
 
-.ThemeToggle:hover {
-  background: rgba(255,255,255,0.15);
+.reactionPicker {
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: rgba(40, 20, 35, 0.95);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 8px;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+    z-index: 20001;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
 }
+
+.reactionButton {
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    border-radius: 10px;
+    padding: 6px 10px;
+    font-size: 18px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.reactionButton:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.1);
+}
+
+.messageReactionFloating {
+  position: absolute;
+  bottom: -12px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+
+.reaction-right {
+  right: 12px;
+}
+
+.reaction-left {
+  left: 12px;
+}
+
 </style>

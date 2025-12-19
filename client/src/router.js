@@ -10,6 +10,7 @@ import PasswordPage from './views/PasswordPage.vue'
 import ProfilePage from './views/ProfilePage.vue';
 
 
+
 const routes = [
   { path: '/', name: 'home', component: Home },
   { path: '/login', name: 'login', component: LoginPage },
@@ -18,7 +19,8 @@ const routes = [
   { path: '/globalroom', name: 'globalroom', component: GlobalRoom },
   { path: '/main', name: 'main', component: MainPage },
   { path: '/password', name: 'password', component: PasswordPage },
-  { path: '/profile', name: 'profile', component: ProfilePage }
+  { path: '/profile', name: 'profile', component: ProfilePage },
+  
 ]
 
 const router = createRouter({

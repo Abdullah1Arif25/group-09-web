@@ -55,61 +55,67 @@ export default {
 </script>
 
 <style scoped>
-/* Navbar */
+* {
+  box-sizing: border-box;
+}
+
+/* Navbar styles */
 .soft-navbar {
-  position: absolute;
-  top: 40px;
+  position: fixed;
+  top: 20px; 
   left: 50%;
-  transform: translateX(-50%);
-  width: 80%;
-  height: 60px;
+  transform: translateX(-50%); 
+  width: 92%;
+  max-width: 1100px;
+  min-height: 56px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0 40px;
   border-radius: 40px;
-  background: radial-gradient(
-    circle at 50% 50%, 
-    rgba(255, 194, 194, 0) 0%,
-    rgba(145, 90, 123, 0.42) 100%
-  );
+  background: rgba(145, 90, 123, 0.42);
   backdrop-filter: blur(50px);
-  z-index: 10;
+  z-index: 100;
 }
 
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+
 .nav-item {
-  color: rgba(255,255,255,0.85);
-  font-size: 1.05rem;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
   letter-spacing: 1px;
   cursor: pointer;
-  transition: 0.3s;
+  transition: color 0.3s;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .nav-item:hover {
   color: white;
 }
 
-
 .divider {
-  color: rgba(255,255,255,0.4);
+  color: rgba(255, 255, 255, 0.4);
   margin: 0 10px;
   font-size: 1.1rem;
 }
 
 
-.nav-left, .nav-right {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-}
-
-/* Gradient background */
 .home-wrapper {
-  height: 100vh;
+  min-height: 100vh;
+  padding-top: 120px;
+  padding-bottom: 60px;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
   align-items: center;
+  justify-content: center;
   background: linear-gradient(90deg, #2B0D2B, #6D2A46);
   color: white;
   text-align: center;
@@ -120,39 +126,45 @@ export default {
   display: flex;
   flex-direction: column;
   align-items: center;
+  padding: 0 20px;
 }
 
 
 .logo {
-  width: 350px;
+  width: 100%;
+  max-width: 320px;
+  min-width: 180px;
   margin-bottom: 20px;
 }
 
-/* Titles styling */
 .main-title {
   font-family: "Noto Serif Ethiopic", serif;
-  font-size: 38px;
+  font-size: 26px;
   font-weight: 700;
-  letter-spacing: 5px; 
+  letter-spacing: 2px;
   margin: 0;
+
 }
 
 .subtitle {
-  font-size: 1.15rem;
+  /* Base size for mobile */
+  font-size: 0.95rem;
   font-weight: 300;
   font-style: italic;
-  margin-bottom: 40px;
+  margin: 10px 0 35px;
+
 }
 
-/* Buttons */
 .button-group {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 14px;
+  width: 100%;
+  max-width: 260px;
 }
 
 .btn-custom {
-  width: 200px;
+  width: 100%;
   padding: 12px 0;
   border: none;
   border-radius: 30px;
@@ -162,9 +174,9 @@ export default {
     rgba(147, 100, 128, 1)
   );
   color: white;
-  font-size: 1.1rem;
+  font-size: 1rem;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: background 0.3s ease;
 }
 
 .btn-custom:hover {
@@ -175,13 +187,68 @@ export default {
   );
 }
 
+
 .footer {
-  position: absolute;
-  bottom: 5px;
-  width: 100%;
+  margin-top: auto;
+  padding: 20px 10px 0;
   text-align: center;
-  color: rgba(255,255,255,0.6);
-  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.8rem;
   letter-spacing: 1px;
+}
+
+/* This is for big screens */
+@media screen and (max-width: 768px) {
+  .soft-navbar {
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 26px;
+  }
+  
+  .nav-left,
+  .nav-right {
+    justify-content: center;
+  }
+  
+  .divider {
+    display: none;
+  }
+  
+  .main-title {
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+
+/* This is for small screens */
+@media screen and (max-width: 480px) {
+  .main-title {
+    font-size: 24px;
+  }
+  
+  .subtitle {
+    font-size: 0.9rem;
+  }
+}
+
+/* This is for landscape mode */
+@media screen and (max-height: 500px) and (orientation: landscape) {
+  .home-wrapper {
+    padding-top: 100px;
+  }
+  
+  .logo {
+    width: 160px;
+    margin-bottom: 10px;
+  }
+  
+  .subtitle {
+    margin-bottom: 20px;
+  }
 }
 </style>

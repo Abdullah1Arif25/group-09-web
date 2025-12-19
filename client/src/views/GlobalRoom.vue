@@ -12,7 +12,7 @@
             </div>
 
 
-        <!-- Localroom title and branching room type -->
+        <!-- Globalroom title and branching room type -->
             <div class="HeaderFlexBox">
                 
                 <div class="roomTittle">
@@ -64,22 +64,102 @@
         </div>
 
 
-        <!-- Empty boom -->
-        <div class="room-box" ref="messageBox">
+              <!-- Empty room -->
+        <div class="room-box" ref="messageBox" @click="closeAllOptions">
+
+
+            <!--Message-->
              <div
                 v-for="msg in messages"
-                :key="msg.senderId" 
-                :class="['messageBox-style', String(msg.senderObjectId) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                :key="msg.messageId" 
+                class="messageRow"
+                :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
+                    activeMessageOption === msg.messageId ? 'messageActive' : ''
+                ]">
+                <div class="messageDetailWrapper">
+                <small class="message-font-style">
+                    {{ msg.anonymousName}}
+                </small>
+
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
+
                 <small class="message-font-style">
                     {{ new Date(msg.timestamp).toLocaleDateString() }}
                 </small>
-            
+
+                </div>
+
+                <div
+                  v-if="msg.reactions && msg.reactions.length"
+                  class="messageReactions">
+                  <span
+                    v-for="(r, index) in msg.reactions"
+                    :key="index"
+                    class="reactionEmoji">
+                    {{ r.reaction }}
+                  </span>
+                </div>
+
+                <!--Option Button-->
+
+
+                <div 
+                    class="optionButtonWrapper">
+                    <button class="optionButtonStyle" @click.stop="openOptionMenu(msg.messageId)">•••</button>
+                </div>
+                
+                <!-- Option Menu -->
+                <div 
+                    class="optionMenuOverlay"
+                    v-if="activeMessageOption === msg.messageId"
+                    @click.self="closeOptionMenu()">
+
+                    <div class="optionMenuContent" @click.stop>
+                        <button class="optionMenuButton" @click="replyToMessage(msg)">Reply</button>
+                        <button class="optionMenuButton" @click="toggleReactionMenu(msg)">React</button>
+                        <button class="optionMenuButton" @click="editMessage(msg)">Edit</button>
+                        <button class="optionMenuButton" @click="deleteMessage(msg)">Delete</button>
+                        <button class="optionMenuButton" @click="translateMessage(msg)">Translate</button>
+                    </div>
+
+                    <!-- Reaction Menu -->
+
+                    <div
+                        v-if="showReactionsForMessage === activeMessageOption"
+                        class="reactionPicker">
+                        <button
+                            v-for="reaction in REACTIONS"
+                            :key="reaction.type"
+                            class="reactionButton"
+                            @click="reactToMessage(this.activeMessageOption, reaction.emoji)">
+                            {{ reaction.emoji }}
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
         </div>
+
+        
+        <!--Parent Message in case of responce-->   
+        <div
+         v-if="this.replyBannerActive"
+         class ="parentMessageResponceLayout"
+         :class="[this.replyBannerActive ? showParentMessage: '']">
+
+         <div class="parentMessageTextLayout">
+            <small>Replying to {{this.replyBannerActive }}</small>
+            <p>{{this.parentMessageContent }}</p>
+
+         </div>
+         <button @click.self="DisableReplyBanner()" class="closeButtonIconStyle">x</button>
+
+
+        </div>
+
 
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
@@ -91,12 +171,12 @@
             />
 
             <div class="messageBoxWrapper">
-                <div class="inputContainer">
-                <input class ='messageBoxStyle' type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                <button class="sendbuttonInside" @click="sendMessage">
-                    <FontAwesomeIcon  icon="paper-plane" size="xl" style="color: #2b0d2b;"  />
-                    </button>
-                </div>
+                <form class="inputContainer" @submit.prevent="sendMessage">
+                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
+                        <button class="sendbuttonInside" type="submit">
+                            <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
+                        </button>
+                </form>
             </div>
 
             <div class="settingButtonWrapper">
@@ -113,8 +193,6 @@
             </div>
 
         </div>
-    
-
 
     </div>
 </template>
@@ -126,6 +204,13 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+const REACTIONS = [
+  { type: "like", emoji: "👍" },
+  { type: "love", emoji: "❤️" },
+  { type: "laugh", emoji: "😂" },
+  { type: "sad", emoji: "😢" },
+  { type: "angry", emoji: "😡" }
+];
 
 export default {
     name: 'globalroom',
@@ -143,11 +228,19 @@ export default {
             senderObjectId:getUserObjectId(),
             chatListner: null,
             socket,
+            activeMessageOption: null,
+            parentMessageId: '',
+            showReactionsForMessage: null,
+            REACTIONS,
+            replyBannerActive: null,
+            parentMessageContent: ''
         };
     },
     beforeUnmount(){
         if(this.socket && this.chatListner){
             this.socket.off("chat message", this.chatListner);
+            this.socket.off("chat-frozen");
+            this.socket.off("chat-unfrozen");
         }
     },
     async mounted(){
@@ -206,6 +299,9 @@ export default {
             this.getAllBranhingRooms();
 
         },
+            openOptionMenu(messageId) {
+      this.activeMessageOption = messageId;
+    },
         scrollToBottom(){
             const box = this.$refs.messageBox;
             if(box){
@@ -251,61 +347,93 @@ export default {
                 console.log(err);
             }
         },
-
-        async fetchMessages(){
-            try{
-                const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
-                this.messages = allMessage.data.map((m)=>({
-                    senderObjectId: m.Sender._id || m.Sender || null,
-                    anonymousName: m.anonymousName,
-                    Body: m.Body,timestamp:
-                    m.SendTimestamp,
-
-                }));
-
-            } catch(err){
-                console.log(err);
-
-            }
+         async replyToMessage(msg) {
+            await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+            this.parentMessageId = msg.messageId;
+            this.replyBannerActive = msg.messageId;
+            this.parentMessageContent = msg.Body;
+            this.closeOptionMenu();
         },
 
-         async sendMessage(){
-            try{
-                if(!this.message.trim()) return;
+    async fetchMessages() {
+      const res = await Api.get(
+        `/branchingrooms/${this.branchingRoomId}/messages`
+      );
 
-                if(!this.branchingRoomId){
-                    console.log("No Branching room selected");
-                    return;
-                }
+      this.messages = res.data.map(m => ({
+        senderId: m.Sender._id,
+        messageId: m.messageId,
+        anonymousName: m.anonymousName,
+        Body: m.Body,
+        timestamp: m.SendTimestamp,
+        reactions: m.Reactions || []
+      }));
+    },
 
+    async sendMessage() {
+      if (!this.message.trim() || !this.branchingRoomId) return;
 
-                if (!this.senderObjectId) {
-                    console.error("No sender ID in cache (user not logged in or cache lost)");
-                    this.$router.push('/login');
-                    return;
-                }
-                const messageId = "messageId" + Math.floor(Math.random() *100000);
-                const  currentTime = new  Date().toISOString();
-                const messageData =  {
-                    messageId: messageId,
-                    Body: this.message,
-                    SendTimestamp: currentTime,
-                    Reaction: null,
-                    ResponseIds: [],
-                    Sender: this.senderObjectId
-                    
+      const messageId = this.parentMessageId
+        ? `responceMessageId${Math.floor(Math.random() * 100000)}`
+        : `messageId${Math.floor(Math.random() * 100000)}`;
 
-                };
-                if (this.socket) {
-                  this.socket.emit("chat message", messageData);
-                }
+      const payload = {
+        messageId,
+        Body: this.message,
+        SendTimestamp: new Date().toISOString(),
+        Sender: this.senderObjectId
+      };
 
-                this.message = '';
+      if (this.parentMessageId) {
+        this.socket.emit("respond to a message", {
+          responceMessageData: payload,
+          parentMessageId: this.parentMessageId
+        });
+        this.parentMessageId = '';
+      } else {
+        this.socket.emit("chat message", payload);
+      }
 
-            } catch(err){
-                console.log(err);
-            }
-        },
+      this.message = '';
+      this.replyBannerActive=null;
+      this.parentMessageContent='';
+    },
+
+    toggleReactionMenu(msg) {
+      this.showReactionsForMessage =
+        this.showReactionsForMessage === msg.messageId ? null : msg.messageId;
+    },
+
+    async reactToMessage(messageId, reaction) {
+        const originalMessage = await Api.get( `/branchingrooms/${this.branchingRoomId}/messages/${messageId}`);
+        const reactionList = originalMessage.data.Reactions;
+
+        const existingReaction = reactionList.find(
+          r => r.userId === this.senderObjectId
+        );
+        if (existingReaction){
+            throw new Error("Only one reaction is reaction")
+            return;
+        };
+      const res = await Api.post(
+        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
+        {
+          reaction,
+          userId: this.senderObjectId
+        }
+      );
+
+      const msg = this.messages.find(m => m.messageId === messageId);
+      if (msg) {
+        msg.reactions = res.data.reactions || [];
+      }
+
+      this.closeOptionMenu();
+    },
+
+        goToMain() {
+            this.$router.push("/main");
+        }
 
     }
 }
@@ -581,5 +709,82 @@ export default {
 }
 
 
-</style>
+/* Option Menu */
+.optionButtonWrapper {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+}
 
+.optionButtonStyle {
+    background: transparent;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.optionButtonStyle:hover {
+    background: rgba(255, 255, 255, 0.18);
+}
+
+.optionMenuOverlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    background: rgba(40, 20, 35, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 10px;
+    z-index: 20000;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.others-message.optionMenuOverlay {
+    left: 10px;
+    right: auto;
+}
+
+.optionMenuOverlay.visibleOption {
+    right: 0;
+}
+
+.optionMenuContent {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.optionMenuButton {
+    all: unset;
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.optionMenuButton:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+
+
+
+
+
+</style>
