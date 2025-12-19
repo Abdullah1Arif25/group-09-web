@@ -19,7 +19,7 @@
       <h1 class="main-title">About Hear Me Out</h1>
 
       <p class="about-text">
-        <strong>In progress</strong> Under construction....
+        <strong>Under construction....</strong> 
       </p>
 
     </div>
@@ -32,7 +32,7 @@
 
 <script>
 export default {
-  name: "support"
+  name: "Support"
 };
 </script>
 

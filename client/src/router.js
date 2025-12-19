@@ -30,8 +30,8 @@ const routes = [
   { path: '/admin', name: 'admin', component: AdminPage },
   { path: "/admin/users", name: "admin-users",component: UsersPage },
   { path: "/about", name: "About page",component: AboutPage },
-  { path: "/support", name: "Support page",component: AboutPage },
-  { path: "/contact", name: "Contact page",component: AboutPage }
+  { path: "/support", name: "Support page",component: SupportPage },
+  { path: "/contact", name: "Contact page",component: ContactPage }
 ]
 
 const router = createRouter({
