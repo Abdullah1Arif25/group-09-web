@@ -8,6 +8,8 @@ import GlobalRoom from './views/GlobalRoom.vue'
 import MainPage from './views/MainPage.vue'
 import PasswordPage from './views/PasswordPage.vue'
 import ProfilePage from './views/ProfilePage.vue';
+import AdminPage from './views/AdminPage.vue';
+import UsersPage from "./views/UsersPage.vue";
 
 
 const routes = [
@@ -18,7 +20,10 @@ const routes = [
   { path: '/globalroom', name: 'globalroom', component: GlobalRoom },
   { path: '/main', name: 'main', component: MainPage },
   { path: '/password', name: 'password', component: PasswordPage },
-  { path: '/profile', name: 'profile', component: ProfilePage }
+  { path: '/profile', name: 'profile', component: ProfilePage },
+  { path: '/admin', name: 'admin', component: AdminPage },
+  { path: "/admin/users", name: "admin-users",component: UsersPage },
+  
 ]
 
 const router = createRouter({

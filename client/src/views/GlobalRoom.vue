@@ -99,7 +99,7 @@
                 </div>
             </div>
 
-            <div class="settingButtonWrapper">
+            <div class="settingButtonWrapper" @click="showSettings = true">
             <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="gear" size="2xl" style="color: aliceblue;" />
                 </button>
@@ -113,10 +113,19 @@
             </div>
 
         </div>
-    
-
+        <div v-if="isFrozen" class="frozen-overlay">
+            <div class="frozen-card">
+                <p class="frozen-text">
+                    Chat is paused. This room is currently unavailable.
+                </p>
+                <button class="frozen-exit-button" @click="goToMain">
+                    Exit
+                 </button>
+            </div>
+        </div>
 
     </div>
+    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
 </template>
 
 
@@ -126,11 +135,13 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import  SettingsPopup  from './SettingsPopup.vue';
 
 export default {
     name: 'globalroom',
     components: {
         FontAwesomeIcon,
+        SettingsPopup
     },
 
     data() {
@@ -143,11 +154,15 @@ export default {
             senderObjectId:getUserObjectId(),
             chatListner: null,
             socket,
+            isFrozen: false,
+            showSettings: false
         };
     },
     beforeUnmount(){
         if(this.socket && this.chatListner){
             this.socket.off("chat message", this.chatListner);
+            this.socket.off("chat-frozen");
+            this.socket.off("chat-unfrozen");
         }
     },
     async mounted(){
@@ -169,6 +184,12 @@ export default {
             this.scrollToBottom();
         });
         this.socket.on("chat message",this.chatListner);
+
+        this.socket.on("chat-frozen", () => {
+            this.isFrozen = true;});
+            
+        this.socket.on("chat-unfrozen", () => {
+            this.isFrozen = false;});
 
          this.$nextTick(() => {
             this.scrollToBottom();
@@ -271,6 +292,8 @@ export default {
 
          async sendMessage(){
             try{
+
+                if (this.isFrozen) return;
                 if(!this.message.trim()) return;
 
                 if(!this.branchingRoomId){
@@ -306,6 +329,10 @@ export default {
                 console.log(err);
             }
         },
+
+        goToMain() {
+            this.$router.push("/main");
+        }
 
     }
 }
@@ -580,6 +607,38 @@ export default {
   opacity: 0.7;
 }
 
+.frozen-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(117, 92, 117, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
+.frozen-card {
+  background: linear-gradient(#4a1f3c, #6d2a46);
+  padding: 30px 40px;
+  border-radius: 28px;
+  text-align: center;
+  max-width: 420px;
+  width: 85%;
+}
+
+.frozen-text {
+  color: #f6e6e6;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.frozen-exit-button {
+  background: linear-gradient(#ffc2c2, #936480);
+  border: none;
+  border-radius: 20px;
+  padding: 12px 36px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
 </style>
-
