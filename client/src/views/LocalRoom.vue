@@ -237,8 +237,6 @@ export default {
             senderObjectId:getUserObjectId(),
             chatListner: null,
             socket,
-            isFrozen: false,
-            showSettings: false,
             activeMessageOption: null,
             parentMessageId: '',
             showReactionsForMessage: null,
@@ -278,12 +276,6 @@ export default {
         };
         this.socket.on("chat message",this.chatListner);
         this.socket.on("respond to a message", this.chatListner);
-
-        this.socket.on("chat-frozen", () => {
-            this.isFrozen = true;});
-            
-        this.socket.on("chat-unfrozen", () => {
-            this.isFrozen = false;});
 
         if (this.branchingRoomId && this.senderObjectId) {
           this.socket.emit("join room", {
@@ -897,37 +889,9 @@ export default {
   left: 12px;
 }
 
-.frozen-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(117, 92, 117, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+</style>
 
-.frozen-card {
-  background: linear-gradient(#4a1f3c, #6d2a46);
-  padding: 30px 40px;
-  border-radius: 28px;
-  text-align: center;
-  max-width: 420px;
-  width: 85%;
-}
 
-.frozen-text {
-  color: #f6e6e6;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 24px;
-}
-
-.frozen-exit-button {
-  background: linear-gradient(#ffc2c2, #936480);
-  border: none;
-  border-radius: 20px;
-  padding: 12px 36px;
-  font-size: 16px;
   font-weight: 700;
   cursor: pointer;
 }
