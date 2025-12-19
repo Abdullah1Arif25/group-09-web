@@ -21,11 +21,7 @@ module.exports = function (io) {
         // user joins room
         socket.on("join room", async (data) => {
             const { userId, roomId } = data;
-            
-            if (!allowed) {
-                socket.emit("chat-frozen");
-                return;
-            }
+        
 
             console.log("➡ join room:", { socketId: socket.id, userId, roomId });
 
@@ -54,10 +50,7 @@ module.exports = function (io) {
 
         // user sends message
         socket.on("chat message", async (messageData) => {
-            if (!allowed) {
-                socket.emit("chat-frozen");
-                return;
-            }
+
 
             if (!socket.roomId) 
                 return;
