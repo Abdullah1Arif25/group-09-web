@@ -1,7 +1,9 @@
 const { generateAnonymousName, deleteAnonymousName } = require("../services/anonymousNames.services");
 require("dotenv").config();
 const {createMessageInABranchingRoom} = require("../services/createMessageInBranchingRoom.services");
+const {responceToMessageInABranchingRoom} = require("../services/responceToMessageInABranchingRoom.services");
 const { checkChat } = require("../services/chatAccess.services");
+
 
 
 
@@ -72,6 +74,31 @@ module.exports = function (io) {
                     senderAnonymousName: socket.anonymousName,
                     messageId: messageBody.messageId,
                     senderObjectId: messageBody.Sender,
+                    Body: messageBody.Body,
+                    timestamp:messageBody.SendTimestamp
+                });
+
+            } catch (err) {
+                console.log("Send message error:", err);
+            }
+        });
+
+        // user sends message
+        socket.on("respond to a message", async (payload) => {
+            if (!socket.roomId) 
+                return;
+
+            try {
+                const{responceMessageData, parentMessageId} = payload;
+                const messageBody = await responceToMessageInABranchingRoom(socket.roomId, socket.anonymousName, responceMessageData, parentMessageId);
+              
+                console.log("Saved message:", messageBody);
+
+                io.to(socket.currentRoom).emit("respond to a message", {
+                    senderAnonymousName: socket.anonymousName,
+                    parentMessageId,
+                    messageId: messageBody.messageId,
+                    senderObjectId: messageBody.Sender._id,
                     Body: messageBody.Body,
                     timestamp:messageBody.SendTimestamp
                 });
