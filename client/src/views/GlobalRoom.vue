@@ -181,7 +181,7 @@
             </div>
 
             <div class="ThemeToggle">
-              <button class="ThemeToggle" @click="toggleTheme">
+              <button class="ThemeToggle" @click="toggleTheme"@click="showSettings = true">
                 {{ isLight ? "🌙 Dark" : "☀ Light" }}
               </button>
             </div>
@@ -196,6 +196,7 @@
         </div>
 
     </div>
+    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
 </template>
 
 
@@ -205,6 +206,8 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import SettingsPopup from './SettingsPopup.vue';
+
 const REACTIONS = [
   { type: "like", emoji: "👍" },
   { type: "love", emoji: "❤️" },
@@ -217,6 +220,7 @@ export default {
     name: 'globalroom',
     components: {
         FontAwesomeIcon,
+        SettingsPopup
     },
 
     data() {
@@ -235,6 +239,7 @@ export default {
             REACTIONS,
             replyBannerActive: null,
             parentMessageContent: '',
+            showSettings: false,
             isLight: false,
 
         };

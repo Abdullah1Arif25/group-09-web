@@ -172,6 +172,11 @@
               <button class="ThemeToggle" @click="toggleTheme">
                 {{ isLight ? "🌙 Dark" : "☀ Light" }}
               </button>
+              
+            <div class="settingButtonWrapper" >
+            <button class="buttonIconStyle" @click="showSettings = true">
+               <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
+                </button>
             </div>
 
             <!-- Exit button -->
@@ -183,6 +188,7 @@
 
         </div>
     </div>
+    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
 
 </template>
 
@@ -193,6 +199,7 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import  SettingsPopup  from './SettingsPopup.vue';
 
 const REACTIONS = [
   { type: "like", emoji: "👍" },
@@ -203,8 +210,11 @@ const REACTIONS = [
 ];
 
 export default {
-  name: 'localroom',
-  components: { FontAwesomeIcon },
+    name: 'localroom',
+    components: {
+        FontAwesomeIcon,
+        SettingsPopup
+    },
 
   data() {
     return {
@@ -223,7 +233,7 @@ export default {
       replyBannerActive: null,
       parentMessageContent: '',
       isLight: false,
-
+      showSettings: false
     };
   },
 
