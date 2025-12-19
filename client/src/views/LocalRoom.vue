@@ -226,7 +226,7 @@ export default {
       parentMessageId: '',
       showReactionsForMessage: null,
       REACTIONS,
-      replyBannerActive: null,
+      replyBannerActive: '',
       parentMessageContent: '',
       isLight: false,
       showSettings: false,
@@ -238,6 +238,10 @@ export default {
     if (this.socket && this.chatListner) {
       this.socket.off("chat message", this.chatListner);
       this.socket.off("respond to a message", this.chatListner);
+      this.socket.off("respond to a message", (msg)=>{
+
+      });
+
     }
   },
 
@@ -267,6 +271,10 @@ export default {
 
     this.socket.on("chat message", this.chatListner);
     this.socket.on("respond to a message", this.chatListner);
+    this.socket.on("react to message", (msg)=>{
+        const target = this.messages.find(m=> m.messageId === msg.messageId);
+        if(target) target.reactions = msg.Reactions || [];
+    });
 
     if (this.branchingRoomId && this.senderObjectId) {
       this.socket.emit("join room", {
@@ -297,7 +305,7 @@ export default {
 
   methods: {
     DisableReplyBanner(){
-        this.replyBannerActive = false;
+        this.replyBannerActive ='';
     },
     closeAllOptions(){
         this.closeOptionMenu();
@@ -349,7 +357,7 @@ export default {
         params: {
           roomTopic: this.branchingRoomTopic || "General",
           branchingRoomType: "LocalRoom",
-          language: user.language
+          //language: user.language
         }
       });
 
@@ -401,8 +409,8 @@ export default {
       }
 
       this.message = '';
-      this.replyBannerActive=null;
-      parentMessageContent=null;
+      this.replyBannerActive='';
+      parentMessageContent="";
     },
 
     toggleReactionMenu(msg) {
@@ -421,18 +429,21 @@ export default {
             throw new Error("Only one reaction is reaction")
             return;
         };
-      const res = await Api.post(
-        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
-        {
-          reaction,
-          userId: this.senderObjectId
-        }
-      );
 
-      const msg = this.messages.find(m => m.messageId === messageId);
-      if (msg) {
-        msg.reactions = res.data.reactions || [];
-      }
+        const payload = {
+            branchingRoomId: this.branchingRoomId, 
+            messageId: messageId, 
+            userId: this.senderObjectId,
+            reaction: reaction
+            
+        }
+
+        this.socket.emit("react to message", payload);
+
+      // const msg = this.messages.find(m => m.messageId === messageId);
+      // if (msg) {
+      //   msg.reactions = res.data.reactions || [];
+      // }
 
       this.closeOptionMenu();
     }, 
