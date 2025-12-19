@@ -38,7 +38,7 @@
             <input v-model="password" type="password" required />
           </div>
           
-          <router-link class="forgot-password-link" to="/password">Forgot Password!</router-link>
+          <router-link class="forgot-password-link" to="/">Forgot Password!</router-link>
   
           <button type="submit" class="login-btn">Login</button>
         </form>
@@ -89,8 +89,7 @@
         const response = await Api.post("/users/login", payload);
 
         setUserObjectId(response.data.ObjectId);
-        // localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data));
+        localStorage.setItem("token", response.data.token);
 
         this.$router.push("/main");
       } catch (err) {
@@ -191,7 +190,7 @@
 .input-group input {
   width: 100%;
   height: 50px;
-  border-radius: 100px;
+  border-radius: 100px !important;
   padding: 0 20px;
   border: none;
   outline: none;

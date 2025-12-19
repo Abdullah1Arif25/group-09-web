@@ -318,6 +318,18 @@ export default {
         closeMenu() {
             this.isMenuOpen = false;
         },
+
+        closeOptionMenu() {
+          this.activeMessageOption = null;
+          this.showReactionsForMessage = null;
+        },
+
+
+        closeAllOptions(){
+        this.closeOptionMenu();
+        this.closeMenu();
+      },
+
         async getAllBranhingRooms(){
             try{
 
