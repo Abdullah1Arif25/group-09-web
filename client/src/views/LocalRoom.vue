@@ -116,8 +116,6 @@
                     </div>
 
                     <!-- Reaction Menu -->
-
-
                     <div
                         v-if="showReactionsForMessage === activeMessageOption"
                         class="reactionPicker">
@@ -184,9 +182,7 @@
             </div>
 
         </div>
-    
-        </div>
-
+    </div>
 
 </template>
 
@@ -207,90 +203,90 @@ const REACTIONS = [
 ];
 
 export default {
-    name: 'localroom',
-    components: {
-        FontAwesomeIcon,
+  name: 'localroom',
+  components: { FontAwesomeIcon },
+
+  data() {
+    return {
+      message: '',
+      isMenuOpen: false,
+      branchingRoomTopic: 'General',
+      branchingRoomId: '',
+      messages: [],
+      senderObjectId: getUserObjectId(),
+      socket,
+      chatListner: null,
+      activeMessageOption: null,
+      parentMessageId: '',
+      showReactionsForMessage: null,
+      REACTIONS,
+      replyBannerActive: null,
+      parentMessageContent: ''
+    };
+  },
+
+  beforeUnmount() {
+    if (this.socket && this.chatListner) {
+      this.socket.off("chat message", this.chatListner);
+      this.socket.off("respond to a message", this.chatListner);
+    }
+  },
+
+  async mounted() {
+    await this.getAllBranhingRooms();
+    this.scrollToBottom();
+
+    if (!this.socket.connected) {
+      this.socket.connect();
+    }
+
+    this.chatListner = (msg) => {
+      const exists = this.messages.some(m => m.messageId === msg.messageId);
+      if (exists) return;
+
+      this.messages.push({
+        senderId: msg.senderObjectId,
+        messageId: msg.messageId,
+        anonymousName: msg.senderAnonymousName,
+        Body: msg.Body,
+        timestamp: msg.timestamp,
+        reactions: msg.Reactions || []
+      });
+
+      this.$nextTick(this.scrollToBottom);
+    };
+
+    this.socket.on("chat message", this.chatListner);
+    this.socket.on("respond to a message", this.chatListner);
+
+    if (this.branchingRoomId && this.senderObjectId) {
+      this.socket.emit("join room", {
+        userId: this.senderObjectId,
+        roomId: this.branchingRoomId
+      });
+    }
+  },
+
+  watch: {
+    messages() {
+      this.$nextTick(this.scrollToBottom);
     },
 
-    data() {
-        return {
-            message : '',
-            isMenuOpen: false ,
-            branchingRoomTopic: '',
-            branchingRoomId : '',
-            messages:[],
-            senderObjectId:getUserObjectId(),
-            chatListner: null,
-            socket,
-            activeMessageOption: null,
-            parentMessageId: '',
-            showReactionsForMessage: null,
-            REACTIONS,
-            replyBannerActive: null,
-            parentMessageContent: ''
-        };
-    },
-    beforeUnmount(){
-        if(this.socket && this.chatListner){
-            this.socket.off("chat message", this.chatListner);
-            this.socket.off("respond to a message", this.chatListner);
-        }
-        
-    },
-    async mounted(){
-        await this.getAllBranhingRooms();
-        await this.scrollToBottom();
+    branchingRoomId(newId) {
+      if (!newId || !this.senderObjectId) return;
 
-        if(!this.socket.connected){
-            this.socket.connect();
-        }
+      this.socket.emit("join room", {
+        userId: this.senderObjectId,
+        roomId: newId
+      });
 
-        this.chatListner = (msg)=>{
-            this.messages.push({
-                senderId: msg.senderObjectId,
-                anonymousName: msg.senderAnonymousName,
-                Body: msg.Body,
-                timestamp:msg.timestamp
+      this.fetchMessages().then(() => {
+        this.$nextTick(this.scrollToBottom);
+      });
+    }
+  },
 
-            });
-             this.$nextTick(() => {
-            this.scrollToBottom();
-        });
-        };
-        this.socket.on("chat message",this.chatListner);
-        this.socket.on("respond to a message", this.chatListner);
-
-        if (this.branchingRoomId && this.senderObjectId) {
-          this.socket.emit("join room", {
-            userId: this.senderObjectId,
-            roomId: this.branchingRoomId,
-          });
-        }
-
-        
-
-    },
-    watch: {
-         messages() {
-            this.$nextTick(() => {
-                this.scrollToBottom();
-            });
-        },
-
-        branchingRoomId(newId, oldId) {
-        if (!newId || !this.socket || !this.senderObjectId) return;
-
-        this.socket.emit("join room", {
-          userId: this.senderObjectId,
-          roomId: newId,
-        });
-
-        this.fetchMessages().then(() => {
-          this.$nextTick(() => this.scrollToBottom());
-        });
-      },
-    },
-    methods: {
+  methods: {
     DisableReplyBanner(){
         this.replyBannerActive = false;
     },
@@ -312,10 +308,6 @@ export default {
         box.lastElementChild.scrollIntoView({ behavior: 'smooth' });
       }
     },
-
-    goToMain() {
-            this.$router.push("/main");
-        },
 
     openOptionMenu(messageId) {
       this.activeMessageOption = messageId;

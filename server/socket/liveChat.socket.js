@@ -1,9 +1,6 @@
 const { generateAnonymousName, deleteAnonymousName } = require("../services/anonymousNames.services");
 require("dotenv").config();
 const {createMessageInABranchingRoom} = require("../services/createMessageInBranchingRoom.services");
-const {responceToMessageInABranchingRoom} = require("../services/responceToMessageInABranchingRoom.services");
-
-
 
 
 module.exports = function (io) {
@@ -20,9 +17,9 @@ module.exports = function (io) {
 
         // user joins room
         socket.on("join room", async (data) => {
+            
+            
             const { userId, roomId } = data;
-        
-
             console.log("➡ join room:", { socketId: socket.id, userId, roomId });
 
             try {
@@ -50,8 +47,6 @@ module.exports = function (io) {
 
         // user sends message
         socket.on("chat message", async (messageData) => {
-
-
             if (!socket.roomId) 
                 return;
 
@@ -64,31 +59,6 @@ module.exports = function (io) {
                     senderAnonymousName: socket.anonymousName,
                     messageId: messageBody.messageId,
                     senderObjectId: messageBody.Sender,
-                    Body: messageBody.Body,
-                    timestamp:messageBody.SendTimestamp
-                });
-
-            } catch (err) {
-                console.log("Send message error:", err);
-            }
-        });
-
-        // user sends message
-        socket.on("respond to a message", async (payload) => {
-            if (!socket.roomId) 
-                return;
-
-            try {
-                const{responceMessageData, parentMessageId} = payload;
-                const messageBody = await responceToMessageInABranchingRoom(socket.roomId, socket.anonymousName, responceMessageData, parentMessageId);
-              
-                console.log("Saved message:", messageBody);
-
-                io.to(socket.currentRoom).emit("respond to a message", {
-                    senderAnonymousName: socket.anonymousName,
-                    parentMessageId,
-                    messageId: messageBody.messageId,
-                    senderObjectId: messageBody.Sender._id,
                     Body: messageBody.Body,
                     timestamp:messageBody.SendTimestamp
                 });
