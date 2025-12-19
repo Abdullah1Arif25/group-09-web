@@ -1,5 +1,6 @@
 <template>
-    <div class="backgroundStyle">
+    <div class="backgroundStyle" :class="{ light: isLight }">
+
 
         <!-- Head banner -->
         <div class="head_banner">
@@ -179,16 +180,16 @@
                 </form>
             </div>
 
-            <div class="settingButtonWrapper">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="gear" size="2xl" style="color: aliceblue;" />
-                </button>
+            <div class="ThemeToggle">
+              <button class="ThemeToggle" @click="toggleTheme">
+                {{ isLight ? "🌙 Dark" : "☀ Light" }}
+              </button>
             </div>
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;" />
+            <button class="buttonIconStyle">
+               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;"/>
                 </button>
             </div>
 
@@ -233,7 +234,9 @@ export default {
             showReactionsForMessage: null,
             REACTIONS,
             replyBannerActive: null,
-            parentMessageContent: ''
+            parentMessageContent: '',
+            isLight: false,
+
         };
     },
     beforeUnmount(){
@@ -433,7 +436,12 @@ export default {
 
         goToMain() {
             this.$router.push("/main");
-        }
+        },
+
+        toggleTheme() {
+            this.isLight = !this.isLight;
+        },
+
 
     }
 }
@@ -783,8 +791,93 @@ export default {
     transform: translateY(-1px);
 }
 
+.light.backgroundStyle {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.head_title_style {
+  color: white;
+}
+
+.light .head_title_style {
+  color: #2b0d2b;
+}
+
+.buttonIconStyle svg {
+  color: white;
+}
+
+.light .buttonIconStyle svg {
+  color: #2b0d2b;
+}
+
+.light .head_banner {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .categoryDivStyle {
+  background: #ffffff;
+}
+
+.light .categoryTitleStyle {
+  color: #5a2b44;
+}
 
 
+.light .room-box {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.light .sideMenuWrapper {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.light .sideMenuButton {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .messageBoxFlex {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .messageBoxStyle {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .others-message {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .my-message {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle {
+  border-color: rgba(0,0,0,0.25);
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+
+.ThemeToggle {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.ThemeToggle:hover {
+  background: rgba(255,255,255,0.15);
+}
 
 
 </style>
