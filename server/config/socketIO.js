@@ -1,10 +1,9 @@
 const { Server } = require("socket.io");
 
-module.exports = function setupSocket(httpServer,app) {
+module.exports = function setupSocket(httpServer) {
   const io = new Server(httpServer, {
     cors: {
-      origin: "*",
-      methods: ["GET", "POST"]
+      origin: "*"
     }
   });
 
@@ -14,6 +13,4 @@ module.exports = function setupSocket(httpServer,app) {
   require("../socket/liveChat.socket")(io);
 
   console.log("Socket running.");
-
-  return io;
 };
