@@ -16,6 +16,9 @@ branchingRoomRoute.post("/:branchingRoomId/messages/:messageId", branchingRoomCo
 // POST: Checks if user and branching room exists before joining
 branchingRoomRoute.post("/join", branchingRoomController.joinRoom);
 
+// POST: Create a reaction for a message
+branchingRoomRoute.post("/:branchingRoomId/messages/:messageId/reactions", branchingRoomController.reactToMessageInABranchingRoom);
+
 // GET: Read All Branching Rooms
 branchingRoomRoute.get("/", branchingRoomController.getAllBranchingRooms);
 
@@ -33,7 +36,6 @@ branchingRoomRoute.patch("/:branchingRoomId", branchingRoomController.updateBran
 
 // PATCH: Edit a specific message, reaction, response
 branchingRoomRoute.patch("/:branchingRoomId/messages/:messageId", branchingRoomController.updateMessageInBranchingRoom);
-
 
 // DELETE:  One Branching Room
 branchingRoomRoute.delete("/:branchingRoomId", branchingRoomController.deleteBranchingRoom);
