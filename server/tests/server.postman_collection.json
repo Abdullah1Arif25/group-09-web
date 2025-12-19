@@ -1,10 +1,10 @@
 {
 	"info": {
-		"_postman_id": "29b0de56-010e-4e8f-ba40-f580e3ec2d87",
+		"_postman_id": "3da6f0c1-d220-46c5-8c13-7957a7b6a31b",
 		"name": "HMO Backend MS1 Copy 3",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "50012449",
-		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/50012449-29b0de56-010e-4e8f-ba40-f580e3ec2d87?action=share&source=collection_link&creator=50012449"
+		"_exporter_id": "50012690",
+		"_collection_link": "https://gusattai-9661558.postman.co/workspace/Webb-group-9's-Workspace~3a853755-5fbd-4739-8469-a1a4650c5a2c/collection/49982966-3da6f0c1-d220-46c5-8c13-7957a7b6a31b?action=share&source=collection_link&creator=50012690"
 	},
 	"item": [
 		{
@@ -1254,31 +1254,23 @@
 									"script": {
 										"exec": [
 											"pm.test(\"Status code is 200\", function () {\r",
-											"    let listBody = pm.response.json();\r",
-											"    pm.expect(listBody).be.an('array');\r",
-											"    let listOfRoomIds = {};\r",
-											"    let listOfObjectIdS = {}\r",
-											"    listBody.forEach(item=>{\r",
-											"        pm.expect(item).to.have.property('roomId');\r",
-											"        listOfRoomIds = listBody.map(item => item.roomId);\r",
-											"        pm.expect(item).to.have.property('_id');\r",
-											"        listOfObjectIdS = listBody.map(item => item._id);\r",
+											"  const listBody = pm.response.json();\r",
 											"\r",
+											"  pm.expect(listBody).to.be.an(\"array\");\r",
+											"  pm.expect(listBody.length).to.be.above(0);\r",
 											"\r",
-											"       \r",
-											"    });\r",
-											"    const uniqueRoomIds = [...new Set(listOfRoomIds)];\r",
-											"    const randomRoomId = uniqueRoomIds[Math.floor(Math.random() * uniqueRoomIds.length)];\r",
+											"  listBody.forEach(item => {\r",
+											"    pm.expect(item).to.have.property(\"_id\");\r",
+											"  });\r",
 											"\r",
-											"    pm.collectionVariables.set(\"LocalRoomId\", randomRoomId);\r",
+											"  const objectIds = listBody.map(item => item._id);\r",
+											"  const randomObjectId = objectIds[Math.floor(Math.random() * objectIds.length)];\r",
 											"\r",
+											"  pm.collectionVariables.set(\"LocalRoomId\", randomObjectId);\r",
 											"\r",
-											"    const uniqueObjectIds = [...new Set(listOfObjectIdS)];\r",
-											"    const randomObjectId = uniqueObjectIds[Math.floor(Math.random() * uniqueObjectIds.length)];\r",
-											"\r",
-											"    pm.collectionVariables.set(\"LocalRoomObjectId\", randomObjectId);\r",
-											"    pm.response.to.have.status(200);\r",
-											"})"
+											"  pm.response.to.have.status(200);\r",
+											"});\r",
+											""
 										],
 										"type": "text/javascript",
 										"packages": {},
@@ -1383,82 +1375,6 @@
 							"response": []
 						},
 						{
-							"name": "Invalid Country",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 400\", function () {\r",
-											"    pm.response.to.have.status(400);\r",
-											"})\r",
-											"\r",
-											"pm.test(\"Response body contains error message\", function () { \r",
-											"    pm.expect(pm.response.json().message).to.include(\"Country is required.\")\r",
-											" })"
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"pm.collectionVariables.set(\"LoclRoomId\", pm.collectionVariables.get(\"LocalRoomId\")); ",
-											"",
-											"pm.test(\"PATCH body includes an update field\", function () {",
-											"    const body = pm.request.body.raw;",
-											"",
-											"    pm.expect(body.length).to.be.above(2);",
-											"",
-											"    const hasField =",
-											"        body.includes(\"roomId\") ||",
-											"        body.includes(\"country\") ||",
-											"        body.includes(\"topicDropdown\") ||",
-											"        body.includes(\"liveChat\");",
-											"",
-											"    pm.expect(hasField).to.eql(true);",
-											"});",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								}
-							],
-							"request": {
-								"method": "PUT",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"roomId\": \"123\",\r\n  \"country\":\"\",\r\n  \"liveChat\": false\r\n}\r\n",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/v1/localrooms/{{LocalRoomId}}",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"v1",
-										"localrooms",
-										"{{LocalRoomId}}"
-									]
-								}
-							},
-							"response": []
-						},
-						{
 							"name": "Invalid Live Chat",
 							"event": [
 								{
@@ -1470,7 +1386,7 @@
 											"})\r",
 											"\r",
 											"pm.test(\"Response body contains error message\", function () { \r",
-											"    pm.expect(pm.response.json().message).to.include(\"live Chat is required.\")\r",
+											"    pm.expect(pm.response.json().message).to.include(\"liveChat must be true or false\")\r",
 											" })"
 										],
 										"type": "text/javascript",
@@ -2044,195 +1960,6 @@
 					]
 				},
 				{
-					"name": "Create a Message in a Branching Room",
-					"item": [
-						{
-							"name": "Create A Message Branching room",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 201\", function () {\r",
-											"    pm.response.to.have.status(201);\r",
-											"});\r",
-											"\r",
-											"// Header Assertion Example\r",
-											"pm.test(\"Content-Type header is present and has value 'application/json'\", \r",
-											"    function () {\r",
-											"    pm.response.to.have.header(\"Content-Type\");\r",
-											"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
-											"});\r",
-											"\r",
-											"let jsonBody = pm.response.json();\r",
-											"pm.expect(jsonBody).to.have.property(\"Object\");\r",
-											"pm.expect(jsonBody.Object).to.have.property(\"messageId\");\r",
-											"pm.collectionVariables.set(\"messageId\", jsonBody.Object.messageId);\r",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"\r",
-											"//Generate random messageId on every call.\r",
-											"const randomMessageId = \"messageId\" + Math.floor(Math.random() * 1000) + 1;\r",
-											"pm.collectionVariables.set(\"randomMessageId\", randomMessageId);\r",
-											"\r",
-											"//Check if the all the required fields are available in the request body.\r",
-											"pm.test\r",
-											"(\"Check if the all the required fields are available in the request body\", ()=>{\r",
-											"    pm.expect(pm.request.body.raw).to.include(\"messageId\");\r",
-											"    pm.expect(pm.request.body.raw).to.include(\"Body\");\r",
-											"    pm.expect(pm.request.body.raw).to.include(\"Sender\");\r",
-											"})\r",
-											"\r",
-											"\r",
-											"// Check if the reaction is a valid string\r",
-											"pm.test(\"The Reaction should be valid \", ()=>{\r",
-											"    const validReactions = ['👍', '❤️', '😂', '😢', '😡', null];\r",
-											"    const rawJson = pm.request.body.raw;\r",
-											"    const jsonBody = JSON.parse(rawJson);\r",
-											"    pm.expect(jsonBody.Reaction).to.be.oneOf(validReactions);\r",
-											"})"
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"messageId\": \"{{randomMessageId}}\",\r\n  \"Body\": \"I am also a part of the thread\",\r\n  \"SendTimestamp\": \"2025-11-19T01:47:00.000Z\",\r\n  \"Reaction\": \"😂\",\r\n  \"ResponseIds\": [],\r\n  \"Sender\": \"{{userObjectId}}\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"v1",
-										"branchingrooms",
-										"{{randomBranchingRoomId}}",
-										"messages",
-										""
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
-					"name": "Create A Response Message for a Message in a branching room",
-					"item": [
-						{
-							"name": "Create A Message Branching room",
-							"event": [
-								{
-									"listen": "test",
-									"script": {
-										"exec": [
-											"pm.test(\"Status code is 201\", function () {\r",
-											"    pm.response.to.have.status(201);\r",
-											"});\r",
-											"\r",
-											"// Header Assertion Example\r",
-											"pm.test(\"Content-Type header is present and has value 'application/json'\", \r",
-											"    function () {\r",
-											"    pm.response.to.have.header(\"Content-Type\");\r",
-											"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
-											"});\r",
-											""
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								},
-								{
-									"listen": "prerequest",
-									"script": {
-										"exec": [
-											"\r",
-											"//Generate random messageId on every call.\r",
-											"const randomMessageId = \"messageId\" + Math.floor(Math.random() * 1000) + 1;\r",
-											"pm.collectionVariables.set(\"randomMessageId\", randomMessageId);\r",
-											"\r",
-											"//Check if the all the required fields are available in the request body.\r",
-											"pm.test\r",
-											"(\"Check if the all the required fields are available in the request body\", ()=>{\r",
-											"    pm.expect(pm.request.body.raw).to.include(\"messageId\");\r",
-											"    pm.expect(pm.request.body.raw).to.include(\"Body\");\r",
-											"    pm.expect(pm.request.body.raw).to.include(\"Sender\");\r",
-											"})\r",
-											"\r",
-											"\r",
-											"// Check if the reaction is a valid string\r",
-											"pm.test(\"The Reaction should be valid \", ()=>{\r",
-											"    const validReactions = ['👍', '❤️', '😂', '😢', '😡', null];\r",
-											"    const rawJson = pm.request.body.raw;\r",
-											"    const jsonBody = JSON.parse(rawJson);\r",
-											"    pm.expect(jsonBody.Reaction).to.be.oneOf(validReactions);\r",
-											"})"
-										],
-										"type": "text/javascript",
-										"packages": {},
-										"requests": {}
-									}
-								}
-							],
-							"request": {
-								"method": "POST",
-								"header": [],
-								"body": {
-									"mode": "raw",
-									"raw": "{\r\n  \"messageId\": \"{{randomMessageId}}\",\r\n  \"Body\": \"I am also a part of the thread\",\r\n  \"SendTimestamp\": \"2025-11-19T01:47:00.000Z\",\r\n  \"Reaction\": \"😂\",\r\n  \"ResponseIds\": [],\r\n  \"Sender\": \"{{userObjectId}}\"\r\n}",
-									"options": {
-										"raw": {
-											"language": "json"
-										}
-									}
-								},
-								"url": {
-									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/{{messageId}}",
-									"protocol": "http",
-									"host": [
-										"localhost"
-									],
-									"port": "3000",
-									"path": [
-										"api",
-										"v1",
-										"branchingrooms",
-										"{{randomBranchingRoomId}}",
-										"messages",
-										"{{messageId}}"
-									]
-								}
-							},
-							"response": []
-						}
-					]
-				},
-				{
 					"name": "Get Branching Rooms",
 					"item": [
 						{
@@ -2463,6 +2190,296 @@
 					]
 				},
 				{
+					"name": "Create a Message in a Branching Room",
+					"item": [
+						{
+							"name": "Create A Message Branching room",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {\r",
+											"    pm.response.to.have.status(201);\r",
+											"});\r",
+											"\r",
+											"// Header Assertion Example\r",
+											"pm.test(\"Content-Type header is present and has value 'application/json'\", \r",
+											"    function () {\r",
+											"    pm.response.to.have.header(\"Content-Type\");\r",
+											"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+											"});\r",
+											"\r",
+											"let jsonBody = pm.response.json();\r",
+											"pm.expect(jsonBody).to.have.property(\"Object\");\r",
+											"pm.expect(jsonBody.Object).to.have.property(\"messageId\");\r",
+											"pm.collectionVariables.set(\"messageId\", jsonBody.Object.messageId);\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"\r",
+											"//Generate random messageId on every call.\r",
+											"const randomMessageId = \"messageId\" + Math.floor(Math.random() * 1000) + 1;\r",
+											"pm.collectionVariables.set(\"randomMessageId\", randomMessageId);\r",
+											"\r",
+											"pm.collectionVariables.get(\"userObjectId\")\r",
+											"//Check if the all the required fields are available in the request body.\r",
+											"pm.test\r",
+											"(\"Check if the all the required fields are available in the request body\", ()=>{\r",
+											"    pm.expect(pm.request.body.raw).to.include(\"messageId\");\r",
+											"    pm.expect(pm.request.body.raw).to.include(\"Body\");\r",
+											"    pm.expect(pm.request.body.raw).to.include(\"Sender\");\r",
+											"})\r",
+											"\r",
+											"\r",
+											"// Check if the reaction is a valid string\r",
+											"pm.test(\"The Reaction should be valid \", ()=>{\r",
+											"    const validReactions = ['👍', '❤️', '😂', '😢', '😡', null];\r",
+											"    const rawJson = pm.request.body.raw;\r",
+											"    const jsonBody = JSON.parse(rawJson);\r",
+											"    pm.expect(jsonBody.Reaction).to.be.oneOf(validReactions);\r",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"messageId\": \"{{randomMessageId}}\",\r\n  \"Body\": \"I am also a part of the thread\",\r\n  \"SendTimestamp\": \"2025-11-19T01:47:00.000Z\",\r\n  \"Reaction\": \"😂\",\r\n  \"ResponseIds\": [],\r\n  \"Sender\": \"{{userObjectId}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"api",
+										"v1",
+										"branchingrooms",
+										"{{randomBranchingRoomId}}",
+										"messages",
+										""
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create A Response Message for a Message in a branching room",
+					"item": [
+						{
+							"name": "Create A Message Branching room",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 201\", function () {\r",
+											"    pm.response.to.have.status(201);\r",
+											"});\r",
+											"\r",
+											"// Header Assertion Example\r",
+											"pm.test(\"Content-Type header is present and has value 'application/json'\", \r",
+											"    function () {\r",
+											"    pm.response.to.have.header(\"Content-Type\");\r",
+											"    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");\r",
+											"});\r",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"\r",
+											"//Generate random messageId on every call.\r",
+											"const randomMessageId = \"messageId\" + Math.floor(Math.random() * 1000) + 1;\r",
+											"pm.collectionVariables.set(\"randomMessageId\", randomMessageId);\r",
+											"\r",
+											"//Check if the all the required fields are available in the request body.\r",
+											"pm.test\r",
+											"(\"Check if the all the required fields are available in the request body\", ()=>{\r",
+											"    pm.expect(pm.request.body.raw).to.include(\"messageId\");\r",
+											"    pm.expect(pm.request.body.raw).to.include(\"Body\");\r",
+											"    pm.expect(pm.request.body.raw).to.include(\"Sender\");\r",
+											"})\r",
+											"\r",
+											"\r",
+											"// Check if the reaction is a valid string\r",
+											"pm.test(\"The Reaction should be valid \", ()=>{\r",
+											"    const validReactions = ['👍', '❤️', '😂', '😢', '😡', null];\r",
+											"    const rawJson = pm.request.body.raw;\r",
+											"    const jsonBody = JSON.parse(rawJson);\r",
+											"    pm.expect(jsonBody.Reaction).to.be.oneOf(validReactions);\r",
+											"})"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n  \"messageId\": \"{{randomMessageId}}\",\r\n  \"Body\": \"I am also a part of the thread\",\r\n  \"SendTimestamp\": \"2025-11-19T01:47:00.000Z\",\r\n  \"Reaction\": \"😂\",\r\n  \"ResponseIds\": [],\r\n  \"Sender\": \"{{userObjectId}}\"\r\n}",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/{{messageId}}",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"api",
+										"v1",
+										"branchingrooms",
+										"{{randomBranchingRoomId}}",
+										"messages",
+										"{{messageId}}"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
+					"name": "Create A Reaction for a Message in a branching room",
+					"item": [
+						{
+							"name": "Create A Reaction in a branching room",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", () => {",
+											"  pm.response.to.have.status(200);",
+											"});",
+											"",
+											"const body = pm.response.json();",
+											"",
+											"const reaction = pm.collectionVariables.get(\"reaction\");",
+											"pm.test(\"Reaction was saved\", () => {",
+											"  pm.expect(body.Object).to.have.property(\"Reactions\");",
+											"  const listOfReactions = body.Object.Reactions;",
+											"  pm.expect(listOfReactions[0].reaction).to.eql(reaction);",
+											"});",
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											"",
+											"",
+											"// Message ID (example: messageId92551)",
+											"if (!pm.collectionVariables.get(\"messageId\")) {",
+											"    pm.collectionVariables.set(\"messageId\", pm.collectionVariables.get(\"randomMessageId\"));",
+											"}",
+											"",
+											"// User ID (Mongo ObjectId)",
+											"if (!pm.collectionVariables.get(\"userId\")) {",
+											"    pm.collectionVariables.set(\"userId\", pm.collectionVariables.get(\"userObjectId\"));",
+											"}",
+											"",
+											"// Allowed reactions (must match schema enum exactly)",
+											"const reactions = ['👍', '❤️', '😂', '😢', '😡'];",
+											"const randomReaction = reactions[Math.floor(Math.random() * reactions.length)];",
+											"pm.collectionVariables.set(\"reaction\", randomReaction);",
+											"",
+											"// Optional debug",
+											"console.log(\"Random reaction selected:\", randomReaction);",
+											"",
+											"// Log for debugging",
+											"console.log(\"Request URL will be:\", ",
+											"  `/api/v1/branchingrooms/${pm.environment.get(\"roomId\")}/messages/${pm.environment.get(\"messageId\")}/reactions`",
+											");",
+											"console.log(\"Reaction:\", pm.environment.get(\"reaction\"));",
+											"console.log(\"UserId:\", pm.environment.get(\"userId\"));"
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n\"userId\": \"{{userObjectId}}\",\n\"reaction\": \"{{reaction}}\"\n\n}\n\n",
+									"options": {
+										"raw": {
+											"language": "json"
+										}
+									}
+								},
+								"url": {
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/{{randomMessageId}}/reactions",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"api",
+										"v1",
+										"branchingrooms",
+										"{{randomBranchingRoomId}}",
+										"messages",
+										"{{randomMessageId}}",
+										"reactions"
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
+				{
 					"name": "Get Messages inside a Branching room",
 					"item": [
 						{
@@ -2484,7 +2501,7 @@
 											"        pm.expect(msg).to.have.property(\"messageId\");\r",
 											"        pm.expect(msg).to.have.property(\"Body\");\r",
 											"        pm.expect(msg).to.have.property(\"SendTimestamp\"); \r",
-											"        pm.expect(msg).to.have.property(\"Reaction\"); \r",
+											"        pm.expect(msg).to.have.property(\"Reactions\"); \r",
 											"        pm.expect(msg).to.have.property(\"ResponseIds\"); \r",
 											"        pm.expect(msg).to.have.property(\"Sender\"); \r",
 											"\r",
@@ -2503,7 +2520,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/v1/branchingrooms/{{branchingRoomId}}/messages",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2513,7 +2530,7 @@
 										"api",
 										"v1",
 										"branchingrooms",
-										"{{branchingRoomId}}",
+										"{{randomBranchingRoomId}}",
 										"messages"
 									]
 								}
@@ -2541,7 +2558,7 @@
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/v1/branchingrooms/{{branchingRoomId}}/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/branchingrooms/{{randomBranchingRoomId}}/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -2551,7 +2568,7 @@
 										"api",
 										"v1",
 										"branchingrooms",
-										"{{branchingRoomId}}",
+										"{{randomBranchingRoomId}}",
 										"messages",
 										"{{messageId}}"
 									]
@@ -3076,7 +3093,7 @@
 									"raw": "{\n  \"messageId\": \"{{responseMessageId}}\",\n  \"Body\":\"hello\",\n  \"SendTimestamp\": \"2025-11-19T01:45:00.000Z\",\n  \"Reaction\": \"❤️\", \n  \"ResponseIds\": [],\n  \"Sender\": \"{{userObjectId}}\", \n  \"BranchingRoom\": \"{{branchingRoomObjectId}}\"\n}"
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/v1/messages/{{randomMessageId}}",
+									"raw": "http://localhost:3000/api/v1/messages/",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3086,7 +3103,7 @@
 										"api",
 										"v1",
 										"messages",
-										"{{randomMessageId}}"
+										""
 									]
 								}
 							},
@@ -3348,7 +3365,7 @@
 											"    dataList.forEach(item =>{",
 											"        pm.expect(item).to.have.property(\"_id\");",
 											"        pm.expect(item).to.have.property(\"Body\");",
-											"        pm.expect(item).to.have.property(\"Reaction\");",
+											"        pm.expect(item).to.have.property(\"Reactions\");",
 											"        pm.expect(item).to.have.property(\"messageId\");",
 											"        pm.expect(item).to.have.property(\"Sender\");",
 											"        pm.expect(item).to.have.property(\"BranchingRoom\");",
@@ -3422,10 +3439,10 @@
 								],
 								"body": {
 									"mode": "raw",
-									"raw": "{\n  \"Reaction\": [\"😡\"]\n\n}"
+									"raw": ""
 								},
 								"url": {
-									"raw": "http://localhost:3000/api/v1/messages/?fields=Body,Reaction",
+									"raw": "http://localhost:3000/api/v1/messages/?fields=Body,Reactions",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3440,7 +3457,7 @@
 									"query": [
 										{
 											"key": "fields",
-											"value": "Body,Reaction"
+											"value": "Body,Reactions"
 										}
 									]
 								}
@@ -3460,13 +3477,20 @@
 										"packages": {},
 										"requests": {}
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"packages": {},
+										"type": "text/javascript"
+									}
 								}
 							],
 							"request": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/v1/messages/{{messageId}}",
+									"raw": "http://localhost:3000/api/v1/messages/{{randomMessageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3476,7 +3500,7 @@
 										"api",
 										"v1",
 										"messages",
-										"{{messageId}}"
+										"{{randomMessageId}}"
 									]
 								}
 							},
@@ -3495,13 +3519,24 @@
 										"packages": {},
 										"requests": {}
 									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"exec": [
+											""
+										],
+										"type": "text/javascript",
+										"packages": {},
+										"requests": {}
+									}
 								}
 							],
 							"request": {
 								"method": "GET",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/v1/messages/awdawd",
+									"raw": "http://localhost:3000/api/v1/messages/MESSAGE223344",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3511,7 +3546,7 @@
 										"api",
 										"v1",
 										"messages",
-										"awdawd"
+										"MESSAGE223344"
 									]
 								}
 							},
@@ -3647,7 +3682,7 @@
 								"method": "DELETE",
 								"header": [],
 								"url": {
-									"raw": "http://localhost:3000/api/v1/messages/{{randomMessageId}}",
+									"raw": "http://localhost:3000/api/v1/messages/{{messageId}}",
 									"protocol": "http",
 									"host": [
 										"localhost"
@@ -3657,7 +3692,7 @@
 										"api",
 										"v1",
 										"messages",
-										"{{randomMessageId}}"
+										"{{messageId}}"
 									]
 								}
 							},
@@ -3856,6 +3891,22 @@
 		},
 		{
 			"key": "responceMessageId",
+			"value": ""
+		},
+		{
+			"key": "RoomId",
+			"value": ""
+		},
+		{
+			"key": "roomId",
+			"value": ""
+		},
+		{
+			"key": "ReactionMessageId",
+			"value": ""
+		},
+		{
+			"key": "reaction",
 			"value": ""
 		}
 	]

@@ -5,7 +5,11 @@ const messageSchema = new Schema({
   messageId: { type: String, unique: true, required: true, immutable: true, index:true },
   Body: {type: String, required: true },
   SendTimestamp: { type: Date }, 
-  Reaction: { type: String, enum: ['👍', '❤️', '😂', '😢', '😡', null] }, 
+  Reactions: [{
+    userId: { type: Schema.Types.ObjectId, ref: 'User' },
+    reaction: { type: String, enum: ['👍', '❤️', '😂', '😢', '😡'] },
+    timestamp: { type: Date, default: Date.now , required: false},
+  }],
   ResponseIds: [{ type: mongoose.Schema.ObjectId, ref: 'messages', required: false }], 
   //Foreign key Refferences
   Sender: { type: Schema.Types.ObjectId, ref: 'User', required: true }, 

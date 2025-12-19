@@ -1,7 +1,7 @@
 const express = require("express");
 const BranchingRoom = require("../models/branchingroom.model");
 const messagesModel = require("../models/message.model");
-
+const User = require("../models/user.model");
 
 
 
@@ -74,9 +74,94 @@ const respondtoMessageInABranchingRoom = async function(req, res, next){
 
 };
 
+// POST: Create/Update a reaction for a message
+const reactToMessageInABranchingRoom = async function (req, res, next) {
+    try {
+        const { branchingRoomId, messageId } = req.params;
+        const { reaction, userId } = req.body; 
+
+        const validReactions = ['👍', '❤️', '😂', '😢', '😡'];
+        console.log()
+
+        if (!validReactions.includes(reaction)) {
+            return res.status(400).json({ message: "Invalid reaction" });
+        }
+
+        // Make sure room exists
+        const branchingRoom = await BranchingRoom.findOne({ branchingRoomId:branchingRoomId });
+        if (!branchingRoom) {
+            return res.status(404).json({ message: "Branching room not found" });
+        }
+
+        // Find message by messageId
+        const message = await messagesModel.findOne({
+            messageId: messageId
+        });
+
+        if (!message) {
+            return res.status(404).json({ message: "Message not found" });
+        }
+
+        // Check if user exists
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+
+        // Save reaction
+        message.Reactions.push(req.body);
+        const savedMessage = await message.save();
+        await savedMessage.populate("Reactions");
+
+        res.status(200).json({
+            message: "Reaction saved",
+            Object: savedMessage
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};
+
+
+// POST: Checks if user and branching room exists before joining
+const joinRoom = async function(req, res, next){
+    try{
+
+        const { userId, roomId } = req.body;
+
+        const user = await User.findOne({ userId });
+        if(!user){
+            return res.status(400).json({message: "User not found"});
+        }
+
+        const room = await BranchingRoom.findOne({ branchingRoomId: roomId });
+        if(!room){
+            return res.status(400).json({message: "Room not found"});
+        }
+
+        res.status(200).json({
+            message: "Success", userObjectId: user._id,roomObjectId: room._id
+        });
+
+    }catch(err){
+        next(err);
+    }
+};
+
 // GET: Read All Branching Rooms
 const getAllBranchingRooms = async function(req, res, next){
     try{
+
+        const { branchingRoomType, language } = req.query;
+
+        if (branchingRoomType === "LocalRoom" && language && language !== "swe")  {
+            return res.status(403).json({
+                message: "Local rooms are only available for Swedish speacking users"
+            });
+        }
+
         //Filter
         const queryParams = {};
         if(req.query.branchingRoomType !== undefined) queryParams.branchingRoomType = req.query.branchingRoomType;
@@ -258,6 +343,6 @@ const deleteMessageInBranchingRoom = async function(req, res, next){
 };
 
 
-module.exports = {respondtoMessageInABranchingRoom,createBranchingRoom,createMessageInABranchingRoom,getAMessageInABranchingRoom, getAllBranchingRooms, getAllMessagesInBranchingRoom, getBranchingRoom, updateBranchingRoomTopic, updateMessageInBranchingRoom, deleteAllBranchingRooms, deleteBranchingRoom, deleteMessageInBranchingRoom}
+module.exports = {respondtoMessageInABranchingRoom,createBranchingRoom,createMessageInABranchingRoom, reactToMessageInABranchingRoom,joinRoom,getAMessageInABranchingRoom, getAllBranchingRooms, getAllMessagesInBranchingRoom, getBranchingRoom, updateBranchingRoomTopic, updateMessageInBranchingRoom, deleteAllBranchingRooms, deleteBranchingRoom, deleteMessageInBranchingRoom}
 
 
