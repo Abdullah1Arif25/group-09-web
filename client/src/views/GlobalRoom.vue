@@ -178,7 +178,7 @@
                 </form>
             </div>
 
-            <div class="settingButtonWrapper">
+            <div class="settingButtonWrapper" @click="showSettings = true">
             <button class="buttonIconStyle" >
                <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
                 </button>
@@ -192,8 +192,19 @@
             </div>
 
         </div>
-    </div>
+        <div v-if="isFrozen" class="frozen-overlay">
+            <div class="frozen-card">
+                <p class="frozen-text">
+                    Chat is paused. This room is currently unavailable.
+                </p>
+                <button class="frozen-exit-button" @click="goToMain">
+                    Exit
+                 </button>
+            </div>
+        </div>
 
+    </div>
+    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
 </template>
 
 
@@ -203,71 +214,66 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-
-const REACTIONS = [
-  { type: "like", emoji: "👍" },
-  { type: "love", emoji: "❤️" },
-  { type: "laugh", emoji: "😂" },
-  { type: "sad", emoji: "😢" },
-  { type: "angry", emoji: "😡" }
-];
+import  SettingsPopup  from './SettingsPopup.vue';
 
 export default {
-  name: 'globalroom',
-  components: { FontAwesomeIcon },
+    name: 'globalroom',
+    components: {
+        FontAwesomeIcon,
+        SettingsPopup
+    },
 
-  data() {
-    return {
-      message: '',
-      isMenuOpen: false,
-      branchingRoomTopic: 'General',
-      branchingRoomId: '',
-      messages: [],
-      senderObjectId: getUserObjectId(),
-      socket,
-      chatListner: null,
-      activeMessageOption: null,
-      parentMessageId: '',
-      showReactionsForMessage: null,
-      REACTIONS,
-      replyBannerActive: null,
-      parentMessageContent: ''
-    };
-  },
-
-  beforeUnmount() {
-    if (this.socket && this.chatListner) {
-      this.socket.off("chat message", this.chatListner);
-      this.socket.off("respond to a message", this.chatListner);
-    }
-  },
-
-  async mounted() {
-    await this.getAllBranhingRooms();
-    this.scrollToBottom();
+    data() {
+        return {
+            message : '',
+            isMenuOpen: false ,
+            branchingRoomTopic: '',
+            branchingRoomId : '',
+            messages:[],
+            senderObjectId:getUserObjectId(),
+            chatListner: null,
+            socket,
+            isFrozen: false,
+            showSettings: false
+        };
+    },
+    beforeUnmount(){
+        if(this.socket && this.chatListner){
+            this.socket.off("chat message", this.chatListner);
+            this.socket.off("chat-frozen");
+            this.socket.off("chat-unfrozen");
+        }
+    },
+    async mounted(){
+        await this.getAllBranhingRooms();
 
     if (!this.socket.connected) {
       this.socket.connect();
     }
 
-    this.chatListner = (msg) => {
-      const exists = this.messages.some(m => m.messageId === msg.messageId);
-      if (exists) return;
+        this.chatListner = (msg)=>
+            this.messages.push({
+                senderId: msg.senderObjectId,
+                anonymousName: msg.sender,
+                Body: msg.Body,
+                timestamp:msg.timestamp
 
-      this.messages.push({
-        senderId: msg.senderObjectId,
-        messageId: msg.messageId,
-        anonymousName: msg.senderAnonymousName,
-        Body: msg.Body,
-        timestamp: msg.timestamp,
-        reactions: msg.Reactions || []
-      });
+            });
+        this.$nextTick(()=>{
+            this.scrollToBottom();
+        });
+        this.socket.on("chat message",this.chatListner);
 
-      this.$nextTick(this.scrollToBottom);
-    };
+        this.socket.on("chat-frozen", () => {
+            this.isFrozen = true;});
+            
+        this.socket.on("chat-unfrozen", () => {
+            this.isFrozen = false;});
 
-    this.socket.on("chat message", this.chatListner);
-    this.socket.on("respond to a message", this.chatListner);
+         this.$nextTick(() => {
+            this.scrollToBottom();
+        });
+
 
     if (this.branchingRoomId && this.senderObjectId) {
       this.socket.emit("join room", {
@@ -362,83 +368,70 @@ export default {
       }
     },
 
-    async fetchMessages() {
-      const res = await Api.get(
-        `/branchingrooms/${this.branchingRoomId}/messages`
-      );
+        async fetchMessages(){
+            try{
+                const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
+                this.messages = allMessage.data.map((m)=>({
+                    senderObjectId: m.Sender._id || m.Sender || null,
+                    anonymousName: m.anonymousName,
+                    Body: m.Body,timestamp:
+                    m.SendTimestamp,
 
-      this.messages = res.data.map(m => ({
-        senderId: m.Sender._id,
-        messageId: m.messageId,
-        anonymousName: m.anonymousName,
-        Body: m.Body,
-        timestamp: m.SendTimestamp,
-        reactions: m.Reactions || []
-      }));
-    },
+                }));
 
-    async sendMessage() {
-      if (!this.message.trim() || !this.branchingRoomId) return;
+            } catch(err){
+                console.log(err);
 
-      const messageId = this.parentMessageId
-        ? `responceMessageId${Math.floor(Math.random() * 100000)}`
-        : `messageId${Math.floor(Math.random() * 100000)}`;
+            }
+        },
 
-      const payload = {
-        messageId,
-        Body: this.message,
-        SendTimestamp: new Date().toISOString(),
-        Sender: this.senderObjectId
-      };
+         async sendMessage(){
+            try{
 
-      if (this.parentMessageId) {
-        this.socket.emit("respond to a message", {
-          responceMessageData: payload,
-          parentMessageId: this.parentMessageId
-        });
-        this.parentMessageId = '';
-      } else {
-        this.socket.emit("chat message", payload);
-      }
+                if (this.isFrozen) return;
+                if(!this.message.trim()) return;
 
-      this.message = '';
-      this.replyBannerActive=null;
-      parentMessageContent=null;
-    },
+                if(!this.branchingRoomId){
+                    console.log("No Branching room selected");
+                    return;
+                }
 
-    toggleReactionMenu(msg) {
-      this.showReactionsForMessage =
-        this.showReactionsForMessage === msg.messageId ? null : msg.messageId;
-    },
 
-    async reactToMessage(messageId, reaction) {
-        const originalMessage = await Api.get( `/branchingrooms/${this.branchingRoomId}/messages/${messageId}`);
-        const reactionList = originalMessage.data.Reactions;
+                if (!this.senderObjectId) {
+                    console.error("No sender ID in cache (user not logged in or cache lost)");
+                    this.$router.push('/login');
+                    return;
+                }
+                const messageId = "messageId" + Math.floor(Math.random() *100000);
+                const  currentTime = new  Date().toISOString();
+                const messageData =  {
+                    messageId: messageId,
+                    Body: this.message,
+                    SendTimestamp: currentTime,
+                    Reaction: null,
+                    ResponseIds: [],
+                    Sender: this.senderObjectId
+                    
 
-        const existingReaction = reactionList.find(
-          r => r.userId === this.senderObjectId
-        );
-        if (existingReaction){
-            throw new Error("Only one reaction is reaction")
-            return;
-        };
-      const res = await Api.post(
-        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
-        {
-          reaction,
-          userId: this.senderObjectId
+                };
+                if (this.socket) {
+                  this.socket.emit("chat message", messageData);
+                }
+
+                this.message = '';
+
+            } catch(err){
+                console.log(err);
+            }
+        },
+
+        goToMain() {
+            this.$router.push("/main");
         }
-      );
 
-      const msg = this.messages.find(m => m.messageId === messageId);
-      if (msg) {
-        msg.reactions = res.data.reactions || [];
-      }
-
-      this.closeOptionMenu();
     }
-  }
-};
+}
+   
 </script>
 
 
@@ -884,8 +877,38 @@ export default {
   right: 12px;
 }
 
-.reaction-left {
-  left: 12px;
+.frozen-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(117, 92, 117, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
+.frozen-card {
+  background: linear-gradient(#4a1f3c, #6d2a46);
+  padding: 30px 40px;
+  border-radius: 28px;
+  text-align: center;
+  max-width: 420px;
+  width: 85%;
+}
+
+.frozen-text {
+  color: #f6e6e6;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.frozen-exit-button {
+  background: linear-gradient(#ffc2c2, #936480);
+  border: none;
+  border-radius: 20px;
+  padding: 12px 36px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+}
 </style>

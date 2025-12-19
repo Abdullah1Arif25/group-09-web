@@ -17,9 +17,20 @@
         </div>
 
         <div class="input-group">
-          <label>Language:</label>
-          <input v-model="language" placeholder="Enter Language" />
+        <label>Language:</label>
+        <div class="select-wrapper">
+          <select v-model="language" required>
+            <option disabled value="">Select language</option>
+            <option
+              v-for="lang in languages"
+              :key="lang.code"
+              :value="lang.code">
+              {{ lang.label }}
+            </option>
+          </select>
         </div>
+      </div>
+
 
         <div class="input-group">
           <label>Password:</label>
@@ -45,14 +56,32 @@ export default {
   name: "RegisterPage",
 
   data() {
-    return {
-      userId: "",
-      personalNumber: "",
-      language: "",
-      password: "",
-      error: "",
-    };
-  },
+  return {
+    userId: "",
+    personalNumber: "",
+    language: "",
+    password: "",
+    error: "",
+    languages: [
+      { label: "Swedish", code: "swe" },
+      { label: "English", code: "eng" },
+      { label: "Arabic", code: "ara" },
+      { label: "Spanish", code: "spa" },
+      { label: "French", code: "fra" },
+      { label: "German", code: "deu" },
+      { label: "Italian", code: "ita" },
+      { label: "Portuguese", code: "por" },
+      { label: "Russian", code: "rus" },
+      { label: "Chinese (Mandarin)", code: "zho" },
+      { label: "Japanese", code: "jpn" },
+      { label: "Korean", code: "kor" },
+      { label: "Hindi", code: "hin" },
+      { label: "Turkish", code: "tur" },
+      { label: "Persian", code: "fas" },
+      { label: "Somali", code: "som" }
+    ]
+  };
+},
 
   methods: {
     async handleRegister() {
@@ -120,6 +149,38 @@ export default {
   margin-bottom: 20px;
   text-align: left;  
 }
+
+select {
+  width: 100%;
+  padding: 15px;
+  border-radius: 50px;
+  border: none;
+  background: #fadde8;
+  color: #2b0d2b;
+  font-size: 15px;
+  font-family: inherit;
+  outline: none;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  cursor: pointer;
+}
+
+.select-wrapper {
+  position: relative;
+}
+
+.select-wrapper::after {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6d2a46;
+  pointer-events: none;
+  font-size: 16px;
+}
+
 
 label {
   font-weight: 400;

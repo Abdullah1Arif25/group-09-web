@@ -1,4 +1,9 @@
 const { generateAnonymousName, deleteAnonymousName } = require("../services/anonymousNames.services");
+require("dotenv").config();
+const {createMessageInABranchingRoom} = require("../services/createMessageInBranchingRoom.services");
+const { checkChat } = require("../services/chatAccess.services");
+
+
 
 module.exports = function (io) {
 
@@ -14,9 +19,14 @@ module.exports = function (io) {
 
         // user joins room
         socket.on("join room", async (data) => {
-            
-            
             const { userId, roomId } = data;
+            
+            const allowed = await checkChat(roomId);
+            if (!allowed) {
+                socket.emit("chat-frozen");
+                return;
+            }
+
             console.log("➡ join room:", { socketId: socket.id, userId, roomId });
 
             try {
@@ -44,32 +54,26 @@ module.exports = function (io) {
 
         // user sends message
         socket.on("chat message", async (messageData) => {
+            const allowed = await checkChat(socket.roomId);
+            if (!allowed) {
+                socket.emit("chat-frozen");
+                return;
+            }
+
             if (!socket.roomId) 
                 return;
 
             try {
-                const responce = await fetch(`http://localhost:3000/api/v1/branchingrooms/${socket.roomId}/messages`, {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({
-                        messageId: messageData.messageId,
-                        Body: messageData.Body,
-                        SendTimestamp: messageData.SendTimestamp,
-                        Reaction: messageData.Reaction,
-                        ResponseIds: messageData.ResponseIds,
-                        Sender: messageData.Sender,
-                        anonymousName : socket.anonymousName
-                    })
-                });
-                const messageBody = await responce.json();
-                console.log("Saved message:", messageBody.Object);
+                const messageBody = await createMessageInABranchingRoom(socket.roomId, socket.anonymousName, messageData);
+              
+                console.log("Saved message:", messageBody);
 
                 io.to(socket.currentRoom).emit("chat message", {
-                    sender: socket.anonymousName,
-                  
-                    senderObjectId: messageBody.Object.Sender,
-                    Body: messageBody.Object.Body,
-                    timestamp:messageBody.Object.SendTimestamp
+                    senderAnonymousName: socket.anonymousName,
+                    messageId: messageBody.messageId,
+                    senderObjectId: messageBody.Sender,
+                    Body: messageBody.Body,
+                    timestamp:messageBody.SendTimestamp
                 });
 
             } catch (err) {
