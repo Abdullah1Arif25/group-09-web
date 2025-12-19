@@ -7,7 +7,6 @@ module.exports = function setupSocket(httpServer) {
     }
   });
 
-  app.set("io", io);
 
   // load live chat logic
   require("../socket/liveChat.socket")(io);
