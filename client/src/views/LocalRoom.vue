@@ -357,7 +357,7 @@ export default {
         params: {
           roomTopic: this.branchingRoomTopic || "General",
           branchingRoomType: "LocalRoom",
-          //language: user.language
+          language: user.language
         }
       });
 
