@@ -6,7 +6,9 @@
 
       <!-- Buttons -->
       <div class="controls">
-        <button class="admin-button">Create Topic Rooms</button>
+        <button class="admin-button" @click="$router.push('/admin/createrooms')">
+        Create Topic Rooms
+        </button>
         <button class="admin-button" @click="$router.push('/admin/users')">
         Display Users
         </button>
