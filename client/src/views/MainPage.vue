@@ -1,16 +1,21 @@
 <template>
+  <nav class="soft-navbar">
+    <div class="nav-left">
+      <a class="nav-item" @click="$router.push('/')">Home</a>
+      <span class="divider">|</span>
+      <a class="nav-item" @click="$router.push('/about')">About</a>
+    </div>
+
+    <div class="nav-right">
+      <a class="nav-item" @click="$router.push('/contact')">Contact</a>
+      <span class="divider">|</span>
+      <a class="nav-item" @click="$router.push('/profile')">Profile</a>
+    </div>
+  </nav>
+
   <div class="page-wrapper">
     <div class="page-card">
 
-      <div class="top-buttons">
-        <router-link to="/profile" class="top-btn">Profile</router-link>
-        <router-link
-          v-if="user.userId === 'admin'"
-          to="/admin"
-          class="top-btn">
-          Admin
-        </router-link>
-      </div>
       <h1 class="title">HOME PAGE</h1>
 
       <div class="room">
@@ -62,6 +67,55 @@ export default {
 
 
 <style scoped>
+
+/* Navbar styles */
+.soft-navbar {
+  position: fixed;
+  top: 20px; 
+  left: 50%;
+  transform: translateX(-50%); 
+  width: 92%;
+  max-width: 1100px;
+  min-height: 56px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 40px;
+  border-radius: 40px;
+  background: rgba(145, 90, 123, 0.42);
+  backdrop-filter: blur(50px);
+  z-index: 100;
+}
+
+
+.nav-left,
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+
+.nav-item {
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: color 0.3s;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.nav-item:hover {
+  color: white;
+}
+
+.divider {
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0 10px;
+  font-size: 1.1rem;
+}
+
 .page-wrapper {
   min-height: 100vh;
   display: flex;
