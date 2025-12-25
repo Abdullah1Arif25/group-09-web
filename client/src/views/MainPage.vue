@@ -1,7 +1,7 @@
 <template>
   <nav class="soft-navbar">
     <div class="nav-left">
-      <a class="nav-item" @click="$router.push('/')">Home</a>
+      <a class="nav-item" @click="$router.push('/main')">Home</a>
       <span class="divider">|</span>
       <a class="nav-item" @click="$router.push('/about')">About</a>
     </div>
