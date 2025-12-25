@@ -1,4 +1,3 @@
-import http from "http";
 const { Server } = require("socket.io");
 
 module.exports = function setupSocket(httpServer) {
