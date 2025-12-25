@@ -161,6 +161,9 @@
 
         </div>
 
+        <div v-if="chatPaused" class="chatPaused">
+          {{ chatPausedMessage }}
+        </div>
 
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
@@ -173,8 +176,8 @@
 
             <div class="messageBoxWrapper">
                 <form class="inputContainer" @submit.prevent="sendMessage">
-                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                        <button class="sendbuttonInside" type="submit">
+                    <input class ='messageBoxStyle'type="text" v-model="message" :disabled="chatPaused" :placeholder="chatPaused ? 'Chat is paused' : 'Send a confession or help a fellow....'"/>
+                        <button class="sendbuttonInside" type="submit" :disabled="chatPaused">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                         </button>
                 </form>
@@ -240,6 +243,8 @@ export default {
             parentMessageContent: '',
             isLight: false,
             showSettings: false,
+            chatPaused: false,
+            chatPausedMessage: "",
 
         };
     },
@@ -282,6 +287,17 @@ export default {
           });
         }
 
+        this.socket.on("chat status changed", (data) => {
+        if (data.roomType !== "LocalRoom") 
+          return;
+        this.chatPaused = !data.live;
+        this.chatPausedMessage = this.chatPaused ? "Chat is currently paused by admin" : "";});
+        
+        this.socket.on("chat paused", (data) => {
+          this.chatPaused = true;
+          this.chatPausedMessage = data.message;
+        });
+
         
 
     },
@@ -297,6 +313,9 @@ export default {
         this.fetchMessages().then(() => {
           this.$nextTick(() => this.scrollToBottom());
         });
+
+        this.chatPaused = false;
+        this.chatPausedMessage = "";
       },
     },
     methods:{
@@ -893,6 +912,21 @@ export default {
 
 .ThemeToggle:hover {
   background: rgba(255,255,255,0.15);
+}
+
+.chatPaused {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 6px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.messageBoxStyle:disabled::placeholder {
+  color:#2b0d2b; 
+  font-weight: bold;   
 }
 
 

@@ -18,6 +18,13 @@ module.exports = function (io) {
         socket.userId = null;    
         socket.currentRoom = null;
 
+        socket.on("admin chat toggle", ({ roomType, live }) => {
+            io.emit("chat status changed", {
+                roomType,
+                live
+            });
+        });
+        
         // user joins room
         socket.on("join room", async (data) => {
             
@@ -69,10 +76,15 @@ module.exports = function (io) {
                 });
 
             } catch (err) {
-                console.log("Send message error:", err);
+                if (err.message === "chatPaused") {
+                    socket.emit("chat paused", {
+                        message: "Chat is currently paused."
+                });
+                } else {
+                    console.log("Send message error:", err);
+                }
             }
         });
-
         // user reacts to a message
         socket.on("react to message", async (payload) =>{
             if(!socket.roomId) return;
