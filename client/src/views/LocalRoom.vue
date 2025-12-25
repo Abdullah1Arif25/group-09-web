@@ -60,15 +60,36 @@
         <div class="room-box" ref="messageBox" @click="closeAllOptions">
 
 
+
             <!--Message-->
              <div
                 v-for="msg in messages"
                 :key="msg.messageId" 
+                :ref="`msg-${msg.messageId}`"
                 class="messageRow"
                 :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
                     activeMessageOption === msg.messageId ? 'messageActive' : ''
                 ]">
+                <!--Parent Message If Responce Ids-->
+                <!--If the current message is a responce to another message it should display the parent message on top-->
+                <!--We can take the parent message and fetch its content on the fly and when the user sends the response message we just attact it -->
+                
+
                 <div class="messageDetailWrapper">
+                    <div
+                    v-if="msg.ParentMessageId"
+                    class="replyPreview"
+                    @click="goToMessage(msg.ParentMessageId.MessageId)"
+                    >
+                    <div class="replyBar"></div>
+                    <div class="replyContent">
+                        <small class="replyLabel">Replying to</small>
+                        <p class="replyText">
+                            {{ msg.ParentMessageId.Body }}
+                        </p>
+                    </div>
+                </div>
+
                 <small class="message-font-style">
                     {{ msg.anonymousName}}
                 </small>
@@ -233,6 +254,7 @@ export default {
       parentMessageContent: '',
       isLight: false,
       showSettings: false,
+      selectedMessageId:'',
       chatPaused: false,
       chatPausedMessage: "",
 
@@ -264,7 +286,15 @@ export default {
 
       this.messages.push({
         senderId: msg.senderObjectId,
+        ParentMessageId: msg.ParentMessageId?{
+            Body: msg.ParentMessageId.Body,
+            MessageId: msg.ParentMessageId.messageId,
+            messageObjectId: msg.ParentMessageId._id,
+        }: null,
+        messageObjectId: msg._id,
         messageId: msg.messageId,
+        ResponseIds: msg.ResponseIds,
+
         anonymousName: msg.senderAnonymousName,
         Body: msg.Body,
         timestamp: msg.timestamp,
@@ -288,6 +318,7 @@ export default {
       });
     }
 
+
     this.socket.on("chat status changed", (data) => {
     if (data.roomType !== "LocalRoom") 
       return;
@@ -298,6 +329,7 @@ export default {
       this.chatPaused = true;
       this.chatPausedMessage = data.message;
     });
+
   },
 
   watch: {
@@ -345,6 +377,23 @@ export default {
       }
     },
 
+
+    goToMessage(parentMessageId){
+       this.$nextTick(()=>{
+        const ref = this.$refs?.[`msg-${parentMessageId}`];
+        const el = Array.isArray(ref)? ref[0]:ref;
+
+        if(!el){
+            console.warn("No Dom ref for mresage", parentMessageId);
+            return;
+        }
+         el.scrollIntoView({
+                behavior:"smooth"
+            });
+       });
+
+    },
+
     openOptionMenu(messageId) {
       this.activeMessageOption = messageId;
     },
@@ -358,8 +407,22 @@ export default {
       this.isMenuOpen = true;
     },
 
+    ifParentMessage(msg){
+        if(msg.ParentMessageId) return true;
+    },
+
     closeMenu() {
       this.isMenuOpen = false;
+    },
+
+    async editMessage(msg){
+        const messageExist = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+        if(!messageExist){
+            throw new Error("Message Does not exist");
+        }
+        this.selectedMessageId = msg.messageId;
+
+
     },
 
     async replyToMessage(msg) {
@@ -395,6 +458,13 @@ export default {
 
       this.messages = res.data.map(m => ({
         senderId: m.Sender._id,
+        ParentMessageId: m.ParentMessageId ? {
+            ParentMessageObjectId:m.ParentMessageId._id,
+            Body:m.ParentMessageId.Body,
+            MessageId: m.ParentMessageId.messageId,
+        }: null,
+        messageObjectId: m._id,
+        ResponseIds: m.ResponseIds,
         messageId: m.messageId,
         anonymousName: m.anonymousName,
         Body: m.Body,
@@ -429,7 +499,8 @@ export default {
 
       this.message = '';
       this.replyBannerActive='';
-      parentMessageContent="";
+      this.parentMessageContent="";
+
     },
 
     toggleReactionMenu(msg) {
@@ -471,7 +542,7 @@ export default {
             this.isLight = !this.isLight;
         },
   }
-};
+}
 </script>
 
 
@@ -688,6 +759,16 @@ export default {
     border-top-right-radius: 18px;
     z-index: 1000;
     height: var(--footer-h);
+}
+
+.parentMessageDisplay{
+    display: flex;
+    flex:1;
+    background:#fdfdfd;
+    border-radius: 10px;
+    height: 20px;
+    width: 100%;
+    top: 100%;
 }
 
 .profileDetailWrapper {
@@ -994,6 +1075,42 @@ export default {
   background: rgba(255,255,255,0.15);
 }
 
+
+.replyPreview {
+  display: flex;
+  
+  gap: 8px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  top: 100%;
+  left: 1px;
+  right: 1px;
+}
+
+.replyBar {
+  width: 4px;
+  border-radius: 2px;
+}
+
+.replyContent {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.replyLabel {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.replyText {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .chatPaused {
   background: rgba(0,0,0,0.7);
   color: #2b0d2b;
@@ -1010,4 +1127,10 @@ export default {
 }
 
 
+
+
+
 </style>
+
+
+
