@@ -60,6 +60,7 @@ module.exports = function (io) {
 
                 io.to(socket.currentRoom).emit("chat message", {
                     senderAnonymousName: socket.anonymousName,
+                    ParentMessageId: messageBody.ParentMessageId || '',
                     messageId: messageBody.messageId,
                     Reactions: messageBody.Reactions,
                     senderObjectId: messageBody.Sender,
@@ -83,6 +84,7 @@ module.exports = function (io) {
 
                 io.to(socket.currentRoom).emit("react to message", {
                     senderAnonymousName: socket.anonymousName,
+                    ParentMessageId: updatedMessage.ParentMessageId,
                     messageId: updatedMessage.messageId,
                     Reactions: updatedMessage.Reactions,
                     senderObjectId: updatedMessage.Sender,
@@ -103,12 +105,16 @@ module.exports = function (io) {
 
             try {
                 const messageBody = await responceToMessageInABranchingRoom(socket.roomId, socket.anonymousName, responceMessageData, parentMessageId);
+
+                const parentMessageBody = messageBody.ParentMessageId;
               
                 console.log("Saved message:", messageBody);
 
                 io.to(socket.currentRoom).emit("respond to a message", {
                     senderAnonymousName: socket.anonymousName,
-                    parentMessageId,
+                    ParentMessageId: { Body: parentMessageBody.Body,
+                         messageId: parentMessageBody.messageId,
+                         messageObjectId: parentMessageBody._id},
                     messageId: messageBody.messageId,
                     senderObjectId: messageBody.Sender,
                     Reactions: messageBody.Reactions,
