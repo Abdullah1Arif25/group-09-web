@@ -1,5 +1,5 @@
 <template>
-    <div class="backgroundStyle">
+    <div class="backgroundStyle" :class="{ light: isLight }">
 
         <!-- Head banner -->
         <div class="head_banner">
@@ -137,8 +137,6 @@
                     </div>
 
                     <!-- Reaction Menu -->
-
-
                     <div
                         v-if="showReactionsForMessage === activeMessageOption"
                         class="reactionPicker">
@@ -172,6 +170,9 @@
 
         </div>
 
+        <div v-if="chatPaused" class="chatPaused">
+          {{ chatPausedMessage }}
+        </div>
         
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
@@ -184,44 +185,29 @@
 
             <div class="messageBoxWrapper">
                 <form class="inputContainer" @submit.prevent="sendMessage">
-                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                        <button class="sendbuttonInside" type="submit">
+                    <input class ='messageBoxStyle'type="text" v-model="message" :disabled="chatPaused" :placeholder="chatPaused ? 'Chat is paused' : 'Send a confession or help a fellow....'"/>
+                        <button class="sendbuttonInside" type="submit" :disabled="chatPaused">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                         </button>
                 </form>
             </div>
 
-            <div class="settingButtonWrapper"  @click="showSettings = true">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
-                </button>
+            <div class="ThemeToggle">
+              <button class="ThemeToggle" @click="toggleTheme">
+                {{ isLight ? "🌙 Dark" : "☀ Light" }}
+              </button>
             </div>
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" @click="exitRoom()">
+            <button class="buttonIconStyle" @click="showSettings = true">
                <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl"style="color: aliceblue;" />
                 </button>
             </div>
 
         </div>
-    
-
-        
-                <div v-if="isFrozen" class="frozen-overlay">
-            <div class="frozen-card">
-                <p class="frozen-text">
-                    Chat is paused. This room is currently unavailable.
-                </p>
-                <button class="frozen-exit-button" @click="goToMain">
-                    Exit
-                </button>
-            </div>
-        </div>
-
     </div>
-
-    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
+    <SettingsPopup v-if="showSettings" @close="showSettings = false"/>
 </template>
 
 
@@ -231,7 +217,8 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import  SettingsPopup  from './SettingsPopup.vue';
+import SettingsPopup from "./SettingsPopup.vue";
+
 
 const REACTIONS = [
   { type: "like", emoji: "👍" },
@@ -268,7 +255,8 @@ export default {
       isLight: false,
       showSettings: false,
       selectedMessageId:'',
-      
+      chatPaused: false,
+      chatPausedMessage: "",
 
     };
   },
@@ -306,6 +294,7 @@ export default {
         messageObjectId: msg._id,
         messageId: msg.messageId,
         ResponseIds: msg.ResponseIds,
+
         anonymousName: msg.senderAnonymousName,
         Body: msg.Body,
         timestamp: msg.timestamp,
@@ -328,83 +317,46 @@ export default {
         roomId: this.branchingRoomId
       });
     }
+
+
+    this.socket.on("chat status changed", (data) => {
+    if (data.roomType !== "LocalRoom") 
+      return;
+    this.chatPaused = !data.live;
+    this.chatPausedMessage = this.chatPaused ? "Chat is currently paused by admin" : "";});
+    
+    this.socket.on("chat paused", (data) => {
+      this.chatPaused = true;
+      this.chatPausedMessage = data.message;
+    });
+
   },
 
   watch: {
     messages() {
       this.$nextTick(this.scrollToBottom);
     },
-    beforeUnmount(){
-        if(this.socket && this.chatListner){
-            this.socket.off("chat message", this.chatListner);
-            this.socket.off("respond to a message", this.chatListner);
-            this.socket.off("chat-frozen");
-            this.socket.off("chat-unfrozen");
-        }
-        
-    },
-    async mounted(){
-        await this.getAllBranhingRooms();
-        await this.scrollToBottom();
 
-        if(!this.socket.connected){
-            this.socket.connect();
-        }
+    branchingRoomId(newId) {
+      if (!newId || !this.senderObjectId) return;
 
-        this.chatListner = (msg)=>{
-            this.messages.push({
-                senderId: msg.senderObjectId,
-                anonymousName: msg.senderAnonymousName,
-                Body: msg.Body,
-                timestamp:msg.timestamp
+      this.socket.emit("join room", {
+        userId: this.senderObjectId,
+        roomId: newId
+      });
 
-            });
-             this.$nextTick(() => {
-            this.scrollToBottom();
-        });
-        };
-        this.socket.on("chat message",this.chatListner);
-        this.socket.on("respond to a message", this.chatListner);
+      this.fetchMessages().then(() => {
+        this.$nextTick(this.scrollToBottom);
+      });
 
-        this.socket.on("chat-frozen", () => {
-            this.isFrozen = true;});
-            
-        this.socket.on("chat-unfrozen", () => {
-            this.isFrozen = false;});
+      this.chatPaused = false;
+      this.chatPausedMessage = "";
+    }
+  },
 
-        if (this.branchingRoomId && this.senderObjectId) {
-          this.socket.emit("join room", {
-            userId: this.senderObjectId,
-            roomId: this.branchingRoomId,
-          });
-        }
-
-        
-
-    },
-    watch: {
-         messages() {
-            this.$nextTick(() => {
-                this.scrollToBottom();
-            });
-        },
-
-        branchingRoomId(newId, oldId) {
-        if (!newId || !this.socket || !this.senderObjectId) return;
-
-        this.socket.emit("join room", {
-          userId: this.senderObjectId,
-          roomId: newId,
-        });
-
-        this.fetchMessages().then(() => {
-          this.$nextTick(() => this.scrollToBottom());
-        });
-      },
-    },
-    methods: {
+  methods: {
     DisableReplyBanner(){
-        this.replyBannerActive = false;
+        this.replyBannerActive ='';
     },
     closeAllOptions(){
         this.closeOptionMenu();
@@ -424,6 +376,7 @@ export default {
         box.lastElementChild.scrollIntoView({ behavior: 'smooth' });
       }
     },
+
 
     goToMessage(parentMessageId){
        this.$nextTick(()=>{
@@ -547,6 +500,7 @@ export default {
       this.message = '';
       this.replyBannerActive='';
       this.parentMessageContent="";
+
     },
 
     toggleReactionMenu(msg) {
@@ -565,21 +519,28 @@ export default {
             throw new Error("Only one reaction is reaction")
             return;
         };
-      const res = await Api.post(
-        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
-        {
-          reaction,
-          userId: this.senderObjectId
-        }
-      );
 
-      const msg = this.messages.find(m => m.messageId === messageId);
-      if (msg) {
-        msg.reactions = res.data.reactions || [];
-      }
+        const payload = {
+            branchingRoomId: this.branchingRoomId, 
+            messageId: messageId, 
+            userId: this.senderObjectId,
+            reaction: reaction
+            
+        }
+
+        this.socket.emit("react to message", payload);
+
+      // const msg = this.messages.find(m => m.messageId === messageId);
+      // if (msg) {
+      //   msg.reactions = res.data.reactions || [];
+      // }
 
       this.closeOptionMenu();
-    }
+    }, 
+
+    toggleTheme() {
+            this.isLight = !this.isLight;
+        },
   }
 }
 </script>
@@ -1027,44 +988,93 @@ export default {
   left: 12px;
 }
 
-.frozen-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(117, 92, 117, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.light.backgroundStyle {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
 }
 
-.frozen-card {
-  background: linear-gradient(#4a1f3c, #6d2a46);
-  padding: 30px 40px;
-  border-radius: 28px;
-  text-align: center;
-  max-width: 420px;
-  width: 85%;
+.head_title_style {
+  color: white;
 }
 
-.frozen-text {
-  color: #f6e6e6;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 24px;
+.light .head_title_style {
+  color: #2b0d2b;
 }
 
-.frozen-exit-button {
-  background: linear-gradient(#ffc2c2, #936480);
-  border: none;
+.buttonIconStyle svg {
+  color: white;
+}
+
+.light .buttonIconStyle svg {
+  color: #2b0d2b;
+}
+
+.light .head_banner {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .categoryDivStyle {
+  background: #ffffff;
+}
+
+.light .categoryTitleStyle {
+  color: #5a2b44;
+}
+
+.light .room-box {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.light .sideMenuWrapper {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.light .sideMenuButton {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .messageBoxFlex {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .messageBoxStyle {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .others-message {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .my-message {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle {
+  border-color: rgba(0,0,0,0.25);
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+
+.ThemeToggle {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 6px 8px;
   border-radius: 20px;
-  padding: 12px 36px;
-  font-size: 16px;
-  font-weight: 700;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.3s;
 }
 
 .ThemeToggle:hover {
   background: rgba(255,255,255,0.15);
 }
+
 
 .replyPreview {
   display: flex;
@@ -1101,7 +1111,26 @@ export default {
   text-overflow: ellipsis;
 }
 
+.chatPaused {
+  background: rgba(0,0,0,0.7);
+  color: #2b0d2b;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 6px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.messageBoxStyle:disabled::placeholder {
+  color:#2b0d2b; 
+  font-weight: bold;   
+}
+
+
+
 
 
 </style>
+
+
 

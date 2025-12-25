@@ -1,7 +1,8 @@
 const { generateAnonymousName, deleteAnonymousName } = require("../services/anonymousNames.services");
 require("dotenv").config();
 const {createMessageInABranchingRoom} = require("../services/createMessageInBranchingRoom.services");
-const { checkChat } = require("../services/chatAccess.services");
+const {responceToMessageInABranchingRoom} = require("../services/responceToMessageInABranchingRoom.services");
+const {reactToMessageInBranchingRoom} = require("../services/reactToMessageInBranchingRoom.services");
 
 
 
@@ -17,16 +18,18 @@ module.exports = function (io) {
         socket.userId = null;    
         socket.currentRoom = null;
 
+        socket.on("admin chat toggle", ({ roomType, live }) => {
+            io.emit("chat status changed", {
+                roomType,
+                live
+            });
+        });
+        
         // user joins room
         socket.on("join room", async (data) => {
-            const { userId, roomId } = data;
             
-            const allowed = await checkChat(roomId);
-            if (!allowed) {
-                socket.emit("chat-frozen");
-                return;
-            }
-
+            
+            const { userId, roomId } = data;
             console.log("➡ join room:", { socketId: socket.id, userId, roomId });
 
             try {
@@ -54,12 +57,6 @@ module.exports = function (io) {
 
         // user sends message
         socket.on("chat message", async (messageData) => {
-            const allowed = await checkChat(socket.roomId);
-            if (!allowed) {
-                socket.emit("chat-frozen");
-                return;
-            }
-
             if (!socket.roomId) 
                 return;
 
@@ -70,8 +67,69 @@ module.exports = function (io) {
 
                 io.to(socket.currentRoom).emit("chat message", {
                     senderAnonymousName: socket.anonymousName,
+                    ParentMessageId: messageBody.ParentMessageId || '',
+                    messageId: messageBody.messageId,
+                    Reactions: messageBody.Reactions,
+                    senderObjectId: messageBody.Sender,
+                    Body: messageBody.Body,
+                    timestamp:messageBody.SendTimestamp
+                });
+
+            } catch (err) {
+                if (err.message === "chatPaused") {
+                    socket.emit("chat paused", {
+                        message: "Chat is currently paused."
+                });
+                } else {
+                    console.log("Send message error:", err);
+                }
+            }
+        });
+        // user reacts to a message
+        socket.on("react to message", async (payload) =>{
+            if(!socket.roomId) return;
+
+            try{
+
+                const updatedMessage = await reactToMessageInBranchingRoom(payload);
+                console.log("updated message:", updatedMessage);
+
+                io.to(socket.currentRoom).emit("react to message", {
+                    senderAnonymousName: socket.anonymousName,
+                    ParentMessageId: updatedMessage.ParentMessageId,
+                    messageId: updatedMessage.messageId,
+                    Reactions: updatedMessage.Reactions,
+                    senderObjectId: updatedMessage.Sender,
+                    Body: updatedMessage.Body,
+                    timestamp:updatedMessage.SendTimestamp
+                });
+
+            } catch(err){
+                console.log("Send message error:", err);
+            }
+        })
+
+        // user respond to a  message
+        socket.on("respond to a message", async (payload) => {
+            const {responceMessageData, parentMessageId} = payload;
+            if (!socket.roomId) 
+                return;
+
+            try {
+                const messageBody = await responceToMessageInABranchingRoom(socket.roomId, socket.anonymousName, responceMessageData, parentMessageId);
+
+                const parentMessageBody = messageBody.ParentMessageId;
+              
+                console.log("Saved message:", messageBody);
+
+                io.to(socket.currentRoom).emit("respond to a message", {
+                    senderAnonymousName: socket.anonymousName,
+                    ParentMessageId: { Body: parentMessageBody.Body,
+                         messageId: parentMessageBody.messageId,
+                         messageObjectId: parentMessageBody._id},
                     messageId: messageBody.messageId,
                     senderObjectId: messageBody.Sender,
+                    Reactions: messageBody.Reactions,
                     Body: messageBody.Body,
                     timestamp:messageBody.SendTimestamp
                 });
@@ -86,4 +144,4 @@ module.exports = function (io) {
             deleteAnonymousName(socket.anonymousName);
         });
     });
-};
+}

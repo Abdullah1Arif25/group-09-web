@@ -48,19 +48,14 @@ const updateGlobalRoom = async function (req, res, next) {
       return res.status(404).json({ message: "Global room not found." });
     }
 
-    const io = req.app.get("io");
-    if (updatedRoom.live_Chat) {
-        io.to(updatedRoom.branchingRoomId).emit("chat-unfrozen");
-    } else {
-        io.to(updatedRoom.branchingRoomId).emit("chat-frozen");
-    }
-
     return res.status(200).json({ message: "success", Object: updatedRoom });
 
   } catch (err) {
     return next(err);
   }
 };
+
+
 
 // Delete global room
 const deleteGlobalRoom = async function (req, res, next) {

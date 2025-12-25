@@ -5,6 +5,7 @@ const messageSchema = new Schema({
   messageId: { type: String, unique: true, required: true, immutable: true, index:true },
   Body: {type: String, required: true },
   SendTimestamp: { type: Date }, 
+  ParentMessageId:{type: Schema.Types.ObjectId , ref: 'messages', required: false},
   Reactions: [{
     userId: { type: Schema.Types.ObjectId, ref: 'User' },
     reaction: { type: String, enum: ['👍', '❤️', '😂', '😢', '😡'] },
