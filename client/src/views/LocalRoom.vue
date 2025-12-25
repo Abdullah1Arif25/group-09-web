@@ -60,15 +60,36 @@
         <div class="room-box" ref="messageBox" @click="closeAllOptions">
 
 
+
             <!--Message-->
              <div
                 v-for="msg in messages"
                 :key="msg.messageId" 
+                :ref="`msg-${msg.messageId}`"
                 class="messageRow"
                 :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
                     activeMessageOption === msg.messageId ? 'messageActive' : ''
                 ]">
+                <!--Parent Message If Responce Ids-->
+                <!--If the current message is a responce to another message it should display the parent message on top-->
+                <!--We can take the parent message and fetch its content on the fly and when the user sends the response message we just attact it -->
+                
+
                 <div class="messageDetailWrapper">
+                    <div
+                    v-if="msg.ParentMessageId"
+                    class="replyPreview"
+                    @click="goToMessage(msg.ParentMessageId.MessageId)"
+                    >
+                    <div class="replyBar"></div>
+                    <div class="replyContent">
+                        <small class="replyLabel">Replying to</small>
+                        <p class="replyText">
+                            {{ msg.ParentMessageId.Body }}
+                        </p>
+                    </div>
+                </div>
+
                 <small class="message-font-style">
                     {{ msg.anonymousName}}
                 </small>
@@ -227,25 +248,91 @@ export default {
         SettingsPopup
     },
 
-    data() {
-        return {
-            message : '',
-            isMenuOpen: false ,
-            branchingRoomTopic: '',
-            branchingRoomId : '',
-            messages:[],
-            senderObjectId:getUserObjectId(),
-            chatListner: null,
-            socket,
-            isFrozen: false,
-            showSettings: false,
-            activeMessageOption: null,
-            parentMessageId: '',
-            showReactionsForMessage: null,
-            REACTIONS,
-            replyBannerActive: null,
-            parentMessageContent: ''
-        };
+
+  data() {
+    return {
+      message: '',
+      isMenuOpen: false,
+      branchingRoomTopic: 'General',
+      branchingRoomId: '',
+      messages: [],
+      senderObjectId: getUserObjectId(),
+      socket,
+      chatListner: null,
+      activeMessageOption: null,
+      parentMessageId: '',
+      showReactionsForMessage: null,
+      REACTIONS,
+      replyBannerActive: '',
+      parentMessageContent: '',
+      isLight: false,
+      showSettings: false,
+      selectedMessageId:'',
+      
+
+    };
+  },
+
+  beforeUnmount() {
+    if (this.socket && this.chatListner) {
+      this.socket.off("chat message", this.chatListner);
+      this.socket.off("respond to a message", this.chatListner);
+      this.socket.off("respond to a message", (msg)=>{
+
+      });
+
+    }
+  },
+
+  async mounted() {
+    await this.getAllBranhingRooms();
+    this.scrollToBottom();
+
+    if (!this.socket.connected) {
+      this.socket.connect();
+    }
+
+    this.chatListner = (msg) => {
+      const exists = this.messages.some(m => m.messageId === msg.messageId);
+      if (exists) return;
+
+      this.messages.push({
+        senderId: msg.senderObjectId,
+        ParentMessageId: msg.ParentMessageId?{
+            Body: msg.ParentMessageId.Body,
+            MessageId: msg.ParentMessageId.messageId,
+            messageObjectId: msg.ParentMessageId._id,
+        }: null,
+        messageObjectId: msg._id,
+        messageId: msg.messageId,
+        ResponseIds: msg.ResponseIds,
+        anonymousName: msg.senderAnonymousName,
+        Body: msg.Body,
+        timestamp: msg.timestamp,
+        reactions: msg.Reactions || []
+      });
+
+      this.$nextTick(this.scrollToBottom);
+    };
+
+    this.socket.on("chat message", this.chatListner);
+    this.socket.on("respond to a message", this.chatListner);
+    this.socket.on("react to message", (msg)=>{
+        const target = this.messages.find(m=> m.messageId === msg.messageId);
+        if(target) target.reactions = msg.Reactions || [];
+    });
+
+    if (this.branchingRoomId && this.senderObjectId) {
+      this.socket.emit("join room", {
+        userId: this.senderObjectId,
+        roomId: this.branchingRoomId
+      });
+    }
+  },
+
+  watch: {
+    messages() {
+      this.$nextTick(this.scrollToBottom);
     },
     beforeUnmount(){
         if(this.socket && this.chatListner){
@@ -338,9 +425,21 @@ export default {
       }
     },
 
-    goToMain() {
-            this.$router.push("/main");
-        },
+    goToMessage(parentMessageId){
+       this.$nextTick(()=>{
+        const ref = this.$refs?.[`msg-${parentMessageId}`];
+        const el = Array.isArray(ref)? ref[0]:ref;
+
+        if(!el){
+            console.warn("No Dom ref for mresage", parentMessageId);
+            return;
+        }
+         el.scrollIntoView({
+                behavior:"smooth"
+            });
+       });
+
+    },
 
     openOptionMenu(messageId) {
       this.activeMessageOption = messageId;
@@ -355,8 +454,22 @@ export default {
       this.isMenuOpen = true;
     },
 
+    ifParentMessage(msg){
+        if(msg.ParentMessageId) return true;
+    },
+
     closeMenu() {
       this.isMenuOpen = false;
+    },
+
+    async editMessage(msg){
+        const messageExist = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+        if(!messageExist){
+            throw new Error("Message Does not exist");
+        }
+        this.selectedMessageId = msg.messageId;
+
+
     },
 
     async replyToMessage(msg) {
@@ -392,6 +505,13 @@ export default {
 
       this.messages = res.data.map(m => ({
         senderId: m.Sender._id,
+        ParentMessageId: m.ParentMessageId ? {
+            ParentMessageObjectId:m.ParentMessageId._id,
+            Body:m.ParentMessageId.Body,
+            MessageId: m.ParentMessageId.messageId,
+        }: null,
+        messageObjectId: m._id,
+        ResponseIds: m.ResponseIds,
         messageId: m.messageId,
         anonymousName: m.anonymousName,
         Body: m.Body,
@@ -425,8 +545,8 @@ export default {
       }
 
       this.message = '';
-      this.replyBannerActive=null;
-      parentMessageContent=null;
+      this.replyBannerActive='';
+      this.parentMessageContent="";
     },
 
     toggleReactionMenu(msg) {
@@ -461,7 +581,7 @@ export default {
       this.closeOptionMenu();
     }
   }
-};
+}
 </script>
 
 
@@ -678,6 +798,16 @@ export default {
     border-top-right-radius: 18px;
     z-index: 1000;
     height: var(--footer-h);
+}
+
+.parentMessageDisplay{
+    display: flex;
+    flex:1;
+    background:#fdfdfd;
+    border-radius: 10px;
+    height: 20px;
+    width: 100%;
+    top: 100%;
 }
 
 .profileDetailWrapper {
@@ -931,4 +1061,47 @@ export default {
   font-weight: 700;
   cursor: pointer;
 }
+
+.ThemeToggle:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.replyPreview {
+  display: flex;
+  
+  gap: 8px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  top: 100%;
+  left: 1px;
+  right: 1px;
+}
+
+.replyBar {
+  width: 4px;
+  border-radius: 2px;
+}
+
+.replyContent {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.replyLabel {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.replyText {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+
 </style>
+
