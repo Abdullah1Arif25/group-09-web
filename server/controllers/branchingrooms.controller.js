@@ -48,10 +48,10 @@ const createMessageInABranchingRoom = async function(req, res, next){
 
 // POST: Create A response message in a specific Branching Room and link it to the original message
 const respondtoMessageInABranchingRoom = async function(req, res, next){
-    try{
+       try{
 
         const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});        
-        if(!branchingRoom){ return res.status(400).json({message:"The Branching Room Does not exists"});}
+        if(!branchingRoom){ return res.status(409).json({message:"The Branching Room Does not exists"});}
         const branchingRoomObjectId = branchingRoom._id;
         
         //Check if the Message Already exists
@@ -59,12 +59,11 @@ const respondtoMessageInABranchingRoom = async function(req, res, next){
         const originalMessage = await messagesModel.findOne({messageId: originalMessageId});
 
         if(!originalMessage){ return res.status(400).json({message:"The Message Does not exists"});}
+        const originalMessageObjectId = originalMessage._id;
 
-        const newReponseMessage = await messagesModel.create({BranchingRoom: branchingRoomObjectId, ...req.body});
+        const newReponseMessage = await messagesModel.create({BranchingRoom: branchingRoomObjectId,ParentMessageId:originalMessageObjectId ,  ...req.body});
 
-        originalMessage.ResponseIds.push(newReponseMessage._id);
-        const savedOriginalMessage = await originalMessage.save();
-        await savedOriginalMessage.populate("ResponseIds");
+        await newReponseMessage.populate("ParentMessageId");
 
         res.status(201).json({message: "Success", Object: newReponseMessage});
 
@@ -224,7 +223,7 @@ const getBranchingRoom =  async function(req, res, next){
 const getAllMessagesInBranchingRoom  = async function(req, res, next) {
     try{
         const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});
-        const allmessagesModelInBranchingRoom = await messagesModel.find({BranchingRoom: branchingRoom._id}).populate("BranchingRoom").populate("ResponseIds").populate("Sender");
+        const allmessagesModelInBranchingRoom = await messagesModel.find({BranchingRoom: branchingRoom._id}).populate("BranchingRoom").populate("ParentMessageId").populate("Sender");
         if(!allmessagesModelInBranchingRoom){ res.status(404).json({message:"Not Found"});}
         res.status(200).json(allmessagesModelInBranchingRoom);
 
@@ -239,7 +238,7 @@ const getAMessageInABranchingRoom =  async function(req, res, next){
     try{
         const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});
         const allmessagesModelInBranchingRoom = await messagesModel.find({BranchingRoom: branchingRoom._id});
-        const MessageInBranchingRoom = await messagesModel.findOne({messageId: req.params.messageId}).populate("ResponseIds").populate("BranchingRoom").populate("Sender");
+        const MessageInBranchingRoom = await messagesModel.findOne({messageId: req.params.messageId}).populate("ParentMessageId").populate("BranchingRoom").populate("Sender");
         if(!allmessagesModelInBranchingRoom){ res.status(404).json({message:"Not Found"});}
         res.status(200).json(MessageInBranchingRoom);
 

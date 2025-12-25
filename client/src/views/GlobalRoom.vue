@@ -1,5 +1,6 @@
 <template>
-    <div class="backgroundStyle">
+    <div class="backgroundStyle" :class="{ light: isLight }">
+
 
         <!-- Head banner -->
         <div class="head_banner">
@@ -160,6 +161,9 @@
 
         </div>
 
+        <div v-if="chatPaused" class="chatPaused">
+          {{ chatPausedMessage }}
+        </div>
 
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
@@ -172,29 +176,30 @@
 
             <div class="messageBoxWrapper">
                 <form class="inputContainer" @submit.prevent="sendMessage">
-                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                        <button class="sendbuttonInside" type="submit">
+                    <input class ='messageBoxStyle'type="text" v-model="message" :disabled="chatPaused" :placeholder="chatPaused ? 'Chat is paused' : 'Send a confession or help a fellow....'"/>
+                        <button class="sendbuttonInside" type="submit" :disabled="chatPaused">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                         </button>
                 </form>
             </div>
 
-            <div class="settingButtonWrapper">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="gear" size="2xl" style="color: aliceblue;" />
-                </button>
+            <div class="ThemeToggle">
+              <button class="ThemeToggle" @click="toggleTheme">
+                {{ isLight ? "🌙 Dark" : "☀ Light" }}
+              </button>
             </div>
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;" />
+            <button class="buttonIconStyle" @click="showSettings = true">
+               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;"/>
                 </button>
             </div>
 
         </div>
 
     </div>
+    <SettingsPopup v-if="showSettings" @close="showSettings = false"/>
 </template>
 
 
@@ -204,6 +209,7 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import SettingsPopup from "./SettingsPopup.vue";
 const REACTIONS = [
   { type: "like", emoji: "👍" },
   { type: "love", emoji: "❤️" },
@@ -216,6 +222,7 @@ export default {
     name: 'globalroom',
     components: {
         FontAwesomeIcon,
+        SettingsPopup
     },
 
     data() {
@@ -233,7 +240,12 @@ export default {
             showReactionsForMessage: null,
             REACTIONS,
             replyBannerActive: null,
-            parentMessageContent: ''
+            parentMessageContent: '',
+            isLight: false,
+            showSettings: false,
+            chatPaused: false,
+            chatPausedMessage: "",
+
         };
     },
     beforeUnmount(){
@@ -275,6 +287,17 @@ export default {
           });
         }
 
+        this.socket.on("chat status changed", (data) => {
+        if (data.roomType !== "LocalRoom") 
+          return;
+        this.chatPaused = !data.live;
+        this.chatPausedMessage = this.chatPaused ? "Chat is currently paused by admin" : "";});
+        
+        this.socket.on("chat paused", (data) => {
+          this.chatPaused = true;
+          this.chatPausedMessage = data.message;
+        });
+
         
 
     },
@@ -290,6 +313,9 @@ export default {
         this.fetchMessages().then(() => {
           this.$nextTick(() => this.scrollToBottom());
         });
+
+        this.chatPaused = false;
+        this.chatPausedMessage = "";
       },
     },
     methods:{
@@ -315,6 +341,18 @@ export default {
         closeMenu() {
             this.isMenuOpen = false;
         },
+
+        closeOptionMenu() {
+          this.activeMessageOption = null;
+          this.showReactionsForMessage = null;
+        },
+
+
+        closeAllOptions(){
+        this.closeOptionMenu();
+        this.closeMenu();
+      },
+
         async getAllBranhingRooms(){
             try{
 
@@ -433,7 +471,12 @@ export default {
 
         goToMain() {
             this.$router.push("/main");
-        }
+        },
+
+        toggleTheme() {
+            this.isLight = !this.isLight;
+        },
+
 
     }
 }
@@ -783,8 +826,108 @@ export default {
     transform: translateY(-1px);
 }
 
+.light.backgroundStyle {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.head_title_style {
+  color: white;
+}
+
+.light .head_title_style {
+  color: #2b0d2b;
+}
+
+.buttonIconStyle svg {
+  color: white;
+}
+
+.light .buttonIconStyle svg {
+  color: #2b0d2b;
+}
+
+.light .head_banner {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .categoryDivStyle {
+  background: #ffffff;
+}
+
+.light .categoryTitleStyle {
+  color: #5a2b44;
+}
 
 
+.light .room-box {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.light .sideMenuWrapper {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.light .sideMenuButton {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .messageBoxFlex {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .messageBoxStyle {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .others-message {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .my-message {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle {
+  border-color: rgba(0,0,0,0.25);
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+
+.ThemeToggle {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.ThemeToggle:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.chatPaused {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 6px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.messageBoxStyle:disabled::placeholder {
+  color:#2b0d2b; 
+  font-weight: bold;   
+}
 
 
 </style>

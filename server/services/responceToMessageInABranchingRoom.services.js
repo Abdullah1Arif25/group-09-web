@@ -13,11 +13,11 @@ async function responceToMessageInABranchingRoom(branchingRoomId, anonymousName 
 
         if(!originalMessage){ return console.log("Original Message Does not exist");}
 
-        const newMessage = await Message.create({...MessageBody, BranchingRoom: branchingRoomObjectId, anonymousName : anonymousName});
-        originalMessage.ResponseIds.push(newMessage._id);
-        await originalMessage.populate("ResponseIds");
-        await originalMessage.save();
-        console.log("Success");
+        const originalMessageObjectId = originalMessage._id;
+
+        const newReponseMessage = await Message.create({...MessageBody, BranchingRoom: branchingRoomObjectId, anonymousName : anonymousName, ParentMessageId:originalMessageObjectId});
+
+        const newMessage = await newReponseMessage.populate("ParentMessageId");
 
         return newMessage;
 

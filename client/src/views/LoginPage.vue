@@ -89,7 +89,6 @@
         const response = await Api.post("/users/login", payload);
 
         setUserObjectId(response.data.ObjectId);
-        // localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data));
 
         this.$router.push("/main");
@@ -191,7 +190,7 @@
 .input-group input {
   width: 100%;
   height: 50px;
-  border-radius: 100px;
+  border-radius: 100px !important;
   padding: 0 20px;
   border: none;
   outline: none;

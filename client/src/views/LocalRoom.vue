@@ -1,5 +1,5 @@
 <template>
-    <div class="backgroundStyle">
+    <div class="backgroundStyle" :class="{ light: isLight }">
 
         <!-- Head banner -->
         <div class="head_banner">
@@ -60,15 +60,36 @@
         <div class="room-box" ref="messageBox" @click="closeAllOptions">
 
 
+
             <!--Message-->
              <div
                 v-for="msg in messages"
                 :key="msg.messageId" 
+                :ref="`msg-${msg.messageId}`"
                 class="messageRow"
                 :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
                     activeMessageOption === msg.messageId ? 'messageActive' : ''
                 ]">
+                <!--Parent Message If Responce Ids-->
+                <!--If the current message is a responce to another message it should display the parent message on top-->
+                <!--We can take the parent message and fetch its content on the fly and when the user sends the response message we just attact it -->
+                
+
                 <div class="messageDetailWrapper">
+                    <div
+                    v-if="msg.ParentMessageId"
+                    class="replyPreview"
+                    @click="goToMessage(msg.ParentMessageId.MessageId)"
+                    >
+                    <div class="replyBar"></div>
+                    <div class="replyContent">
+                        <small class="replyLabel">Replying to</small>
+                        <p class="replyText">
+                            {{ msg.ParentMessageId.Body }}
+                        </p>
+                    </div>
+                </div>
+
                 <small class="message-font-style">
                     {{ msg.anonymousName}}
                 </small>
@@ -149,6 +170,9 @@
 
         </div>
 
+        <div v-if="chatPaused" class="chatPaused">
+          {{ chatPausedMessage }}
+        </div>
         
         <!-- Footer and bottom banner -->
         <div class="messageBoxFlex">
@@ -161,29 +185,29 @@
 
             <div class="messageBoxWrapper">
                 <form class="inputContainer" @submit.prevent="sendMessage">
-                    <input class ='messageBoxStyle'type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                        <button class="sendbuttonInside" type="submit">
+                    <input class ='messageBoxStyle'type="text" v-model="message" :disabled="chatPaused" :placeholder="chatPaused ? 'Chat is paused' : 'Send a confession or help a fellow....'"/>
+                        <button class="sendbuttonInside" type="submit" :disabled="chatPaused">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
                         </button>
                 </form>
             </div>
 
-            <div class="settingButtonWrapper">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="gear" size="2xl"style="color: aliceblue;" />
-                </button>
+            <div class="ThemeToggle">
+              <button class="ThemeToggle" @click="toggleTheme">
+                {{ isLight ? "🌙 Dark" : "☀ Light" }}
+              </button>
             </div>
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" @click="exitRoom()">
+            <button class="buttonIconStyle" @click="showSettings = true">
                <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl"style="color: aliceblue;" />
                 </button>
             </div>
 
         </div>
     </div>
-
+    <SettingsPopup v-if="showSettings" @close="showSettings = false"/>
 </template>
 
 
@@ -193,6 +217,8 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import SettingsPopup from "./SettingsPopup.vue";
+
 
 const REACTIONS = [
   { type: "like", emoji: "👍" },
@@ -203,8 +229,12 @@ const REACTIONS = [
 ];
 
 export default {
-  name: 'localroom',
-  components: { FontAwesomeIcon },
+    name: 'localroom',
+    components: {
+        FontAwesomeIcon,
+        SettingsPopup
+    },
+
 
   data() {
     return {
@@ -220,8 +250,14 @@ export default {
       parentMessageId: '',
       showReactionsForMessage: null,
       REACTIONS,
-      replyBannerActive: null,
-      parentMessageContent: ''
+      replyBannerActive: '',
+      parentMessageContent: '',
+      isLight: false,
+      showSettings: false,
+      selectedMessageId:'',
+      chatPaused: false,
+      chatPausedMessage: "",
+
     };
   },
 
@@ -229,6 +265,10 @@ export default {
     if (this.socket && this.chatListner) {
       this.socket.off("chat message", this.chatListner);
       this.socket.off("respond to a message", this.chatListner);
+      this.socket.off("respond to a message", (msg)=>{
+
+      });
+
     }
   },
 
@@ -246,7 +286,15 @@ export default {
 
       this.messages.push({
         senderId: msg.senderObjectId,
+        ParentMessageId: msg.ParentMessageId?{
+            Body: msg.ParentMessageId.Body,
+            MessageId: msg.ParentMessageId.messageId,
+            messageObjectId: msg.ParentMessageId._id,
+        }: null,
+        messageObjectId: msg._id,
         messageId: msg.messageId,
+        ResponseIds: msg.ResponseIds,
+
         anonymousName: msg.senderAnonymousName,
         Body: msg.Body,
         timestamp: msg.timestamp,
@@ -258,6 +306,10 @@ export default {
 
     this.socket.on("chat message", this.chatListner);
     this.socket.on("respond to a message", this.chatListner);
+    this.socket.on("react to message", (msg)=>{
+        const target = this.messages.find(m=> m.messageId === msg.messageId);
+        if(target) target.reactions = msg.Reactions || [];
+    });
 
     if (this.branchingRoomId && this.senderObjectId) {
       this.socket.emit("join room", {
@@ -265,6 +317,19 @@ export default {
         roomId: this.branchingRoomId
       });
     }
+
+
+    this.socket.on("chat status changed", (data) => {
+    if (data.roomType !== "LocalRoom") 
+      return;
+    this.chatPaused = !data.live;
+    this.chatPausedMessage = this.chatPaused ? "Chat is currently paused by admin" : "";});
+    
+    this.socket.on("chat paused", (data) => {
+      this.chatPaused = true;
+      this.chatPausedMessage = data.message;
+    });
+
   },
 
   watch: {
@@ -283,12 +348,15 @@ export default {
       this.fetchMessages().then(() => {
         this.$nextTick(this.scrollToBottom);
       });
+
+      this.chatPaused = false;
+      this.chatPausedMessage = "";
     }
   },
 
   methods: {
     DisableReplyBanner(){
-        this.replyBannerActive = false;
+        this.replyBannerActive ='';
     },
     closeAllOptions(){
         this.closeOptionMenu();
@@ -309,6 +377,23 @@ export default {
       }
     },
 
+
+    goToMessage(parentMessageId){
+       this.$nextTick(()=>{
+        const ref = this.$refs?.[`msg-${parentMessageId}`];
+        const el = Array.isArray(ref)? ref[0]:ref;
+
+        if(!el){
+            console.warn("No Dom ref for mresage", parentMessageId);
+            return;
+        }
+         el.scrollIntoView({
+                behavior:"smooth"
+            });
+       });
+
+    },
+
     openOptionMenu(messageId) {
       this.activeMessageOption = messageId;
     },
@@ -322,8 +407,22 @@ export default {
       this.isMenuOpen = true;
     },
 
+    ifParentMessage(msg){
+        if(msg.ParentMessageId) return true;
+    },
+
     closeMenu() {
       this.isMenuOpen = false;
+    },
+
+    async editMessage(msg){
+        const messageExist = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+        if(!messageExist){
+            throw new Error("Message Does not exist");
+        }
+        this.selectedMessageId = msg.messageId;
+
+
     },
 
     async replyToMessage(msg) {
@@ -359,6 +458,13 @@ export default {
 
       this.messages = res.data.map(m => ({
         senderId: m.Sender._id,
+        ParentMessageId: m.ParentMessageId ? {
+            ParentMessageObjectId:m.ParentMessageId._id,
+            Body:m.ParentMessageId.Body,
+            MessageId: m.ParentMessageId.messageId,
+        }: null,
+        messageObjectId: m._id,
+        ResponseIds: m.ResponseIds,
         messageId: m.messageId,
         anonymousName: m.anonymousName,
         Body: m.Body,
@@ -392,8 +498,9 @@ export default {
       }
 
       this.message = '';
-      this.replyBannerActive=null;
-      parentMessageContent=null;
+      this.replyBannerActive='';
+      this.parentMessageContent="";
+
     },
 
     toggleReactionMenu(msg) {
@@ -412,23 +519,30 @@ export default {
             throw new Error("Only one reaction is reaction")
             return;
         };
-      const res = await Api.post(
-        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
-        {
-          reaction,
-          userId: this.senderObjectId
-        }
-      );
 
-      const msg = this.messages.find(m => m.messageId === messageId);
-      if (msg) {
-        msg.reactions = res.data.reactions || [];
-      }
+        const payload = {
+            branchingRoomId: this.branchingRoomId, 
+            messageId: messageId, 
+            userId: this.senderObjectId,
+            reaction: reaction
+            
+        }
+
+        this.socket.emit("react to message", payload);
+
+      // const msg = this.messages.find(m => m.messageId === messageId);
+      // if (msg) {
+      //   msg.reactions = res.data.reactions || [];
+      // }
 
       this.closeOptionMenu();
-    }
+    }, 
+
+    toggleTheme() {
+            this.isLight = !this.isLight;
+        },
   }
-};
+}
 </script>
 
 
@@ -645,6 +759,16 @@ export default {
     border-top-right-radius: 18px;
     z-index: 1000;
     height: var(--footer-h);
+}
+
+.parentMessageDisplay{
+    display: flex;
+    flex:1;
+    background:#fdfdfd;
+    border-radius: 10px;
+    height: 20px;
+    width: 100%;
+    top: 100%;
 }
 
 .profileDetailWrapper {
@@ -864,4 +988,149 @@ export default {
   left: 12px;
 }
 
+.light.backgroundStyle {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.head_title_style {
+  color: white;
+}
+
+.light .head_title_style {
+  color: #2b0d2b;
+}
+
+.buttonIconStyle svg {
+  color: white;
+}
+
+.light .buttonIconStyle svg {
+  color: #2b0d2b;
+}
+
+.light .head_banner {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .categoryDivStyle {
+  background: #ffffff;
+}
+
+.light .categoryTitleStyle {
+  color: #5a2b44;
+}
+
+.light .room-box {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.light .sideMenuWrapper {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.light .sideMenuButton {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .messageBoxFlex {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .messageBoxStyle {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .others-message {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .my-message {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle {
+  border-color: rgba(0,0,0,0.25);
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+
+.ThemeToggle {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 6px 8px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.3s;
+}
+
+.ThemeToggle:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+
+.replyPreview {
+  display: flex;
+  
+  gap: 8px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.08);
+  top: 100%;
+  left: 1px;
+  right: 1px;
+}
+
+.replyBar {
+  width: 4px;
+  border-radius: 2px;
+}
+
+.replyContent {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.replyLabel {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+.replyText {
+  font-size: 0.8rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chatPaused {
+  background: rgba(0,0,0,0.7);
+  color: #2b0d2b;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 6px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.messageBoxStyle:disabled::placeholder {
+  color:#2b0d2b; 
+  font-weight: bold;   
+}
+
+
+
+
+
 </style>
+
+
+
