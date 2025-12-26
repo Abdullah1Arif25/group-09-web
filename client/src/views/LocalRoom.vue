@@ -425,6 +425,16 @@ export default {
 
     },
 
+    async deleteMessage(msg){
+      const messageExist = await Api.delete(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+        if(!messageExist){
+            throw new Error("Message Does not exist");
+        }
+        this.activeMessageOption = '';
+        this.fetchMessages();
+
+    },
+
     async replyToMessage(msg) {
       await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
       this.parentMessageId = msg.messageId;
