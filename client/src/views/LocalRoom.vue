@@ -130,11 +130,23 @@
                     @click.self="closeOptionMenu()">
 
                     <div class="optionMenuContent" @click.stop>
-                        <button class="optionMenuButton" @click="replyToMessage(msg)">Reply</button>
-                        <button class="optionMenuButton" @click="toggleReactionMenu(msg)">React</button>
-                        <button class="optionMenuButton" @click="editMessage(msg)">Edit</button>
-                        <button class="optionMenuButton" @click="deleteMessage(msg)">Delete</button>
-                    </div>
+                    <!-- Everyone can reply -->
+                    <button class="optionMenuButton" @click="replyToMessage(msg)">Reply</button>
+                    <!-- Everyone can react -->
+                    <button class="optionMenuButton" @click="toggleReactionMenu(msg)">React</button>
+                    <!-- only sender can edit -->
+                    <button
+                      v-if="String(msg.senderId) === String(senderObjectId)"
+                      class="optionMenuButton"
+                      @click="editMessage(msg)">Edit</button>
+                    <!-- only sender can delete -->
+                    <button
+                      v-if="String(msg.senderId) === String(senderObjectId)"
+                      class="optionMenuButton"
+                      @click="deleteMessage(msg)">Delete</button>
+
+                </div>
+
 
                     <!-- Reaction Menu -->
                     <div
@@ -185,9 +197,15 @@
 
             <div class="messageBoxWrapper">
                 <form class="inputContainer" @submit.prevent="sendMessage">
-                    <input class ='messageBoxStyle'type="text" v-model="message" :disabled="chatPaused" :placeholder="chatPaused ? 'Chat is paused' : 'Send a confession or help a fellow....'"/>
+                    <input class ='messageBoxStyle'type="text" v-model="message" :disabled="chatPaused" :placeholder=" 
+                      chatPaused ? 'Chat is paused' : 
+                      isEditing ? 'Editing message…' : 
+                      'Send a confession or help a fellow....' " />
                         <button class="sendbuttonInside" type="submit" :disabled="chatPaused">
                             <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
+                        </button>
+                        <button v-if="isEditing" class="cancelbuttonInside" @click="cancelEdit">
+                          <FontAwesomeIcon  icon="fa-solid fa-xmark" size="xl"style="color: #2b0d2b;" />
                         </button>
                 </form>
             </div>
@@ -257,6 +275,11 @@ export default {
       selectedMessageId:'',
       chatPaused: false,
       chatPausedMessage: "",
+      messageInput: "",
+      selectedMessageId: null,
+      isEditing: false,
+      originalEditMessage: '',
+      
 
     };
   },
@@ -416,12 +439,11 @@ export default {
     },
 
     async editMessage(msg){
-        const messageExist = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
-        if(!messageExist){
-            throw new Error("Message Does not exist");
-        }
-        this.selectedMessageId = msg.messageId;
-
+      this.isEditing = true;
+      this.selectedMessageId = msg.messageId;
+      this.originalEditMessage = msg.Body; 
+      this.message = msg.Body;
+      this.closeOptionMenu();
 
     },
 
@@ -485,6 +507,29 @@ export default {
 
     async sendMessage() {
       if (!this.message.trim() || !this.branchingRoomId) return;
+
+        if (this.isEditing && this.selectedMessageId) {
+          try {
+            await Api.patch(
+              `/branchingrooms/${this.branchingRoomId}/messages/${this.selectedMessageId}`,
+              {
+                Body: this.message
+              }
+            );
+            
+            this.isEditing = false;
+            this.selectedMessageId = null;
+            this.message = '';
+            this.replyBannerActive = '';
+            this.parentMessageContent = '';
+            
+            await this.fetchMessages();
+            return;
+          } catch (err) {
+            console.error("Failed to edit message:", err);
+            return;
+          }
+        }
 
       const messageId = this.parentMessageId
         ? `responceMessageId${Math.floor(Math.random() * 100000)}`
@@ -551,6 +596,13 @@ export default {
     toggleTheme() {
             this.isLight = !this.isLight;
         },
+
+    cancelEdit() {
+      this.isEditing = false;
+      this.selectedMessageId = null;
+      this.message = '';              
+      this.originalEditMessage = ''; 
+    },
   }
 }
 </script>
@@ -840,6 +892,16 @@ export default {
     border: none;
     position: absolute;
     right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.cancelbuttonInside {
+    background: transparent;
+    border: none;
+    position: absolute;
+    right: 80px;
     top: 50%;
     transform: translateY(-50%);
     cursor: pointer;
