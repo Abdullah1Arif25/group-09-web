@@ -1,5 +1,6 @@
 <template>
-    <div class="backgroundStyle">
+    <div class="backgroundStyle" :class="{ light: isLight }">
+
 
         <!-- Head banner -->
         <div class="head_banner">
@@ -64,21 +65,116 @@
         </div>
 
 
-        <!-- Empty boom -->
-        <div class="room-box" ref="messageBox">
+              <!-- Empty room -->
+        <div class="room-box" ref="messageBox" @click="closeAllOptions">
+
+
+            <!--Message-->
              <div
                 v-for="msg in messages"
-                :key="msg.senderId" 
-                :class="['messageBox-style', String(msg.senderObjectId) === String(this.senderObjectId) ? 'my-message':'others-message']">
+                :key="msg.messageId" 
+                class="messageRow"
+                :class="[String(msg.senderId) === String(this.senderObjectId) ? 'my-message':'others-message',
+                    activeMessageOption === msg.messageId ? 'messageActive' : ''
+                ]">
+                <div class="messageDetailWrapper">
+                <small class="message-font-style">
+                    {{ msg.anonymousName}}
+                </small>
+
                 <p class="message-text-style">
                     {{ msg.Body }}
                 </p>
+
                 <small class="message-font-style">
                     {{ new Date(msg.timestamp).toLocaleDateString() }}
                 </small>
-            
+
+                </div>
+
+                <div
+                  v-if="msg.reactions && msg.reactions.length"
+                  class="messageReactions">
+                  <span
+                    v-for="(r, index) in msg.reactions"
+                    :key="index"
+                    class="reactionEmoji">
+                    {{ r.reaction }}
+                  </span>
+                </div>
+
+                <!--Option Button-->
+
+
+                <div 
+                    class="optionButtonWrapper">
+                    <button class="optionButtonStyle" @click.stop="openOptionMenu(msg.messageId)">•••</button>
+                </div>
+                
+                <!-- Option Menu -->
+                <div 
+                    class="optionMenuOverlay"
+                    v-if="activeMessageOption === msg.messageId"
+                    @click.self="closeOptionMenu()">
+
+                    <div class="optionMenuContent" @click.stop>
+                    <!-- Everyone can reply -->
+                    <button class="optionMenuButton" @click="replyToMessage(msg)">Reply</button>
+                    <!-- Everyone can react -->
+                    <button class="optionMenuButton" @click="toggleReactionMenu(msg)">React</button>
+                    <!-- only sender can edit -->
+                    <button
+                      v-if="String(msg.senderId) === String(senderObjectId)"
+                      class="optionMenuButton"
+                      @click="editMessage(msg)">Edit</button>
+                    <!-- only sender can delete -->
+                    <button
+                      v-if="String(msg.senderId) === String(senderObjectId)"
+                      class="optionMenuButton"
+                      @click="deleteMessage(msg)">Delete</button>
+                    <!-- only sender can delete -->
+                    <button class="optionMenuButton" @click="translateMessage(msg)">Translate</button>
+
+                </div>
+
+                    <!-- Reaction Menu -->
+
+                    <div
+                        v-if="showReactionsForMessage === activeMessageOption"
+                        class="reactionPicker">
+                        <button
+                            v-for="reaction in REACTIONS"
+                            :key="reaction.type"
+                            class="reactionButton"
+                            @click="reactToMessage(this.activeMessageOption, reaction.emoji)">
+                            {{ reaction.emoji }}
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
+        </div>
+
+        
+        <!--Parent Message in case of responce-->   
+        <div
+         v-if="this.replyBannerActive"
+         class ="parentMessageResponceLayout"
+         :class="[this.replyBannerActive ? showParentMessage: '']">
+
+         <div class="parentMessageTextLayout">
+            <small>Replying to {{this.replyBannerActive }}</small>
+            <p>{{this.parentMessageContent }}</p>
+
+         </div>
+         <button @click.self="DisableReplyBanner()" class="closeButtonIconStyle">x</button>
+
+
+        </div>
+
+        <div v-if="chatPaused" class="chatPaused">
+          {{ chatPausedMessage }}
         </div>
 
         <!-- Footer and bottom banner -->
@@ -91,41 +187,34 @@
             />
 
             <div class="messageBoxWrapper">
-                <div class="inputContainer">
-                <input class ='messageBoxStyle' type="text" v-model="message" placeholder="Send a confession or help a fellow.... "/>
-                <button class="sendbuttonInside" @click="sendMessage">
-                    <FontAwesomeIcon  icon="paper-plane" size="xl" style="color: #2b0d2b;"  />
-                    </button>
-                </div>
+                <form class="inputContainer" @submit.prevent="sendMessage">
+                    <input class ='messageBoxStyle'type="text" v-model="message" :disabled="chatPaused" :placeholder="chatPaused ? 'Chat is paused' : 'Send a confession or help a fellow....'"/>
+                        <button class="sendbuttonInside" type="submit" :disabled="chatPaused">
+                            <FontAwesomeIcon  icon="paper-plane" size="xl"style="color: #2b0d2b;"  />
+                        </button>
+                        <button v-if="isEditing" class="cancelbuttonInside" @click="cancelEdit">
+                          <FontAwesomeIcon  icon="fa-solid fa-xmark" size="xl"style="color: #2b0d2b;" />
+                        </button>
+                </form>
             </div>
 
-            <div class="settingButtonWrapper" @click="showSettings = true">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="gear" size="2xl" style="color: aliceblue;" />
-                </button>
+            <div class="ThemeToggle">
+              <button class="ThemeToggle" @click="toggleTheme">
+                {{ isLight ? "🌙 Dark" : "☀ Light" }}
+              </button>
             </div>
 
             <!-- Exit button -->
             <div class="exitButtonWrapper">
-            <button class="buttonIconStyle" >
-               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;" />
+            <button class="buttonIconStyle" @click="showSettings = true">
+               <FontAwesomeIcon icon="arrow-right-from-bracket" size="2xl" style="color: aliceblue;"/>
                 </button>
             </div>
 
         </div>
-        <div v-if="isFrozen" class="frozen-overlay">
-            <div class="frozen-card">
-                <p class="frozen-text">
-                    Chat is paused. This room is currently unavailable.
-                </p>
-                <button class="frozen-exit-button" @click="goToMain">
-                    Exit
-                 </button>
-            </div>
-        </div>
 
     </div>
-    <SettingsPopup v-if="showSettings" @close="showSettings = false" />
+    <SettingsPopup v-if="showSettings" @close="showSettings = false"/>
 </template>
 
 
@@ -135,7 +224,14 @@ import { Api } from '@/Api';
 import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import  SettingsPopup  from './SettingsPopup.vue';
+import SettingsPopup from "./SettingsPopup.vue";
+const REACTIONS = [
+  { type: "like", emoji: "👍" },
+  { type: "love", emoji: "❤️" },
+  { type: "laugh", emoji: "😂" },
+  { type: "sad", emoji: "😢" },
+  { type: "angry", emoji: "😡" }
+];
 
 export default {
     name: 'globalroom',
@@ -154,8 +250,21 @@ export default {
             senderObjectId:getUserObjectId(),
             chatListner: null,
             socket,
-            isFrozen: false,
-            showSettings: false
+            activeMessageOption: null,
+            parentMessageId: '',
+            showReactionsForMessage: null,
+            REACTIONS,
+            replyBannerActive: null,
+            parentMessageContent: '',
+            isLight: false,
+            showSettings: false,
+            chatPaused: false,
+            chatPausedMessage: "",
+            messageInput: "",
+            selectedMessageId: null,
+            isEditing: false,
+            originalEditMessage: '',
+
         };
     },
     beforeUnmount(){
@@ -185,12 +294,6 @@ export default {
         });
         this.socket.on("chat message",this.chatListner);
 
-        this.socket.on("chat-frozen", () => {
-            this.isFrozen = true;});
-            
-        this.socket.on("chat-unfrozen", () => {
-            this.isFrozen = false;});
-
          this.$nextTick(() => {
             this.scrollToBottom();
         });
@@ -202,6 +305,17 @@ export default {
             roomId: this.branchingRoomId,
           });
         }
+
+        this.socket.on("chat status changed", (data) => {
+        if (data.roomType !== "LocalRoom") 
+          return;
+        this.chatPaused = !data.live;
+        this.chatPausedMessage = this.chatPaused ? "Chat is currently paused by admin" : "";});
+        
+        this.socket.on("chat paused", (data) => {
+          this.chatPaused = true;
+          this.chatPausedMessage = data.message;
+        });
 
         
 
@@ -218,6 +332,9 @@ export default {
         this.fetchMessages().then(() => {
           this.$nextTick(() => this.scrollToBottom());
         });
+
+        this.chatPaused = false;
+        this.chatPausedMessage = "";
       },
     },
     methods:{
@@ -227,6 +344,9 @@ export default {
             this.getAllBranhingRooms();
 
         },
+            openOptionMenu(messageId) {
+      this.activeMessageOption = messageId;
+    },
         scrollToBottom(){
             const box = this.$refs.messageBox;
             if(box){
@@ -240,6 +360,27 @@ export default {
         closeMenu() {
             this.isMenuOpen = false;
         },
+
+        closeOptionMenu() {
+          this.activeMessageOption = null;
+          this.showReactionsForMessage = null;
+        },
+
+
+        closeAllOptions(){
+        this.closeOptionMenu();
+        this.closeMenu();
+      },
+
+      async editMessage(msg){
+      this.isEditing = true;
+      this.selectedMessageId = msg.messageId;
+      this.originalEditMessage = msg.Body; 
+      this.message = msg.Body;
+      this.closeOptionMenu();
+
+    },
+
         async getAllBranhingRooms(){
             try{
 
@@ -272,67 +413,128 @@ export default {
                 console.log(err);
             }
         },
-
-        async fetchMessages(){
-            try{
-                const allMessage = await Api.get(`/branchingrooms/${this.branchingRoomId}/messages`);
-                this.messages = allMessage.data.map((m)=>({
-                    senderObjectId: m.Sender._id || m.Sender || null,
-                    anonymousName: m.anonymousName,
-                    Body: m.Body,timestamp:
-                    m.SendTimestamp,
-
-                }));
-
-            } catch(err){
-                console.log(err);
-
-            }
+         async replyToMessage(msg) {
+            await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
+            this.parentMessageId = msg.messageId;
+            this.replyBannerActive = msg.messageId;
+            this.parentMessageContent = msg.Body;
+            this.closeOptionMenu();
         },
 
-         async sendMessage(){
-            try{
+    async fetchMessages() {
+      const res = await Api.get(
+        `/branchingrooms/${this.branchingRoomId}/messages`
+      );
 
-                if (this.isFrozen) return;
-                if(!this.message.trim()) return;
+      this.messages = res.data.map(m => ({
+        senderId: m.Sender._id,
+        messageId: m.messageId,
+        anonymousName: m.anonymousName,
+        Body: m.Body,
+        timestamp: m.SendTimestamp,
+        reactions: m.Reactions || []
+      }));
+    },
 
-                if(!this.branchingRoomId){
-                    console.log("No Branching room selected");
-                    return;
-                }
+    async sendMessage() {
+      if (!this.message.trim() || !this.branchingRoomId) return;
 
+      if (this.isEditing && this.selectedMessageId) {
+          try {
+            await Api.patch(
+              `/branchingrooms/${this.branchingRoomId}/messages/${this.selectedMessageId}`,
+              {
+                Body: this.message
+              }
+            );
+            
+            this.isEditing = false;
+            this.selectedMessageId = null;
+            this.message = '';
+            this.replyBannerActive = '';
+            this.parentMessageContent = '';
+            
+            await this.fetchMessages();
+            return;
+          } catch (err) {
+            console.error("Failed to edit message:", err);
+            return;
+          }
+        }
 
-                if (!this.senderObjectId) {
-                    console.error("No sender ID in cache (user not logged in or cache lost)");
-                    this.$router.push('/login');
-                    return;
-                }
-                const messageId = "messageId" + Math.floor(Math.random() *100000);
-                const  currentTime = new  Date().toISOString();
-                const messageData =  {
-                    messageId: messageId,
-                    Body: this.message,
-                    SendTimestamp: currentTime,
-                    Reaction: null,
-                    ResponseIds: [],
-                    Sender: this.senderObjectId
-                    
+      const messageId = this.parentMessageId
+        ? `responceMessageId${Math.floor(Math.random() * 100000)}`
+        : `messageId${Math.floor(Math.random() * 100000)}`;
 
-                };
-                if (this.socket) {
-                  this.socket.emit("chat message", messageData);
-                }
+      const payload = {
+        messageId,
+        Body: this.message,
+        SendTimestamp: new Date().toISOString(),
+        Sender: this.senderObjectId
+      };
 
-                this.message = '';
+      if (this.parentMessageId) {
+        this.socket.emit("respond to a message", {
+          responceMessageData: payload,
+          parentMessageId: this.parentMessageId
+        });
+        this.parentMessageId = '';
+      } else {
+        this.socket.emit("chat message", payload);
+      }
 
-            } catch(err){
-                console.log(err);
-            }
-        },
+      this.message = '';
+      this.replyBannerActive=null;
+      this.parentMessageContent='';
+    },
+
+    toggleReactionMenu(msg) {
+      this.showReactionsForMessage =
+        this.showReactionsForMessage === msg.messageId ? null : msg.messageId;
+    },
+
+    async reactToMessage(messageId, reaction) {
+        const originalMessage = await Api.get( `/branchingrooms/${this.branchingRoomId}/messages/${messageId}`);
+        const reactionList = originalMessage.data.Reactions;
+
+        const existingReaction = reactionList.find(
+          r => r.userId === this.senderObjectId
+        );
+        if (existingReaction){
+            throw new Error("Only one reaction is reaction")
+            return;
+        };
+      const res = await Api.post(
+        `/branchingrooms/${this.branchingRoomId}/messages/${messageId}/reactions`,
+        {
+          reaction,
+          userId: this.senderObjectId
+        }
+      );
+
+      const msg = this.messages.find(m => m.messageId === messageId);
+      if (msg) {
+        msg.reactions = res.data.reactions || [];
+      }
+
+      this.closeOptionMenu();
+    },
 
         goToMain() {
             this.$router.push("/main");
-        }
+        },
+
+        toggleTheme() {
+            this.isLight = !this.isLight;
+        },
+
+        cancelEdit() {
+          this.isEditing = false;
+          this.selectedMessageId = null;
+          this.message = '';              
+          this.originalEditMessage = ''; 
+        },
+
 
     }
 }
@@ -607,38 +809,193 @@ export default {
   opacity: 0.7;
 }
 
-.frozen-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(117, 92, 117, 0.4);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+
+/* Option Menu */
+.optionButtonWrapper {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
 }
 
-.frozen-card {
-  background: linear-gradient(#4a1f3c, #6d2a46);
-  padding: 30px 40px;
-  border-radius: 28px;
-  text-align: center;
-  max-width: 420px;
-  width: 85%;
+.optionButtonStyle {
+    background: transparent;
+    border: none;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.15s ease;
 }
 
-.frozen-text {
-  color: #f6e6e6;
-  font-size: 20px;
-  font-weight: 600;
-  margin-bottom: 24px;
+.optionButtonStyle:hover {
+    background: rgba(255, 255, 255, 0.18);
 }
 
-.frozen-exit-button {
-  background: linear-gradient(#ffc2c2, #936480);
-  border: none;
+.optionMenuOverlay {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 8px;
+    background: rgba(40, 20, 35, 0.92);
+    backdrop-filter: blur(8px);
+    border-radius: 14px;
+    padding: 10px;
+    z-index: 20000;
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+}
+
+.others-message.optionMenuOverlay {
+    left: 10px;
+    right: auto;
+}
+
+.optionMenuOverlay.visibleOption {
+    right: 0;
+}
+
+.optionMenuContent {
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    justify-content: space-between;
+}
+
+.optionMenuButton {
+    all: unset;
+    flex: 1;
+    padding: 12px 0;
+    border-radius: 12px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    text-align: center;
+    cursor: pointer;
+    background: rgba(255, 255, 255, 0.18);
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.optionMenuButton:hover {
+    background: rgba(255, 255, 255, 0.28);
+    transform: translateY(-1px);
+}
+
+.cancelbuttonInside {
+    background: transparent;
+    border: none;
+    position: absolute;
+    right: 80px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.light.backgroundStyle {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.head_title_style {
+  color: white;
+}
+
+.light .head_title_style {
+  color: #2b0d2b;
+}
+
+.buttonIconStyle svg {
+  color: white;
+}
+
+.light .buttonIconStyle svg {
+  color: #2b0d2b;
+}
+
+.light .head_banner {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .categoryDivStyle {
+  background: #ffffff;
+}
+
+.light .categoryTitleStyle {
+  color: #5a2b44;
+}
+
+
+.light .room-box {
+  background: linear-gradient(#f5e1e6, #d6b2bf);
+}
+
+.light .sideMenuWrapper {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.light .sideMenuButton {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .messageBoxFlex {
+  background: linear-gradient(#f3dbe3, #caa0b1);
+}
+
+.light .messageBoxStyle {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .others-message {
+  background: linear-gradient(#7a3b5a, #9a5f7a);
+}
+
+.light .my-message {
+  background: white;
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle {
+  border-color: rgba(0,0,0,0.25);
+  color: #2b0d2b;
+}
+
+.light .ThemeToggle:hover {
+  background: rgba(0,0,0,0.08);
+}
+
+
+.ThemeToggle {
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.35);
+  color: white;
+  padding: 6px 8px;
   border-radius: 20px;
-  padding: 12px 36px;
-  font-size: 16px;
-  font-weight: 700;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: 0.3s;
 }
+
+.ThemeToggle:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+.chatPaused {
+  background: rgba(0,0,0,0.7);
+  color: white;
+  padding: 10px;
+  border-radius: 12px;
+  margin: 6px 12px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.messageBoxStyle:disabled::placeholder {
+  color:#2b0d2b; 
+  font-weight: bold;   
+}
+
+
 </style>
