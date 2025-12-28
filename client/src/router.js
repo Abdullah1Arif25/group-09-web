@@ -12,6 +12,7 @@ import AdminPage from './views/AdminPage.vue';
 import UsersPage from "./views/UsersPage.vue";
 
 
+
 const routes = [
   { path: '/', name: 'home', component: Home },
   { path: '/login', name: 'login', component: LoginPage },
@@ -23,7 +24,6 @@ const routes = [
   { path: '/profile', name: 'profile', component: ProfilePage },
   { path: '/admin', name: 'admin', component: AdminPage },
   { path: "/admin/users", name: "admin-users",component: UsersPage },
-  
 ]
 
 const router = createRouter({

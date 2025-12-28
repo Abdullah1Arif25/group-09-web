@@ -56,7 +56,6 @@ const getLocalRoom = async function(req, res, next){
     } 
 };
 
-
 // Update One Local Room
 const updateLocalRoom = async (req, res, next) => {
   try {
@@ -77,19 +76,12 @@ const updateLocalRoom = async (req, res, next) => {
     }
 
 
-    const io = req.app.get("io");
-    if (updatedRoom.liveChat) {
-        io.to(updatedRoom.branchingRoomId).emit("chat-unfrozen");
-    } else {
-        io.to(updatedRoom.branchingRoomId).emit("chat-frozen");
-    }
-
-
     res.status(200).json(updatedRoom);
   } catch (err) {
     next(err);
   }
 };
+
 
 
 // Delete One Local Rooms
