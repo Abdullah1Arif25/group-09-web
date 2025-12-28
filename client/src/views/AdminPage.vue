@@ -6,7 +6,9 @@
 
       <!-- Buttons -->
       <div class="controls">
-        <button class="admin-button">Create Topic Rooms</button>
+        <button class="admin-button" @click="$router.push('/admin/createrooms')">
+        Create Topic Rooms
+        </button>
         <button class="admin-button" @click="$router.push('/admin/users')">
         Display Users
         </button>
@@ -59,6 +61,7 @@
 
 <script>
 import { Api } from "@/Api";
+import { socket } from "@/socket/client.socket";
 
 export default {
   name: "AdminPage",
@@ -117,14 +120,24 @@ export default {
     },  
 
     async toggleLocalChat() {
-        await Api.put(`/localrooms/${this.localRoom._id}`, {liveChat: this.localRoom.liveChat
-      });
+        await Api.put(`/localrooms/${this.localRoom._id}`, {
+          liveChat: this.localRoom.liveChat});
+
+          socket.emit("admin chat toggle", {
+            roomType: "LocalRoom",
+            live: this.localRoom.liveChat
+          });
       
     },
 
     async toggleGlobalChat() {
         await Api.put(`/globalrooms/${this.globalRoom.room_Id}`, {
             live_Chat: this.globalRoom.live_Chat});
+
+            socket.emit("admin chat toggle", {
+              roomType: "GlobalRoom",
+              live: this.globalRoom.live_Chat
+            });
     },
 
     async deleteAllMessages() {

@@ -10,13 +10,14 @@ import 'bootstrap-vue-next/dist/bootstrap-vue-next.css'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-import { faArrowRightFromBracket, faPaperPlane, faListUl , faGear, faEllipsisVertical} from '@fortawesome/free-solid-svg-icons'
+import { faArrowRightFromBracket, faPaperPlane, faListUl , faGear, faEllipsisVertical, faXmark} from '@fortawesome/free-solid-svg-icons'
 
 library.add(faArrowRightFromBracket)
 library.add(faPaperPlane)
 library.add(faListUl)
 library.add(faGear)
 library.add(faEllipsisVertical)
+library.add(faXmark)
 
 
 

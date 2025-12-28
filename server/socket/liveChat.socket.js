@@ -18,6 +18,13 @@ module.exports = function (io) {
         socket.userId = null;    
         socket.currentRoom = null;
 
+        socket.on("admin chat toggle", ({ roomType, live }) => {
+            io.emit("chat status changed", {
+                roomType,
+                live
+            });
+        });
+        
         // user joins room
         socket.on("join room", async (data) => {
             
@@ -60,6 +67,7 @@ module.exports = function (io) {
 
                 io.to(socket.currentRoom).emit("chat message", {
                     senderAnonymousName: socket.anonymousName,
+                    ParentMessageId: messageBody.ParentMessageId || '',
                     messageId: messageBody.messageId,
                     Reactions: messageBody.Reactions,
                     senderObjectId: messageBody.Sender,
@@ -68,10 +76,15 @@ module.exports = function (io) {
                 });
 
             } catch (err) {
-                console.log("Send message error:", err);
+                if (err.message === "chatPaused") {
+                    socket.emit("chat paused", {
+                        message: "Chat is currently paused."
+                });
+                } else {
+                    console.log("Send message error:", err);
+                }
             }
         });
-
         // user reacts to a message
         socket.on("react to message", async (payload) =>{
             if(!socket.roomId) return;
@@ -83,6 +96,7 @@ module.exports = function (io) {
 
                 io.to(socket.currentRoom).emit("react to message", {
                     senderAnonymousName: socket.anonymousName,
+                    ParentMessageId: updatedMessage.ParentMessageId,
                     messageId: updatedMessage.messageId,
                     Reactions: updatedMessage.Reactions,
                     senderObjectId: updatedMessage.Sender,
@@ -103,12 +117,16 @@ module.exports = function (io) {
 
             try {
                 const messageBody = await responceToMessageInABranchingRoom(socket.roomId, socket.anonymousName, responceMessageData, parentMessageId);
+
+                const parentMessageBody = messageBody.ParentMessageId;
               
                 console.log("Saved message:", messageBody);
 
                 io.to(socket.currentRoom).emit("respond to a message", {
                     senderAnonymousName: socket.anonymousName,
-                    parentMessageId,
+                    ParentMessageId: { Body: parentMessageBody.Body,
+                         messageId: parentMessageBody.messageId,
+                         messageObjectId: parentMessageBody._id},
                     messageId: messageBody.messageId,
                     senderObjectId: messageBody.Sender,
                     Reactions: messageBody.Reactions,
