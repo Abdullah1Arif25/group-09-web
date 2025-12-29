@@ -9,7 +9,7 @@
     <div class="nav-right">
       <a class="nav-item" @click="$router.push('/contact')">Contact</a>
       <span class="divider">|</span>
-      <a class="nav-item" @click="$router.push('/admin')">Admin</a>
+      <a class="nav-item" @click="$router.push('/adminlogin')">Admin</a>
     </div>
   </nav>
 
