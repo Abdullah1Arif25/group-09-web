@@ -265,7 +265,9 @@ const getAllMessagesInBranchingRoom  = async function(req, res, next) {
 // GET: Read A specific message in a specific branching room 
 const getAMessageInABranchingRoom =  async function(req, res, next){
     try{
-        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});
+
+        const {branchingRoomId, messageId} = req.params;
+        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: branchingRoomId});
         const allmessagesModelInBranchingRoom = await messagesModel.find({BranchingRoom: branchingRoom._id});
         const MessageInBranchingRoom = await messagesModel.findOne({messageId: req.params.messageId}).populate("ParentMessageId").populate("BranchingRoom").populate("Sender");
         if(!allmessagesModelInBranchingRoom){ res.status(404).json({message:"Not Found"});}
