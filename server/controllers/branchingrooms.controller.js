@@ -212,7 +212,36 @@ const getAllBranchingRooms = async function(req, res, next){
 const getBranchingRoom =  async function(req, res, next){
     try{
         const SingleBranchingRooms = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId}).populate("parentRoomId").exec();
-        res.status(200).json(SingleBranchingRooms);
+        const HATEOAS = {
+            ...SingleBranchingRooms.toObject(),
+            "_links": {
+                "self":{
+                    href: `/branchingRooms/${SingleBranchingRooms.branchingRoomId}`,
+                    method: "GET"
+                },
+                 "createAMessage":{
+                    href :`/branchingRooms/${SingleBranchingRooms.branchingRoomId}/messages`,
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+
+                },
+                "GetAllMessages":{
+                    href : `/branchingRooms/${SingleBranchingRooms.branchingRoomId}/messages`,
+                    method: "GET"
+                },
+                "updateMessage":{
+                    href:  `/branchingRooms/${SingleBranchingRooms.branchingRoomId}/messages/`,
+                    method: "PATCH"
+                },
+                "deleteMessage":{
+                    href: `/branchingRooms/${SingleBranchingRooms.branchingRoomId}/messages/`,
+                    method: "DELETE"
+                }
+
+            }
+        }
+
+        res.status(200).json(HATEOAS);
     }catch(err){
         next(err);
     } 
@@ -240,7 +269,31 @@ const getAMessageInABranchingRoom =  async function(req, res, next){
         const allmessagesModelInBranchingRoom = await messagesModel.find({BranchingRoom: branchingRoom._id});
         const MessageInBranchingRoom = await messagesModel.findOne({messageId: req.params.messageId}).populate("ParentMessageId").populate("BranchingRoom").populate("Sender");
         if(!allmessagesModelInBranchingRoom){ res.status(404).json({message:"Not Found"});}
-        res.status(200).json(MessageInBranchingRoom);
+
+        const HATEOASMessage = {
+            ...MessageInBranchingRoom.toObject(),
+            "_links":{
+                "self":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "GET"
+                },
+                "createResponse":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                },
+                "updateMessage":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "PATCH"
+                },
+                "deleteMessage":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "DELETE"
+                },
+            }
+        }
+
+        res.status(200).json(HATEOASMessage);
 
     }catch (err){
         next(err);
@@ -343,5 +396,3 @@ const deleteMessageInBranchingRoom = async function(req, res, next){
 
 
 module.exports = {respondtoMessageInABranchingRoom,createBranchingRoom,createMessageInABranchingRoom, reactToMessageInABranchingRoom,joinRoom,getAMessageInABranchingRoom, getAllBranchingRooms, getAllMessagesInBranchingRoom, getBranchingRoom, updateBranchingRoomTopic, updateMessageInBranchingRoom, deleteAllBranchingRooms, deleteBranchingRoom, deleteMessageInBranchingRoom}
-
-
