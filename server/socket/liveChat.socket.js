@@ -13,7 +13,7 @@ module.exports = function (io) {
         console.log("new Connection: ",socket.id);
 
         // Initialize variables
-        socket.anonymousName = generateAnonymousName();
+        socket.anonymousNames = new Map();
         socket.roomId = null;
         socket.userId = null;    
         socket.currentRoom = null;
@@ -38,17 +38,17 @@ module.exports = function (io) {
 
                 // leave previous room
                 if (socket.currentRoom) {
+                    const prevName = socket.anonymousNames.get(socket.currentRoom);
+                    if (prevName) deleteAnonymousName(prevName);
                     socket.leave(socket.currentRoom);
+                    socket.anonymousNames.delete(socket.currentRoom);
                 }
 
                 socket.join(roomId);
                 socket.currentRoom = roomId;
 
-                // notifies users in the room
-                io.to(roomId).emit("chat message", {
-                    text: `${socket.anonymousName} joined the room.`,
-                    timestamp: new Date()
-                });
+                const name = generateAnonymousName();
+                socket.anonymousNames.set(roomId, name);
 
             } catch (err) {
                 console.log("Join room error:", err);
@@ -57,16 +57,18 @@ module.exports = function (io) {
 
         // user sends message
         socket.on("chat message", async (messageData) => {
-            if (!socket.roomId) 
+            if (!socket.currentRoom) 
                 return;
 
             try {
-                const messageBody = await createMessageInABranchingRoom(socket.roomId, socket.anonymousName, messageData);
+
+                const name = socket.anonymousNames.get(socket.currentRoom);
+                const messageBody = await createMessageInABranchingRoom(socket.currentRoom, name, messageData);
               
                 console.log("Saved message:", messageBody);
 
                 io.to(socket.currentRoom).emit("chat message", {
-                    senderAnonymousName: socket.anonymousName,
+                    senderAnonymousName: name,
                     ParentMessageId: messageBody.ParentMessageId || '',
                     messageId: messageBody.messageId,
                     Reactions: messageBody.Reactions,
@@ -87,15 +89,15 @@ module.exports = function (io) {
         });
         // user reacts to a message
         socket.on("react to message", async (payload) =>{
-            if(!socket.roomId) return;
+            if(!socket.currentRoom) return;
 
             try{
-
+                const name = socket.anonymousNames.get(socket.currentRoom);
                 const updatedMessage = await reactToMessageInBranchingRoom(payload);
                 console.log("updated message:", updatedMessage);
 
                 io.to(socket.currentRoom).emit("react to message", {
-                    senderAnonymousName: socket.anonymousName,
+                    senderAnonymousName: name,
                     ParentMessageId: updatedMessage.ParentMessageId,
                     messageId: updatedMessage.messageId,
                     Reactions: updatedMessage.Reactions,
@@ -112,18 +114,18 @@ module.exports = function (io) {
         // user respond to a  message
         socket.on("respond to a message", async (payload) => {
             const {responceMessageData, parentMessageId} = payload;
-            if (!socket.roomId) 
+            if (!socket.currentRoom) 
                 return;
 
             try {
-                const messageBody = await responceToMessageInABranchingRoom(socket.roomId, socket.anonymousName, responceMessageData, parentMessageId);
-
+                const name = socket.anonymousNames.get(socket.currentRoom);
+                const messageBody = await responceToMessageInABranchingRoom(socket.currentRoom, name, responceMessageData, parentMessageId);
                 const parentMessageBody = messageBody.ParentMessageId;
               
                 console.log("Saved message:", messageBody);
 
                 io.to(socket.currentRoom).emit("respond to a message", {
-                    senderAnonymousName: socket.anonymousName,
+                    senderAnonymousName: name,
                     ParentMessageId: { Body: parentMessageBody.Body,
                          messageId: parentMessageBody.messageId,
                          messageObjectId: parentMessageBody._id},
@@ -141,7 +143,9 @@ module.exports = function (io) {
 
         // user disconnects
         socket.on("disconnect", () => {
-            deleteAnonymousName(socket.anonymousName);
+           for (const name of socket.anonymousNames.values()) {
+            deleteAnonymousName(name);
+        }
         });
     });
 }
