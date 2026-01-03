@@ -14,6 +14,7 @@ import AboutPage from "./views/AboutPage.vue"
 import ContactPage from "./views/ContactPage.vue"
 import SupportPage from "./views/SupportPage.vue"
 import CreateRooms from "./views/CreateRooms.vue"
+import AdminLogin from "./views/AdminLogin.vue"
 
 
 
@@ -34,6 +35,7 @@ const routes = [
   { path: "/support", name: "Support page",component: SupportPage },
   { path: "/contact", name: "Contact page",component: ContactPage },
   { path: "/admin/createrooms", name: "Create Rooms",component: CreateRooms },
+  { path: "/adminlogin", name: "AdminLogin", component: AdminLogin}
 ]
 
 const router = createRouter({
