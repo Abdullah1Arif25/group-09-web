@@ -1,15 +1,15 @@
 <template>
   <nav class="soft-navbar">
     <div class="nav-left">
-      <a class="nav-item" @click="$router.push('/')">Home</a>
+      <a class="nav-item" @click="$router.push('/main')">Home</a>
       <span class="divider">|</span>
       <a class="nav-item" @click="$router.push('/about')">About</a>
     </div>
 
     <div class="nav-right">
-      <a class="nav-item" @click="$router.push('/contact')">Contact</a>
-      <span class="divider">|</span>
-      <a class="nav-item" @click="$router.push('/profile')">Profile</a>
+    <a v-if="!isAdmin" class="nav-item" @click="$router.push('/contact')">Contact</a>
+    <span class="divider">|</span>
+    <a class="nav-item" @click="$router.push(isAdmin ? '/admin' : '/profile')"> {{ isAdmin ? 'Admin' : 'Profile' }}</a>
     </div>
   </nav>
 

@@ -2,6 +2,7 @@ const express = require("express");
 const BranchingRoom = require("../models/branchingroom.model");
 const messagesModel = require("../models/message.model");
 const User = require("../models/user.model");
+const {toMessageResource} = require("../services/toMessageResource.services");
 
 
 
@@ -32,11 +33,17 @@ const createBranchingRoom = async function(req, res, next){
 // POST:  Create A message in a specific Branching Room
 const createMessageInABranchingRoom = async function(req, res, next){
     try{
-        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});        
+        const{branchingRoomId}= req.params;
+        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: branchingRoomId});        
         if(!branchingRoom){ return res.status(400).json({message:"The Branching Room Does not exists"});}
         const branchingRoomObjectId = branchingRoom._id;
 
         const newMessage = await messagesModel.create({BranchingRoom: branchingRoomObjectId, ...req.body});
+
+        const newMessageWithResources = toMessageResource(newMessage,branchingRoomId);
+
+        const io = req.app.get("io");
+        io.to(branchingRoomId).emit("chat message", newMessageWithResources);
         res.status(201).json({message: "Success", Object: newMessage});
 
     }catch (err){
@@ -49,8 +56,9 @@ const createMessageInABranchingRoom = async function(req, res, next){
 // POST: Create A response message in a specific Branching Room and link it to the original message
 const respondtoMessageInABranchingRoom = async function(req, res, next){
        try{
+        const {branchingRoomId} = req.params;
 
-        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});        
+        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: branchingRoomId});        
         if(!branchingRoom){ return res.status(409).json({message:"The Branching Room Does not exists"});}
         const branchingRoomObjectId = branchingRoom._id;
         
@@ -61,11 +69,16 @@ const respondtoMessageInABranchingRoom = async function(req, res, next){
         if(!originalMessage){ return res.status(400).json({message:"The Message Does not exists"});}
         const originalMessageObjectId = originalMessage._id;
 
-        const newReponseMessage = await messagesModel.create({BranchingRoom: branchingRoomObjectId,ParentMessageId:originalMessageObjectId ,  ...req.body});
+        const newResponseMessage = await messagesModel.create({BranchingRoom: branchingRoomObjectId,ParentMessageId:originalMessageObjectId ,  ...req.body});
 
-        await newReponseMessage.populate("ParentMessageId");
+        await newResponseMessage.populate("ParentMessageId");
 
-        res.status(201).json({message: "Success", Object: newReponseMessage});
+        const newResponseWithResources = toMessageResource(newResponseMessage,branchingRoomId);
+
+        const io = req.app.get("io");
+        io.to(branchingRoomId).emit("respond to a message", newResponseWithResources);
+
+        res.status(201).json({message: "Success", Object: newResponseMessage});
 
     }catch (err){
         next(err);
@@ -112,6 +125,12 @@ const reactToMessageInABranchingRoom = async function (req, res, next) {
         message.Reactions.push(req.body);
         const savedMessage = await message.save();
         await savedMessage.populate("Reactions");
+
+        
+        const updatedMessageWithResources = toMessageResource(savedMessage,branchingRoomId);
+
+        const io = req.app.get("io");
+        io.to(branchingRoomId).emit("react to message", updatedMessageWithResources);
 
         res.status(200).json({
             message: "Reaction saved",
@@ -211,8 +230,12 @@ const getAllBranchingRooms = async function(req, res, next){
 // GET: Read One Branching Rooms SuperType
 const getBranchingRoom =  async function(req, res, next){
     try{
-        const SingleBranchingRooms = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId}).populate("parentRoomId").exec();
-        res.status(200).json(SingleBranchingRooms);
+
+        const{branchingRoomId} = req.params;
+        const SingleBranchingRooms = await BranchingRoom.findOne({branchingRoomId: branchingRoomId}).populate("parentRoomId").exec();
+        const HATEOAS = toMessageResource(SingleBranchingRooms, branchingRoomId);
+
+        res.status(200).json(HATEOAS);
     }catch(err){
         next(err);
     } 
@@ -221,11 +244,16 @@ const getBranchingRoom =  async function(req, res, next){
 
 // GET:  Read All messages in a branching room
 const getAllMessagesInBranchingRoom  = async function(req, res, next) {
+
     try{
-        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});
+
+        const{branchingRoomId} = req.params;
+        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: branchingRoomId});
         const allmessagesModelInBranchingRoom = await messagesModel.find({BranchingRoom: branchingRoom._id}).populate("BranchingRoom").populate("ParentMessageId").populate("Sender");
         if(!allmessagesModelInBranchingRoom){ res.status(404).json({message:"Not Found"});}
-        res.status(200).json(allmessagesModelInBranchingRoom);
+
+        const allmessagesInBranchingRoomWithResources= allmessagesModelInBranchingRoom.map(m=>toMessageResource(m, branchingRoomId));
+        res.status(200).json(allmessagesInBranchingRoomWithResources);
 
     }catch (err){
         next(err);
@@ -236,11 +264,37 @@ const getAllMessagesInBranchingRoom  = async function(req, res, next) {
 // GET: Read A specific message in a specific branching room 
 const getAMessageInABranchingRoom =  async function(req, res, next){
     try{
-        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: req.params.branchingRoomId});
+
+        const {branchingRoomId, messageId} = req.params;
+        const branchingRoom = await BranchingRoom.findOne({branchingRoomId: branchingRoomId});
         const allmessagesModelInBranchingRoom = await messagesModel.find({BranchingRoom: branchingRoom._id});
         const MessageInBranchingRoom = await messagesModel.findOne({messageId: req.params.messageId}).populate("ParentMessageId").populate("BranchingRoom").populate("Sender");
         if(!allmessagesModelInBranchingRoom){ res.status(404).json({message:"Not Found"});}
-        res.status(200).json(MessageInBranchingRoom);
+
+        const HATEOASMessage = {
+            ...MessageInBranchingRoom.toObject(),
+            "_links":{
+                "self":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "GET"
+                },
+                "createResponse":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                },
+                "updateMessage":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "PATCH"
+                },
+                "deleteMessage":{
+                    href:`/branchingRooms/${branchingRoomId}/messages/${messageId}`,
+                    method: "DELETE"
+                },
+            }
+        }
+
+        res.status(200).json(HATEOASMessage);
 
     }catch (err){
         next(err);

@@ -13,7 +13,7 @@ module.exports = function (io) {
         console.log("new Connection: ",socket.id);
 
         // Initialize variables
-        socket.anonymousName = generateAnonymousName();
+        socket.anonymousNames = new Map();
         socket.roomId = null;
         socket.userId = null;    
         socket.currentRoom = null;
@@ -38,110 +38,28 @@ module.exports = function (io) {
 
                 // leave previous room
                 if (socket.currentRoom) {
+                    const prevName = socket.anonymousNames.get(socket.currentRoom);
+                    if (prevName) deleteAnonymousName(prevName);
                     socket.leave(socket.currentRoom);
+                    socket.anonymousNames.delete(socket.currentRoom);
                 }
 
                 socket.join(roomId);
                 socket.currentRoom = roomId;
 
-                // notifies users in the room
-                io.to(roomId).emit("chat message", {
-                    text: `${socket.anonymousName} joined the room.`,
-                    timestamp: new Date()
-                });
+                const name = generateAnonymousName();
+                socket.anonymousNames.set(roomId, name);
 
             } catch (err) {
                 console.log("Join room error:", err);
             }
         });
-
-        // user sends message
-        socket.on("chat message", async (messageData) => {
-            if (!socket.roomId) 
-                return;
-
-            try {
-                const messageBody = await createMessageInABranchingRoom(socket.roomId, socket.anonymousName, messageData);
-              
-                console.log("Saved message:", messageBody);
-
-                io.to(socket.currentRoom).emit("chat message", {
-                    senderAnonymousName: socket.anonymousName,
-                    ParentMessageId: messageBody.ParentMessageId || '',
-                    messageId: messageBody.messageId,
-                    Reactions: messageBody.Reactions,
-                    senderObjectId: messageBody.Sender,
-                    Body: messageBody.Body,
-                    timestamp:messageBody.SendTimestamp
-                });
-
-            } catch (err) {
-                if (err.message === "chatPaused") {
-                    socket.emit("chat paused", {
-                        message: "Chat is currently paused."
-                });
-                } else {
-                    console.log("Send message error:", err);
-                }
-            }
-        });
-        // user reacts to a message
-        socket.on("react to message", async (payload) =>{
-            if(!socket.roomId) return;
-
-            try{
-
-                const updatedMessage = await reactToMessageInBranchingRoom(payload);
-                console.log("updated message:", updatedMessage);
-
-                io.to(socket.currentRoom).emit("react to message", {
-                    senderAnonymousName: socket.anonymousName,
-                    ParentMessageId: updatedMessage.ParentMessageId,
-                    messageId: updatedMessage.messageId,
-                    Reactions: updatedMessage.Reactions,
-                    senderObjectId: updatedMessage.Sender,
-                    Body: updatedMessage.Body,
-                    timestamp:updatedMessage.SendTimestamp
-                });
-
-            } catch(err){
-                console.log("Send message error:", err);
-            }
-        })
-
-        // user respond to a  message
-        socket.on("respond to a message", async (payload) => {
-            const {responceMessageData, parentMessageId} = payload;
-            if (!socket.roomId) 
-                return;
-
-            try {
-                const messageBody = await responceToMessageInABranchingRoom(socket.roomId, socket.anonymousName, responceMessageData, parentMessageId);
-
-                const parentMessageBody = messageBody.ParentMessageId;
-              
-                console.log("Saved message:", messageBody);
-
-                io.to(socket.currentRoom).emit("respond to a message", {
-                    senderAnonymousName: socket.anonymousName,
-                    ParentMessageId: { Body: parentMessageBody.Body,
-                         messageId: parentMessageBody.messageId,
-                         messageObjectId: parentMessageBody._id},
-                    messageId: messageBody.messageId,
-                    senderObjectId: messageBody.Sender,
-                    Reactions: messageBody.Reactions,
-                    Body: messageBody.Body,
-                    timestamp:messageBody.SendTimestamp
-                });
-
-            } catch (err) {
-                console.log("Send message error:", err);
-            }
-        });
-
+ 
         // user disconnects
         socket.on("disconnect", () => {
-            deleteAnonymousName(socket.anonymousName);
+           for (const name of socket.anonymousNames.values()) {
+            deleteAnonymousName(name);
+        }
         });
     });
 }
