@@ -65,7 +65,7 @@ app.use(function (err, req, res, next) {
 const httpServer = http.createServer(app);
 
 // attach socket to HTTP server
-setupSocket(httpServer,app);
+setupSocket(httpServer, app);
 
 // start server
 httpServer.listen(port, function(err) {
