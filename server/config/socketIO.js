@@ -1,6 +1,6 @@
 const { Server } = require("socket.io");
 
-module.exports = function setupSocket(httpServer) {
+module.exports = function setupSocket(httpServer, app) {
   const io = new Server(httpServer, {
     cors: {
       origin: "*",
@@ -10,6 +10,6 @@ module.exports = function setupSocket(httpServer) {
 
   // load live chat logic
   require("../socket/liveChat.socket")(io);
-
+  app.set("io", io);
   console.log("Socket running.");
 };
