@@ -236,7 +236,7 @@ import { socket } from '@/socket/client.socket';
 import { getUserObjectId } from '@/cache/user.cache.js';
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
 import SettingsPopup from "./SettingsPopup.vue";
-
+import {followLink} from "../services/hateoas.service";
 
 const REACTIONS = [
   { type: "like", emoji: "👍" },
@@ -266,19 +266,22 @@ export default {
       chatListner: null,
       activeMessageOption: null,
       parentMessageId: '',
+      parentMessageContent: '',
       showReactionsForMessage: null,
       REACTIONS,
       replyBannerActive: '',
-      parentMessageContent: '',
       isLight: false,
       showSettings: false,
       selectedMessageId:'',
       chatPaused: false,
       chatPausedMessage: "",
       messageInput: "",
-      selectedMessageId: null,
       isEditing: false,
       originalEditMessage: '',
+      messageRelatedLinks:null,
+      selectedMessageId: null,
+
+
       
 
     };
@@ -307,22 +310,25 @@ export default {
       const exists = this.messages.some(m => m.messageId === msg.messageId);
       if (exists) return;
 
+      console.log("This is a message we are testing",msg);
+
       this.messages.push({
-        senderId: msg.senderObjectId,
+        messageId: msg.messageId,
+        Body: msg.Body,
+        timestamp: msg.SendTimestamp,
+        ResponseIds: msg.ResponseIds || [],
+        senderId: msg.Sender,
         ParentMessageId: msg.ParentMessageId?{
             Body: msg.ParentMessageId.Body,
             MessageId: msg.ParentMessageId.messageId,
             messageObjectId: msg.ParentMessageId._id,
         }: null,
         messageObjectId: msg._id,
-        messageId: msg.messageId,
-        ResponseIds: msg.ResponseIds,
-
         anonymousName: msg.senderAnonymousName,
-        Body: msg.Body,
-        timestamp: msg.timestamp,
-        reactions: msg.Reactions || []
+        reactions: msg.Reactions || [],
+        _links :msg._links|| null,
       });
+      console.log(this.messages);
 
       this.$nextTick(this.scrollToBottom);
     };
@@ -419,11 +425,22 @@ export default {
 
     openOptionMenu(messageId) {
       this.activeMessageOption = messageId;
+      const msg = this.messages.find(m => m.messageId === messageId);
+      this.messageRelatedLinks = msg?._links || null;
+      console.log("this is the message", msg);
+      console.log("this is the message related links", this.messageRelatedLinks);
+
+
     },
+
+
+    
 
     closeOptionMenu() {
       this.activeMessageOption = null;
       this.showReactionsForMessage = null;
+      this.messageRelatedLinks = null;
+
     },
 
     openMenu() {
@@ -448,17 +465,25 @@ export default {
     },
 
     async deleteMessage(msg){
-      const messageExist = await Api.delete(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
-        if(!messageExist){
-            throw new Error("Message Does not exist");
+
+      try{
+        console.log(msg);
+        const deleteLink = msg?._links?.deleteMessage;
+        if(!deleteLink){
+          console.log("No Delete Link on message");
+          return;
         }
+        await followLink(deleteLink);
         this.activeMessageOption = '';
         this.fetchMessages();
+      }catch(err){
+        console.err("Delete Failed", err);
+      }
+
 
     },
 
     async replyToMessage(msg) {
-      await Api.get(`/branchingrooms/${this.branchingRoomId}/messages/${msg.messageId}`);
       this.parentMessageId = msg.messageId;
       this.replyBannerActive = msg.messageId;
       this.parentMessageContent = msg.Body;
@@ -477,6 +502,7 @@ export default {
 
       const room = res.data.Body?.[0];
       this.branchingRoomId = room ? room.branchingRoomId : '';
+      console.log(this.branchingRoomId);
 
       if (this.branchingRoomId) {
         await this.fetchMessages();
@@ -501,22 +527,18 @@ export default {
         anonymousName: m.anonymousName,
         Body: m.Body,
         timestamp: m.SendTimestamp,
-        reactions: m.Reactions || []
+        reactions: m.Reactions || [],
+        _links:m._links|| null,
       }));
     },
 
     async sendMessage() {
-      if (!this.message.trim() || !this.branchingRoomId) return;
-
+      if (!this.message.trim()) return;
         if (this.isEditing && this.selectedMessageId) {
           try {
-            await Api.patch(
-              `/branchingrooms/${this.branchingRoomId}/messages/${this.selectedMessageId}`,
-              {
-                Body: this.message
-              }
-            );
-            
+            const msg = this.messages.find(m=> m.messageId === this.selectedMessageId);
+            await followLink(msg._links.updateMessage, {Body:this.message});
+
             this.isEditing = false;
             this.selectedMessageId = null;
             this.message = '';
@@ -530,7 +552,6 @@ export default {
             return;
           }
         }
-
       const messageId = this.parentMessageId
         ? `responceMessageId${Math.floor(Math.random() * 100000)}`
         : `messageId${Math.floor(Math.random() * 100000)}`;
@@ -539,17 +560,19 @@ export default {
         messageId,
         Body: this.message,
         SendTimestamp: new Date().toISOString(),
-        Sender: this.senderObjectId
+        Reaction: null,
+        ResponseIds: [],
+        Sender: this.senderObjectId,
+
       };
 
       if (this.parentMessageId) {
-        this.socket.emit("respond to a message", {
-          responceMessageData: payload,
-          parentMessageId: this.parentMessageId
-        });
+          const msg = this.messages.find(m=> m.messageId === this.parentMessageId);
+          console.log(msg._links.createResponse);
+          await followLink(msg._links.createResponse, payload);
         this.parentMessageId = '';
       } else {
-        this.socket.emit("chat message", payload);
+          await Api.post(`/branchingrooms/${this.branchingRoomId}/messages/`, payload);
       }
 
       this.message = '';
@@ -583,12 +606,13 @@ export default {
             
         }
 
-        this.socket.emit("react to message", payload);
+        const msg = this.messages.find(m => m.messageId === messageId);
 
-      // const msg = this.messages.find(m => m.messageId === messageId);
-      // if (msg) {
-      //   msg.reactions = res.data.reactions || [];
-      // }
+        followLink(msg._links.reactToMessage, payload);
+
+      if (msg) {
+        msg.reactions = res.data.reactions || [];
+      }
 
       this.closeOptionMenu();
     }, 
