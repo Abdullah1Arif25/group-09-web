@@ -397,5 +397,3 @@ const deleteMessageInBranchingRoom = async function(req, res, next){
 
 
 module.exports = {respondtoMessageInABranchingRoom,createBranchingRoom,createMessageInABranchingRoom, reactToMessageInABranchingRoom,joinRoom,getAMessageInABranchingRoom, getAllBranchingRooms, getAllMessagesInBranchingRoom, getBranchingRoom, updateBranchingRoomTopic, updateMessageInBranchingRoom, deleteAllBranchingRooms, deleteBranchingRoom, deleteMessageInBranchingRoom}
-
-
