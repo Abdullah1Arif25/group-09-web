@@ -43,7 +43,16 @@ const createMessageInABranchingRoom = async function(req, res, next){
         const newMessageWithResources = toMessageResource(newMessage,branchingRoomId);
 
         const io = req.app.get("io");
+
+        if(io){
+            console.log("IO IN CONTROLLER", {
+                exists: !!io,
+                hasEmit: typeof io?.emit === "function", 
+
+            });
+        }
         io.to(branchingRoomId).emit("chat message", newMessageWithResources);
+
         res.status(201).json({message: "Success", Object: newMessage});
 
     }catch (err){
@@ -76,6 +85,14 @@ const respondtoMessageInABranchingRoom = async function(req, res, next){
         const newResponseWithResources = toMessageResource(newResponseMessage,branchingRoomId);
 
         const io = req.app.get("io");
+
+                if(io){
+            console.log("IO IN CONTROLLER", {
+                exists: !!io,
+                hasEmit: typeof io?.emit === "function", 
+
+            });
+        }
         io.to(branchingRoomId).emit("respond to a message", newResponseWithResources);
 
         res.status(201).json({message: "Success", Object: newResponseMessage});
@@ -130,6 +147,13 @@ const reactToMessageInABranchingRoom = async function (req, res, next) {
         const updatedMessageWithResources = toMessageResource(savedMessage,branchingRoomId);
 
         const io = req.app.get("io");
+        if(io){
+            console.log("IO IN CONTROLLER", {
+                exists: !!io,
+                hasEmit: typeof io?.emit === "function", 
+
+            });
+        }
         io.to(branchingRoomId).emit("react to message", updatedMessageWithResources);
 
         res.status(200).json({
@@ -397,3 +421,5 @@ const deleteMessageInBranchingRoom = async function(req, res, next){
 
 
 module.exports = {respondtoMessageInABranchingRoom,createBranchingRoom,createMessageInABranchingRoom, reactToMessageInABranchingRoom,joinRoom,getAMessageInABranchingRoom, getAllBranchingRooms, getAllMessagesInBranchingRoom, getBranchingRoom, updateBranchingRoomTopic, updateMessageInBranchingRoom, deleteAllBranchingRooms, deleteBranchingRoom, deleteMessageInBranchingRoom}
+
+

@@ -424,6 +424,7 @@ export default {
     },
 
     openOptionMenu(messageId) {
+      console.log(this.messages);
       this.activeMessageOption = messageId;
       const msg = this.messages.find(m => m.messageId === messageId);
       this.messageRelatedLinks = msg?._links || null;
@@ -514,6 +515,8 @@ export default {
         `/branchingrooms/${this.branchingRoomId}/messages`
       );
 
+      console.log(res);
+
       this.messages = res.data.map(m => ({
         senderId: m.Sender._id,
         ParentMessageId: m.ParentMessageId ? {
@@ -528,7 +531,7 @@ export default {
         Body: m.Body,
         timestamp: m.SendTimestamp,
         reactions: m.Reactions || [],
-        _links:m._links|| null,
+        _links:m._links || null,
       }));
     },
 
@@ -1221,10 +1224,6 @@ export default {
   color:#2b0d2b; 
   font-weight: bold;   
 }
-
-
-
-
 
 </style>
 
